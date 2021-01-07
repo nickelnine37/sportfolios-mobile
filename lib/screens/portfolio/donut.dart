@@ -7,9 +7,9 @@ import 'package:sportfolios_alpha/utils/number_format.dart';
 
 double _pi = 3.1415926535;
 
-class AnimatedBarChart extends StatelessWidget {
+class AnimatedDonutChart extends StatelessWidget {
   final Tween<double> _donutFade = Tween<double>(begin: 0, end: 1);
-  AnimatedBarChart({Key key}) : super(key: key);
+  AnimatedDonutChart({Key key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -273,8 +273,8 @@ class _PieChartState extends State<PieChart> {
     }
 
     Container centralText = Container(
-        width: 200,
-        height: 200,
+        width: 180,
+        height: 180,
         child: Center(child: Consumer(builder: (context, watch, value) {
           String currency = watch(settingsProvider).currency;
           return Text(
@@ -311,8 +311,8 @@ class _PieChartState extends State<PieChart> {
                   segmentPainters
                       .map(
                         (segment) => Container(
-                            width: 200,
-                            height: 200,
+                            width: 180,
+                            height: 180,
                             child: CustomPaint(painter: segment)),
                       )
                       .toList(),
@@ -365,7 +365,7 @@ class DonutSegmentPainter extends CustomPainter {
         textAlign: TextAlign.center);
 
     textPainter.layout(minWidth: 0, maxWidth: 60);
-    textPainter.paint(canvas, Offset.fromDirection(_pi * (this.end + this.start - 0.5), 120) + Offset(100 - (textPainter.width / 2), 100 - (textPainter.height / 2)));
+    textPainter.paint(canvas, Offset.fromDirection(_pi * (this.end + this.start - 0.5), 120) + Offset(90 - (textPainter.width / 2), 90 - (textPainter.height / 2)));
 
   }
 

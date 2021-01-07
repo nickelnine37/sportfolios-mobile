@@ -2,8 +2,11 @@ import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:sportfolios_alpha/screens/portfolio/donut.dart';
 import 'package:sportfolios_alpha/screens/portfolio/price_chart.dart';
+import 'package:sportfolios_alpha/utils/axis_range.dart';
 
 class Portfolio extends StatefulWidget {
+
+  // Portfolio({Portfolio portfoio})
   Portfolio({Key key}) : super(key: key);
 
   @override
@@ -18,7 +21,11 @@ class _PortfolioState extends State<Portfolio> {
           elevation: 0,
           title: Text(
             'Portfolio',
-            style: TextStyle(color: Colors.white, fontWeight: FontWeight.w400, fontSize: 22, letterSpacing: 0.8),
+            style: TextStyle(
+                color: Colors.white,
+                fontWeight: FontWeight.w400,
+                fontSize: 22,
+                letterSpacing: 0.8),
           )),
       body: Container(
         decoration: BoxDecoration(
@@ -29,16 +36,18 @@ class _PortfolioState extends State<Portfolio> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
+            SizedBox(height: 5),
+            Center(child: AnimatedDonutChart()),
             SizedBox(height: 15),
-            //   DonutGraph(
-            //   percentComplete: 1,
-            //   amounts: {'BTC': 0.034, 'ETH': 0.056},
-            //   prices: {'BTC': 29000, 'ETH': 12000},
-            //   colors: {'BTC': Colors.green, 'ETH': Colors.red},
-            // ),
-            Center(child: AnimatedBarChart()),
+            Divider(thickness: 1),
             SizedBox(height: 15),
-            tabSection(context)
+            TabbedPriceGraph(
+              price1h: randomGraph(25),
+              price1d: randomGraph(25),
+              price1w: randomGraph(25),
+              price1M: randomGraph(25),
+              priceMax: randomGraph(25),
+            )
           ],
         ),
       ),
