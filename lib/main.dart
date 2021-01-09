@@ -29,10 +29,11 @@ class MyApp extends StatelessWidget {
 class LoginDirector extends StatelessWidget {
   final AuthService _auth = AuthService();
 
+  // stream builder: when Authservice().user is null, return the login page. Else, return the main app
   @override
   Widget build(BuildContext context) {
     return StreamBuilder(
-        stream: _auth.user,
+        stream: _auth.userStream,
         initialData: LoginPage(),
         builder: (context, snapshot) {
           if (snapshot.hasData) {
@@ -43,6 +44,9 @@ class LoginDirector extends StatelessWidget {
         });
   }
 }
+
+
+// RiverPod method...
 
 // class LoginDirector extends ConsumerWidget {
 

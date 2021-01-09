@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:sportfolios_alpha/data_models/portfolios.dart';
 import 'dart:math';
 import 'dart:ui' as ui;
 
@@ -6,14 +7,10 @@ import 'package:sportfolios_alpha/utils/axis_range.dart';
 import 'package:sportfolios_alpha/utils/number_format.dart';
 
 class TabbedPriceGraph extends StatelessWidget {
-  final List<double> price1h;
-  final List<double> price1d;
-  final List<double> price1w;
-  final List<double> price1M;
-  final List<double> priceMax;
 
-  const TabbedPriceGraph(
-      {this.price1h, this.price1d, this.price1w, this.price1M, this.priceMax});
+  final Portfolio portfolio;
+  const TabbedPriceGraph({@required this.portfolio});
+
 
   @override
   Widget build(BuildContext context) {
@@ -31,19 +28,19 @@ class TabbedPriceGraph extends StatelessWidget {
                 Container(
                   height: 250,
                   width: 200,
-                  child: Center(child: PriceGraph(prices: this.price1h)),
+                  child: Center(child: PriceGraph(prices: this.portfolio.contracts[0].pH)),
                 ),
                 Container(
-                  child: Center(child: PriceGraph(prices: this.price1d)),
+                  child: Center(child: PriceGraph(prices: this.portfolio.contracts[0].pD)),
                 ),
                 Container(
-                  child: Center(child: PriceGraph(prices: this.price1w)),
+                  child: Center(child: PriceGraph(prices: this.portfolio.contracts[0].pW)),
                 ),
                 Container(
-                  child: Center(child: PriceGraph(prices: this.price1M)),
+                  child: Center(child: PriceGraph(prices: this.portfolio.contracts[0].pM)),
                 ),
                 Container(
-                  child: Center(child: PriceGraph(prices: this.priceMax)),
+                  child: Center(child: PriceGraph(prices: this.portfolio.contracts[0].pMax)),
                 ),
               ],
             ),
@@ -168,6 +165,7 @@ class _PriceGraphState extends State<PriceGraph> {
       pmin = widget.prices.reduce(min);
       pmax = widget.prices.reduce(max);
     }
+
 
     return Row(children: [
       GestureDetector(

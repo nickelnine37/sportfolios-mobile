@@ -2,15 +2,14 @@ import 'package:flutter/material.dart';
 import 'package:sportfolios_alpha/providers/authenication_provider.dart';
 import 'package:sportfolios_alpha/screens/login/login_utils.dart';
 
-
-class SendPasswordResetEmail extends StatefulWidget {
-  SendPasswordResetEmail({Key key}) : super(key: key);
+class PasswordResetPage extends StatefulWidget {
+  PasswordResetPage({Key key}) : super(key: key);
 
   @override
-  _SendPasswordResetEmailState createState() => _SendPasswordResetEmailState();
+  _PasswordResetPageState createState() => _PasswordResetPageState();
 }
 
-class _SendPasswordResetEmailState extends State<SendPasswordResetEmail> {
+class _PasswordResetPageState extends State<PasswordResetPage> {
   String _email;
   String _bottomText =
       "Enter your email above. If you've registered an account, a link will be sent for you to reset your password. ";
@@ -62,6 +61,7 @@ class _SendPasswordResetEmailState extends State<SendPasswordResetEmail> {
                             width: 300,
                             height: 60,
                             child: TextFormField(
+                                autocorrect: false,
                                 keyboardType: TextInputType.emailAddress,
                                 validator: (email) {
                                   if (!isValidEmail(email)) {
@@ -120,4 +120,3 @@ class _SendPasswordResetEmailState extends State<SendPasswordResetEmail> {
         ));
   }
 }
-

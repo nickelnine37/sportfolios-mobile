@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
+/// helper function for creating stylised text input boxes
 InputDecoration createTextInput(String hint) {
-  /// helper function for creating stylised text input boxes
 
   OutlineInputBorder _boxBorder({Color color, double width}) {
     return OutlineInputBorder(
@@ -18,7 +18,7 @@ InputDecoration createTextInput(String hint) {
     filled: true,
     hintStyle: new TextStyle(color: Colors.white, fontSize: 17),
     hintText: hint,
-    fillColor: Colors.blue[200],
+    fillColor: Colors.transparent,
     contentPadding: EdgeInsets.symmetric(horizontal: 20, vertical: 10),
   );
 }
@@ -34,6 +34,7 @@ bool isValidPassword(String password) {
 }
 
 bool isValidUsername(String username) {
-  return RegExp(r"^[a-zA-Z0-9]+([_ -]?[a-zA-Z0-9])*$").hasMatch(username) &&
-      (username.length > 4);
+  return (username.length > 4 && username.length < 20);
 }
+
+// RegExp(r"^[a-zA-Z0-9]+([_ -.]?[a-zA-Z0-9])*$").hasMatch(username)

@@ -6,7 +6,12 @@ class Contract {
   String imageURL;
   double price;
 
-  List<double> price24h;
+  List<double> pH;
+  List<double> pD;
+  List<double> pW;
+  List<double> pM;
+  List<double> pMax;
+
   double changePrice;
   double changePercent;
   bool bull;
@@ -20,24 +25,43 @@ class Contract {
 
   setData(data) {
     this.imageURL = data['image'];
-    this.price24h =
-        List<double>.from(data['price24'].map((item) => 1.0 * item).toList());
-    this.price = this.price24h[this.price24h.length - 1];
-    this.bull = (this.price > this.price24h[0]);
-    this.changePrice = this.price - this.price24h[0];
-    this.changePercent = 1 - this.price / this.price24h[0];
+    this.pH = List<double>.from(
+        data['pH']?.map((item) => 1.0 * item)?.toList() ?? []);
+    this.pD = List<double>.from(
+        data['pD']?.map((item) => 1.0 * item)?.toList() ?? []);
+    this.pW = List<double>.from(
+        data['pW']?.map((item) => 1.0 * item)?.toList() ?? []);
+    this.pM = List<double>.from(
+        data['pM']?.map((item) => 1.0 * item)?.toList() ?? []);
+    this.pMax = List<double>.from(
+        data['pMax']?.map((item) => 1.0 * item)?.toList() ?? []);
+
+    this.price = this.pH.last;
+    // this.bull = (this.price > this.price24h[0]);
+    // this.changePrice = this.price - this.price24h[0];
+    // this.changePercent = 1 - this.price / this.price24h[0];
   }
+
+  @override
+  String toString() {
+  return 'Contract(${this.name})';
+   }
 }
 
 class TeamContract extends Contract {
   String contractType = 'team';
 
   TeamContract.fromMap(Map<String, dynamic> data) {
+    if (data == null) {
+      print('WARNING: TeamContract passed null data');
+      return;
+    }
+
     this.name = data['team_name'];
-    info1 = "P ${data['played']}";
-    info2 =
+    this.info1 = "P ${data['played']}";
+    this.info2 =
         "GD ${data['goal_difference'] > 0 ? '+' : '-'}${data['goal_difference'].abs()}";
-    info3 = "PTS ${data['points']}";
+    this.info3 = "PTS ${data['points']}";
 
     super.setData(data);
   }
@@ -47,22 +71,26 @@ class PlayerContract extends Contract {
   String contractType = 'player';
 
   PlayerContract.fromMap(Map<String, dynamic> data) {
+    if (data == null) {
+      print('WARNING: PlayerContract passed null data');
+      return;
+    }
     if (data['name'].length > 24) {
       List names = data['name'].split(" ");
       if (names.length > 2)
-        name = names[0] + ' ' + names[names.length - 1];
+        this.name = names[0] + ' ' + names[names.length - 1];
       else
-        name = names[names.length - 1];
+        this.name = names[names.length - 1];
     } else
-      name = data['name'];
+      this.name = data['name'];
 
-    info1 = data['country_flag'] + ' ' + data['position'];
-    info2 = "${data['rating']}";
+    this.info1 = data['country_flag'] + ' ' + data['position'];
+    this.info2 = "${data['rating']}";
 
     if (data['team'].length > 20)
-      info3 = data['team'].split(" ")[0];
+      this.info3 = data['team'].split(" ")[0];
     else
-      info3 = data['team'];
+      this.info3 = data['team'];
 
     super.setData(data);
   }

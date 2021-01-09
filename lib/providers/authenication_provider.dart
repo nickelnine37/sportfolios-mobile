@@ -4,14 +4,17 @@ import 'package:firebase_auth/firebase_auth.dart' as fb_auth;
 import 'package:flutter/material.dart';
 
 final authenticationProvider = StreamProvider.autoDispose<User>((ref) {
-
-  return AuthService().user;
+  return AuthService().userStream;
 });
 
 class AuthService {
   final _auth = fb_auth.FirebaseAuth.instance;
 
-  Stream<User> get user {
+  User get user {
+    return User(_auth.currentUser);
+  }
+  
+  Stream<User> get userStream {
     return _auth.authStateChanges().map((fb_auth.User user) => User(user));
   }
 
@@ -20,19 +23,16 @@ class AuthService {
     print('Signing user out');
   }
 
-  Future<User> signInWithEmail(
+  Future<String> signInWithEmail(
       {@required String email, @required String password}) async {
     try {
-      fb_auth.UserCredential result = await _auth.signInWithEmailAndPassword(
-          email: email, password: password);
-      fb_auth.User user = result.user;
+      await _auth.signInWithEmailAndPassword(email: email, password: password);
       print('User signed in successfully');
       // TODO: add email verification
-      return User(user);
-    } catch (e) {
-      print(e.toString());
       return null;
-      // TODO: handle different exceptions and update UI accordingly
+    } catch (error) {
+      print('Login error: ' + error.toString());
+      return 'Login failed. Please check your details and try again.';
     }
   }
 

@@ -1,33 +1,33 @@
 {
   "project_info": {
-    "project_number": "564311196278",
-    "project_id": "sportfolios-alpha-1af85",
-    "storage_bucket": "sportfolios-alpha-1af85.appspot.com"
+    "project_number": "905883634541",
+    "project_id": "sportfolios-431c6",
+    "storage_bucket": "sportfolios-431c6.appspot.com"
   },
   "client": [
     {
       "client_info": {
-        "mobilesdk_app_id": "1:564311196278:android:d48348378ad08a7aff1557",
+        "mobilesdk_app_id": "1:905883634541:android:f934455ae4227bbe106864",
         "android_client_info": {
           "package_name": "com.sportfolios.sportfolios_alpha"
         }
       },
       "oauth_client": [
         {
-          "client_id": "564311196278-lg8mcrokt4o0i54h109qo74qcamfqqiu.apps.googleusercontent.com",
+          "client_id": "905883634541-ua4c0p9otptmdpvuhjs1pg2kuolbc770.apps.googleusercontent.com",
           "client_type": 3
         }
       ],
       "api_key": [
         {
-          "current_key": "AIzaSyCa3_1CklD_WjS2yDIJ4Zn2ZxRkTTZ4-KI"
+          "current_key": "AIzaSyAMiaoeVG-kayPjEru_T-OXUnsZ5jD7fdE"
         }
       ],
       "services": {
         "appinvite_service": {
           "other_platform_oauth_client": [
             {
-              "client_id": "564311196278-lg8mcrokt4o0i54h109qo74qcamfqqiu.apps.googleusercontent.com",
+              "client_id": "905883634541-ua4c0p9otptmdpvuhjs1pg2kuolbc770.apps.googleusercontent.com",
               "client_type": 3
             }
           ]
