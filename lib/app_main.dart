@@ -18,13 +18,7 @@ class _AppMainState extends State<AppMain> {
   int selectedPage = 0;
   final _pageOptions = [
     Home(),
-    PortfolioPage(
-        portfolio: Portfolio(
-      name: 'MyPrtfolio',
-      public: true,
-      amounts: [12, 15, 16],
-      contracts: [Contract()],
-    )),
+    PortfolioPage(),
     Leaderboard(),
     Settings()
   ];

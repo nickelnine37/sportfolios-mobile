@@ -31,7 +31,19 @@ List<double> linspace(double start, double stop, int N) {
   });
 }
 
-List<double> matrixMultiply(List<List<double>> transposedMatrix, List<double> array) {
+double dotProduct(List array1, List array2) {
+
+  double total = 0;
+
+  for (int i=0; i<array1.length; i++) {
+    total += array1[i] * array2[i];
+  }
+
+  return total;
+
+}
+
+List<double> matrixMultiply(List<List<double>> transposedMatrix, List array) {
 
   List<double> out;
   
@@ -49,4 +61,8 @@ List<double> matrixMultiply(List<List<double>> transposedMatrix, List<double> ar
   }
   
   return out;
+}
+
+List<double> zeros(int N) {
+    return List.generate(N, (int i) => 0);
 }

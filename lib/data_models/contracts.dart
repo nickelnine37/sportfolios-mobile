@@ -5,6 +5,13 @@ class Contract {
   String name;
   String imageURL;
   double price;
+  String contractType;
+  String longShort;
+
+  // info to to be shown on left of tile
+  String info1;
+  String info2;
+  String info3;
 
   List<double> pH;
   List<double> pD;
@@ -12,16 +19,20 @@ class Contract {
   List<double> pM;
   List<double> pMax;
 
-  double changePrice;
-  double changePercent;
-  bool bull;
+  double hourReturn;
+  double dayReturn;
+  double weekReturn;
+  double monthReturn;
+  double totalReturn;
 
-  // info to to be shown on left of tile
-  String info1;
-  String info2;
-  String info3;
+  double hourValueChange;
+  double dayValueChange;
+  double weekValueChange;
+  double monthValueChange;
+  double totalValueChange;
 
-  String contractType;
+
+
 
   setData(data) {
     this.imageURL = data['image'];
@@ -37,15 +48,31 @@ class Contract {
         data['pMax']?.map((item) => 1.0 * item)?.toList() ?? []);
 
     this.price = this.pH.last;
-    // this.bull = (this.price > this.price24h[0]);
-    // this.changePrice = this.price - this.price24h[0];
-    // this.changePercent = 1 - this.price / this.price24h[0];
+
+    hourValueChange = (this.price - this.pH.first);
+    dayValueChange = (this.price - this.pD.first);
+    weekValueChange = (this.price - this.pW.first);
+    monthValueChange = (this.price - this.pM.first);
+    totalValueChange = (this.price - this.pMax.first);
+
+    hourReturn = hourValueChange / this.pH.first;
+    dayReturn = hourValueChange / this.pD.first;
+    weekReturn = hourValueChange / this.pW.first;
+    monthReturn = hourValueChange / this.pM.first;
+    totalReturn = hourValueChange / this.pMax.first;
+
+    if (data['type'].contains('long')) {
+      longShort = 'long';
+    }
+    else {
+      longShort = 'short';
+    }
   }
 
   @override
   String toString() {
-  return 'Contract(${this.name})';
-   }
+    return 'Contract(${this.name})';
+  }
 }
 
 class TeamContract extends Contract {

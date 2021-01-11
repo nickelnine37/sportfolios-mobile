@@ -6,12 +6,9 @@ import 'package:sportfolios_alpha/data_models/portfolios.dart';
 import 'package:sportfolios_alpha/providers/authenication_provider.dart';
 import 'package:sportfolios_alpha/screens/portfolio/donut.dart';
 import 'package:sportfolios_alpha/screens/portfolio/price_chart.dart';
-import 'package:sportfolios_alpha/utils/axis_range.dart';
+// import 'package:sportfolios_alpha/utils/axis_range.dart';
 
 class PortfolioPage extends StatefulWidget {
-  final Portfolio portfolio;
-
-  PortfolioPage({@required this.portfolio});
 
   @override
   _PortfolioPageState createState() => _PortfolioPageState();
@@ -31,7 +28,6 @@ class _PortfolioPageState extends State<PortfolioPage> {
   /// To be called when the portfolio page is initialised. This will load
   /// the user's portfolios from firebase. It returns a list of [Portfolio]s
   Future<List<Portfolio>> _getPortfolios() async {
-
     // load the entry in the users collection for the current user
     // this is where a list of their portfolios is located
     DocumentSnapshot result = await FirebaseFirestore.instance
@@ -44,7 +40,6 @@ class _PortfolioPageState extends State<PortfolioPage> {
 
     // iterate through the array containing the list of documentIDs for their portfolios
     for (String id in result['portfolios']) {
-
       List<Contract> contracts = [];
       List<int> amounts = [];
 
@@ -54,13 +49,12 @@ class _PortfolioPageState extends State<PortfolioPage> {
           .doc(id)
           .get();
 
-      // each portfolio has an entry called 'contracts' which contains a map. 
-      // The keys of this map are the contract IDs, and the values are the amount 
-      // of that contract in the portfolio. 
+      // each portfolio has an entry called 'contracts' which contains a map.
+      // The keys of this map are the contract IDs, and the values are the amount
+      // of that contract in the portfolio.
       for (String contractName in portfolioSnapshot['contracts'].keys) {
-
-        // go through each contract name, and search for this contract in the 
-        // 'contracts' collection. 
+        // go through each contract name, and search for this contract in the
+        // 'contracts' collection.
         DocumentSnapshot contractSnapshot = await FirebaseFirestore.instance
             .collection('contracts')
             .doc(contractName)
@@ -68,30 +62,28 @@ class _PortfolioPageState extends State<PortfolioPage> {
 
         // turn this item fetched from the database into a [Contract] object
         Contract thisContract;
-        if (contractSnapshot['type'].contains('team')) 
+        if (contractSnapshot['type'].contains('team'))
           thisContract = TeamContract.fromMap(contractSnapshot.data());
-        else 
+        else
           thisContract = PlayerContract.fromMap(contractSnapshot.data());
 
         // add the contract and the amount held of that contract to a list
         contracts.add(thisContract);
         amounts.add(portfolioSnapshot['contracts'][contractName]);
       }
-    
-    // Create a [Portfolio] object ad add it to the userPortfolios list
+
+      // Create a [Portfolio] object ad add it to the userPortfolios list
       userPortfolios.add(Portfolio(
         name: portfolioSnapshot['name'],
         contracts: contracts,
         amounts: amounts,
         public: portfolioSnapshot['public'],
       ));
-
     }
 
     nPortfolios = userPortfolios.length;
     return userPortfolios;
   }
-
 
   @override
   Widget build(BuildContext context) {
@@ -127,17 +119,21 @@ class _PortfolioPageState extends State<PortfolioPage> {
             body: Column(
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
-                Card(
-                    margin: EdgeInsets.all(5),
-                    color: Colors.grey[50],
-                    child: Center(
-                        child: AnimatedDonutChart(
-                            portfolio: userPortfolios[selectedPortfolio]))),
+                Container(
+                  padding: EdgeInsets.all(5),
+                  child: Center(
+                    child: AnimatedDonutChart(
+                      portfolio: userPortfolios[selectedPortfolio],
+                    ),
+                  ),
+                ),
                 SizedBox(height: 15),
-                Card(
+                Container(
+                  padding: EdgeInsets.all(5),
                   child: TabbedPriceGraph(
-                      portfolio: userPortfolios[selectedPortfolio]),
-                )
+                    portfolio: userPortfolios[selectedPortfolio],
+                  ),
+                ),
               ],
             ),
           );

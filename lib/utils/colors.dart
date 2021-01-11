@@ -1,16 +1,16 @@
 import 'package:flutter/material.dart';
 
 List<Color> _defaultColors = [
-  Color(0xff1f77b4),
-  Color(0xffff7f0e),
-  Color(0xff2ca02c),
-  Color(0xffd62728),
-  Color(0xff9467bd),
-  Color(0xff8c564b),
-  Color(0xffe377c2),
-  Color(0xff7f7f7f),
-  Color(0xffbcbd22),
-  Color(0xff17becf)
+  Color(0xee1f77b4),
+  Color(0xeeff7f0e),
+  Color(0xee2ca02c),
+  Color(0xeed62728),
+  Color(0xee9467bd),
+  Color(0xee8c564b),
+  Color(0xeee377c2),
+  Color(0xee7f7f7f),
+  Color(0xeebcbd22),
+  Color(0xee17becf)
 ];
 
 Color getColorCycle(int i, int N) {
