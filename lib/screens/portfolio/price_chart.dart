@@ -218,6 +218,7 @@ class _TabbedPriceGraphState extends State<TabbedPriceGraph> with SingleTickerPr
       length: 5,
       child: Column(
         mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: <Widget>[
           Container(
             //Add this to give height
@@ -245,47 +246,33 @@ class _TabbedPriceGraphState extends State<TabbedPriceGraph> with SingleTickerPr
             ),
           ),
           Container(
-            width: 200,
-            height: 30,
-            padding: EdgeInsets.only(bottom: 5, top: 2, left: 3, right: 3),
-            decoration: BoxDecoration(
-                color: Colors.black.withOpacity(0.05),
-                borderRadius: BorderRadius.all(Radius.circular(5.0)),
-                border: Border.all(
-                  color: Colors.grey[500],
-                  width: 1,
-                )),
-            child: TabBar(
-              controller: _tabController,
-              labelPadding: EdgeInsets.symmetric(horizontal: 2, vertical: 2),
-              indicatorSize: TabBarIndicatorSize.label,
-              tabs: [
-                Tab(
-                    child: Text(
-                  '1h',
-                  style: TextStyle(fontSize: 15, fontWeight: FontWeight.w400),
-                )),
-                Tab(
-                    child: Text(
-                  '1d',
-                  style: TextStyle(fontSize: 15, fontWeight: FontWeight.w400),
-                )),
-                Tab(
-                    child: Text(
-                  '1w',
-                  style: TextStyle(fontSize: 15, fontWeight: FontWeight.w400),
-                )),
-                Tab(
-                    child: Text(
-                  '1M',
-                  style: TextStyle(fontSize: 15, fontWeight: FontWeight.w400),
-                )),
-                Tab(
-                    child: Text(
-                  'Max',
-                  style: TextStyle(fontSize: 15, fontWeight: FontWeight.w400),
-                )),
-              ],
+            width: MediaQuery.of(context).size.width * 0.7,
+            child: Center(
+              child: Container(
+                width: 200,
+                height: 30,
+                padding: EdgeInsets.only(bottom: 5, top: 2, left: 3, right: 3),
+                decoration: BoxDecoration(
+                  color: Colors.black.withOpacity(0.05),
+                  borderRadius: BorderRadius.all(Radius.circular(5.0)),
+                  border: Border.all(
+                    color: Colors.grey[500],
+                    width: 1,
+                  ),
+                ),
+                child: TabBar(
+                  controller: _tabController,
+                  labelPadding: EdgeInsets.symmetric(horizontal: 2, vertical: 2),
+                  indicatorSize: TabBarIndicatorSize.label,
+                  tabs: [
+                    Tab(child: Text('1h', style: TextStyle(fontSize: 15, fontWeight: FontWeight.w400))),
+                    Tab(child: Text('1d', style: TextStyle(fontSize: 15, fontWeight: FontWeight.w400))),
+                    Tab(child: Text('1w', style: TextStyle(fontSize: 15, fontWeight: FontWeight.w400))),
+                    Tab(child: Text('1M', style: TextStyle(fontSize: 15, fontWeight: FontWeight.w400))),
+                    Tab(child: Text('Max', style: TextStyle(fontSize: 15, fontWeight: FontWeight.w400))),
+                  ],
+                ),
+              ),
             ),
           ),
         ],
@@ -299,9 +286,9 @@ class PriceGraph extends StatefulWidget {
   final List<double> prices;
   final double tPad = 0.05;
   final double bPad = 0.05;
-  final double lPad = 0.2;
+  final double lPad = 0.05;
   final double rPad = 0;
-  final double yaxisPadT = 0.05;
+  final double yaxisPadT = 0;
   final double yaxisPadB = 0.08;
   final double xaxisPadR = 0.05;
 
@@ -341,7 +328,6 @@ class _PriceGraphState extends State<PriceGraph> {
 
   /// given an x-coordinate in pixels, return an interpolated y-coordinate in pixels
   double _pxToPy(px) {
-
     return height *
         ((1 - widget.tPad - widget.yaxisPadT - widget.bPad - widget.yaxisPadB) *
                 (1 - (_pxToY(px) - pmin) / (pmax - pmin)) +
@@ -351,6 +337,7 @@ class _PriceGraphState extends State<PriceGraph> {
 
   @override
   Widget build(BuildContext context) {
+    // we're switching tabs so reset some variables
     if (widget.moving) {
       touchX = null;
       touchY = null;
