@@ -6,10 +6,10 @@ import 'package:sportfolios_alpha/data_models/portfolios.dart';
 import 'package:sportfolios_alpha/providers/authenication_provider.dart';
 import 'package:sportfolios_alpha/screens/portfolio/donut.dart';
 import 'package:sportfolios_alpha/screens/portfolio/price_chart.dart';
+import 'package:sportfolios_alpha/utils/arrays.dart';
 // import 'package:sportfolios_alpha/utils/axis_range.dart';
 
 class PortfolioPage extends StatefulWidget {
-
   @override
   _PortfolioPageState createState() => _PortfolioPageState();
 }
@@ -30,10 +30,8 @@ class _PortfolioPageState extends State<PortfolioPage> {
   Future<List<Portfolio>> _getPortfolios() async {
     // load the entry in the users collection for the current user
     // this is where a list of their portfolios is located
-    DocumentSnapshot result = await FirebaseFirestore.instance
-        .collection('users')
-        .doc(AuthService().user.uid)
-        .get();
+    DocumentSnapshot result =
+        await FirebaseFirestore.instance.collection('users').doc(AuthService().user.uid).get();
 
     // this is what we want to return: it contains a list of <Portfoilio> objects
     List<Portfolio> userPortfolios = [];
@@ -44,10 +42,8 @@ class _PortfolioPageState extends State<PortfolioPage> {
       List<int> amounts = [];
 
       // for each portfolioID, go and get the asociated portfolio from the  portfolios collection
-      DocumentSnapshot portfolioSnapshot = await FirebaseFirestore.instance
-          .collection('portfolios')
-          .doc(id)
-          .get();
+      DocumentSnapshot portfolioSnapshot =
+          await FirebaseFirestore.instance.collection('portfolios').doc(id).get();
 
       // each portfolio has an entry called 'contracts' which contains a map.
       // The keys of this map are the contract IDs, and the values are the amount
@@ -55,10 +51,8 @@ class _PortfolioPageState extends State<PortfolioPage> {
       for (String contractName in portfolioSnapshot['contracts'].keys) {
         // go through each contract name, and search for this contract in the
         // 'contracts' collection.
-        DocumentSnapshot contractSnapshot = await FirebaseFirestore.instance
-            .collection('contracts')
-            .doc(contractName)
-            .get();
+        DocumentSnapshot contractSnapshot =
+            await FirebaseFirestore.instance.collection('contracts').doc(contractName).get();
 
         // turn this item fetched from the database into a [Contract] object
         Contract thisContract;
@@ -87,6 +81,8 @@ class _PortfolioPageState extends State<PortfolioPage> {
 
   @override
   Widget build(BuildContext context) {
+
+
     return FutureBuilder(
       future: portfoliosFuture,
       builder: (BuildContext context, AsyncSnapshot snapshot) {
@@ -97,22 +93,18 @@ class _PortfolioPageState extends State<PortfolioPage> {
             appBar: AppBar(
               // iconTheme: ,
               elevation: 0,
-              title: Row(
-                children: [
-                  Text(
-                    userPortfolios[selectedPortfolio].name,
-                    style: TextStyle(
-                        color: Colors.white,
-                        fontWeight: FontWeight.w400,
-                        fontSize: 22,
-                        letterSpacing: 0.8),
-                  ),
-                  SizedBox(width: 1),
-                  IconButton(
-                    icon: Icon(Icons.keyboard_arrow_down),
-                    onPressed: () {},
-                  ),
-                ],
+              title: DropdownButton(
+                value: selectedPortfolio,
+                items: range(userPortfolios.length)
+                    .map((i) => DropdownMenuItem(child: Text(userPortfolios[i].name), value: i))
+                    .toList(),
+                onChanged: (value) {
+                  if (selectedPortfolio != value) {
+                    setState(() {
+                      selectedPortfolio = value;
+                    });
+                  }
+                },
               ),
               actions: [IconButton(icon: Icon(Icons.add), onPressed: () {})],
             ),
@@ -121,18 +113,12 @@ class _PortfolioPageState extends State<PortfolioPage> {
               children: [
                 Container(
                   padding: EdgeInsets.all(5),
-                  child: Center(
-                    child: AnimatedDonutChart(
-                      portfolio: userPortfolios[selectedPortfolio],
-                    ),
-                  ),
+                  child: AnimatedDonutChart(portfolio: userPortfolios[selectedPortfolio]),
                 ),
                 SizedBox(height: 15),
                 Container(
                   padding: EdgeInsets.all(5),
-                  child: TabbedPriceGraph(
-                    portfolio: userPortfolios[selectedPortfolio],
-                  ),
+                  child: TabbedPriceGraph(portfolio: userPortfolios[selectedPortfolio]),
                 ),
               ],
             ),

@@ -9,24 +9,36 @@ import 'package:sportfolios_alpha/utils/number_format.dart';
 
 double _pi = 3.1415926535;
 
+
 /// Pie chart widget wrapper: returns an animation that refires every time the page is rebuilt
 /// creating an animated circle-spin effect. We also calulate some information used in the pie
 /// chart here, such as the value of each asset and where the bin edges start and stop.
-class AnimatedDonutChart extends StatelessWidget {
-  final Tween<double> _donutFade = Tween<double>(begin: 0, end: 1);
+class AnimatedDonutChart extends StatefulWidget {
   final Portfolio portfolio;
   AnimatedDonutChart({this.portfolio});
 
   @override
+  _AnimatedDonutChartState createState() => _AnimatedDonutChartState();
+}
+
+class _AnimatedDonutChartState extends State<AnimatedDonutChart> {
+
+    // this is highly hacky but I can't get the TweenAnimationBuilder to refire
+    // unless I keep shifting its end value on each rebuild. So basically, its 
+    // incremented by one, and then the relevant amount is subtracted off endValue
+  double endValue = 0;
+
+  @override
   Widget build(BuildContext context) {
+
     // do some pre-computation here
     List<double> _values = [];
     List<double> _binEdges = [0.0];
 
-    int nContracts = this.portfolio.contracts.length;
+    int nContracts = this.widget.portfolio.contracts.length;
 
     for (int i = 0; i < nContracts; i++) {
-      double value = this.portfolio.contracts[i].price * this.portfolio.amounts[i];
+      double value = this.widget.portfolio.contracts[i].price * this.widget.portfolio.amounts[i];
       _values.add(value);
     }
 
@@ -34,19 +46,24 @@ class AnimatedDonutChart extends StatelessWidget {
     double _runningTotal = 0;
     for (double value in _values) {
       _runningTotal += value;
-      _binEdges.add(_runningTotal / this.portfolio.value);
+      _binEdges.add(_runningTotal / this.widget.portfolio.value);
     }
+
+    // increment endValue here
+    endValue += 1;
 
     return TweenAnimationBuilder(
       curve: Curves.easeOutSine,
       duration: Duration(milliseconds: 600),
-      tween: _donutFade,
+      // insert endValue here
+      tween: Tween<double>(begin: 0, end: endValue),
       builder: (_, double percentComlpete, __) {
         return PieChart(
-            portfolio: portfolio,
-            contractValues: _values,
-            binEdges: _binEdges,
-            percentComplete: percentComlpete);
+          portfolio: widget.portfolio,
+          contractValues: _values,
+          binEdges: _binEdges,
+          percentComplete: 1 + percentComlpete - endValue, // hacky business
+        );
       },
     );
   }
@@ -88,12 +105,12 @@ class _PieChartState extends State<PieChart> {
   bool spinning = true;
   List segmentPainters = [];
   int selectedSegment;
+  String portfolioName;
 
   // this refers to the information on the left that needs to change
   // when a segment is selected
   // [asset] refers to the selected asset/segment. needs to be dynamic as sometimes
   // it can be a specific Contract, sometimes it can be a Portfolio
-  String textLeft = 'Total Portfolio';
   dynamic asset;
 
   // wf1 => how much of the total screen width should the pie chart container take?
@@ -106,6 +123,139 @@ class _PieChartState extends State<PieChart> {
     super.initState();
     centerText = widget.portfolio.value;
     nContracts = widget.contractValues.length;
+    portfolioName = widget.portfolio.name;
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    
+    // set the widget width to be [widthFactor1] of the screen real estate
+    // this must be done at build time
+    if (this.width == null) {
+      this.width = MediaQuery.of(context).size.width * widthFactor1;
+      this.height = this.width;
+    }
+
+    if (portfolioName != null) {
+      if (portfolioName != widget.portfolio.name) {
+        spinning = true;
+        centerText = widget.portfolio.value;
+        portfolioName = widget.portfolio.name;
+        asset = widget.portfolio;
+        nContracts = widget.portfolio.amounts.length;
+      }
+    }
+
+    // If we're still spinning up, just paint all segments with full opacity
+    // this needs to be called on each build, as percentComplete is changing
+    if (spinning) {
+      this.segmentPainters = _getRefreshedSegnentPainers();
+    }
+
+    if (asset == null) {
+      asset = widget.portfolio;
+    }
+
+    if (widget.percentComplete == 1) {
+      spinning = false;
+    }
+
+    // Container for central text. Change opacity with percentComplete
+    Center centralText = Center(
+      child: Consumer(builder: (context, watch, value) {
+        String currency = watch(settingsProvider).currency;
+        return Text(
+          '${formatCurrency(centerText, currency)}',
+          style: TextStyle(
+            fontWeight: FontWeight.w300,
+            fontSize: 28,
+            color: Colors.grey[800].withOpacity(widget.percentComplete),
+          ),
+        );
+      }),
+    );
+
+    return Column(
+      children: [
+        Center(
+          child: Container(
+            child: Center(
+              child: Text(this.selectedSegment == null ? 'Portfolio Overview' : '${asset.name} (${asset.longShort})', 
+                // asset.name + "${this.selectedSegment == null ? '' : ' (${asset.longShort})'}",
+                style: TextStyle(fontSize: 20, fontWeight: FontWeight.w300),
+              ),
+            ),
+            padding: EdgeInsets.only(top: 10),
+          ),
+        ),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Expanded(
+              child: Container(
+                padding: EdgeInsets.only(top: 28, bottom: 33, left: 3, right: 3),
+                height: this.height,
+                // color: Colors.grey[400],
+                child: Consumer(
+                  builder: (context, watch, value) {
+                    String currency = watch(settingsProvider).currency;
+                    int amount =
+                        (this.selectedSegment == null) ? 1 : widget.portfolio.amounts[this.selectedSegment];
+                    return Column(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      children: [
+                        _portfolioInfoBox('Return (1 hour)', amount * asset.hourReturn,
+                            amount * asset.hourValueChange, widget.percentComplete, currency),
+                        _portfolioInfoBox('Return (24 hours)', amount * asset.dayReturn,
+                            amount * asset.dayValueChange, widget.percentComplete, currency),
+                        _portfolioInfoBox('Return (7 days)', amount * asset.weekReturn,
+                            amount * asset.weekValueChange, widget.percentComplete, currency),
+                        _portfolioInfoBox('Return (28 days)', amount * asset.monthReturn,
+                            amount * asset.monthValueChange, widget.percentComplete, currency),
+                      ],
+                    );
+                  },
+                ),
+              ),
+            ),
+
+            // wrap donut container in a gestureDetector that checks which segment to highlight
+            GestureDetector(
+              onTapDown: (details) {
+                if (widget.percentComplete == 1) {
+                  setState(() {
+                    highlightSegment(details.localPosition);
+                  });
+                }
+              },
+              // our outer container takes up the full this.width (which was 70% of
+              // the entire screen space).
+              // The inner container (where we paint) takes up 60% of `this` space
+              child: Container(
+                width: this.width,
+                height: this.width,
+                child: Center(
+                  child: Stack(
+                    children: <Widget>[centralText] +
+                        segmentPainters
+                            .map(
+                              (segment) => Center(
+                                child: CustomPaint(
+                                  painter: segment,
+                                  size: Size(this.width * widthFactor2, this.width * widthFactor2),
+                                ),
+                              ),
+                            )
+                            .toList(),
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ],
+    );
   }
 
   /// Function that takes in an offset, which is the coordinates that have just been tapped
@@ -171,7 +321,6 @@ class _PieChartState extends State<PieChart> {
 
       this.segmentPainters = _getRefreshedSegnentPainers();
       centerText = widget.portfolio.value;
-      textLeft = 'Total Portfolio';
       asset = widget.portfolio;
     }
 
@@ -192,138 +341,9 @@ class _PieChartState extends State<PieChart> {
 
       centerText = widget.contractValues[newSelectedSegment];
       asset = widget.portfolio.contracts[newSelectedSegment];
-      textLeft = widget.portfolio.contracts[newSelectedSegment].name;
     }
 
     this.selectedSegment = newSelectedSegment;
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    // set the widget width to be [widthFactor1] of the screen real estate
-    // this must be done at build time
-    if (this.width == null) {
-      this.width = MediaQuery.of(context).size.width * widthFactor1;
-      this.height = this.width;
-    }
-
-    // If we're still spinning up, just paint all segments with full opacity
-    // this needs to be called on each build, as percentComplete is changing
-    if (spinning) {
-      this.segmentPainters = _getRefreshedSegnentPainers();
-    }
-
-    if (asset == null) {
-      asset = widget.portfolio;
-    }
-
-    if (widget.percentComplete == 1) {
-      spinning = false;
-    }
-
-    // Container for central text. Change opacity with percentComplete
-    Center centralText = Center(
-      child: Consumer(builder: (context, watch, value) {
-        String currency = watch(settingsProvider).currency;
-        return Text(
-          '${formatCurrency(centerText, currency)}',
-          style: TextStyle(
-            fontWeight: FontWeight.w300,
-            fontSize: 28,
-            color: Colors.grey[800].withOpacity(widget.percentComplete),
-          ),
-        );
-      }),
-    );
-
-    return Column(
-      children: [
-        Center(
-          child: Container(
-            child: Center(
-              child: Text(
-                asset.name + "${this.selectedSegment == null ? '' : ' (${asset.longShort})'}",
-                style: TextStyle(fontSize: 20, fontWeight: FontWeight.w300),
-              ),
-            ),
-            padding: EdgeInsets.only(top: 10),
-          ),
-        ),
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Expanded(
-              child: Container(
-                padding: EdgeInsets.symmetric(vertical: 20, horizontal: 3),
-                height: this.height,
-                // color: Colors.grey[400],
-                child: Consumer(
-                  builder: (context, watch, value) {
-                    String currency = watch(settingsProvider).currency;
-                    int amount =
-                        (this.selectedSegment == null) ? 1 : widget.portfolio.amounts[this.selectedSegment];
-                    return Column(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      crossAxisAlignment: CrossAxisAlignment.center,
-                      children: [
-                        _portfolioInfoBox('Return (1 hour)', amount * asset.hourReturn,
-                            amount * asset.hourValueChange, widget.percentComplete, currency),
-                        _portfolioInfoBox('Return (24 hours)', amount * asset.dayReturn,
-                            amount * asset.dayValueChange, widget.percentComplete, currency),
-                        _portfolioInfoBox('Return (7 days)', amount * asset.weekReturn,
-                            amount * asset.weekValueChange, widget.percentComplete, currency),
-                        _portfolioInfoBox('Return (28 days)', amount * asset.monthReturn,
-                            amount * asset.monthValueChange, widget.percentComplete, currency),
-                      ],
-                    );
-                  },
-                ),
-              ),
-            ),
-
-            // wrap donut container in a gestureDetector that checks which segment to highlight
-            GestureDetector(
-              onTapDown: (details) {
-                if (widget.percentComplete == 1) {
-                  setState(() {
-                    highlightSegment(details.localPosition);
-                  });
-                }
-              },
-              // our outer container takes up the full this.width (which was 70% of
-              // the entire screen space).
-              // The inner container (where we paint) takes up 60% of `this` space
-              child: Container(
-                // decoration: BoxDecoration(
-                //   // color: Colors.yellow[100],
-                //   border: Border.all(
-                //     color: Colors.red,
-                //     width: 1,
-                //   ),
-                // ),
-                width: this.width,
-                height: this.width,
-                child: Center(
-                  child: Stack(
-                    children: <Widget>[centralText] +
-                        segmentPainters
-                            .map(
-                              (segment) => Center(
-                                child: CustomPaint(
-                                  painter: segment,
-                                  size: Size(this.width * widthFactor2, this.width * widthFactor2),
-                                ),
-                              ),
-                            )
-                            .toList(),
-                  ),
-                ),
-              ),
-            ),
-          ],
-        ),
-      ],
-    );
   }
 }
 

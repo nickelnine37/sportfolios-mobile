@@ -1,193 +1,13 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:sportfolios_alpha/data_models/portfolios.dart';
+import 'package:sportfolios_alpha/providers/settings_provider.dart';
 import 'package:sportfolios_alpha/utils/arrays.dart';
 import 'dart:math';
 import 'dart:ui' as ui;
 
 import 'package:sportfolios_alpha/utils/axis_range.dart';
 import 'package:sportfolios_alpha/utils/number_format.dart';
-
-// class AnimatedPriceGraph extends StatefulWidget {
-//   final Portfolio portfolio;
-//   AnimatedPriceGraph({@required this.portfolio});
-
-//   @override
-//   _AnimatedPriceGraphState createState() => _AnimatedPriceGraphState();
-// }
-
-// class _AnimatedPriceGraphState extends State<AnimatedPriceGraph> {
-//   String selectedView = '1H';
-//   List<double> previousPrices;
-//   List<double> newPrices;
-//   double screenWidth;
-
-//   @override
-//   Widget build(BuildContext context) {
-//     if (screenWidth == null) {
-//       screenWidth = MediaQuery.of(context).size.width;
-//     }
-//     if (newPrices == null) {
-//       newPrices = widget.portfolio.pH;
-//     }
-//     return Column(
-//       children: [
-//         Row(
-//           children: [
-//             Container(
-//               width: screenWidth * 0.7,
-//               child: PriceTransitionGraph(prices1: previousPrices, prices2: newPrices),
-//             ),
-//             Expanded(
-//               child: Container(
-//                 color: Colors.grey[500],
-//                 child: Center(child: Text('Hey')),
-//               ),
-//             )
-//           ],
-//         ),
-//         Container(
-//           padding: EdgeInsets.symmetric(horizontal: screenWidth / 4, vertical: 5),
-//           child: Row(
-//             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-//             children: [
-//               GestureDetector(
-//                 child: Text('1H'),
-//                 onTap: () {
-//                   setState(
-//                     () {
-//                       if (selectedView != '1H') {
-//                         this.previousPrices = newPrices;
-//                         this.newPrices = widget.portfolio.pH;
-//                         this.selectedView = '1H';
-//                       }
-//                     },
-//                   );
-//                 },
-//               ),
-//               GestureDetector(
-//                 child: Text('1D'),
-//                 onTap: () {
-//                   setState(
-//                     () {
-//                       if (selectedView != '1D') {
-//                         this.previousPrices = newPrices;
-//                         this.newPrices = widget.portfolio.pD;
-//                         this.selectedView = '1D';
-//                       }
-//                     },
-//                   );
-//                 },
-//               ),
-//               GestureDetector(
-//                 child: Text('1W'),
-//                 onTap: () {
-//                   setState(
-//                     () {
-//                       if (selectedView != '1W') {
-//                         this.previousPrices = newPrices;
-//                         this.newPrices = widget.portfolio.pW;
-//                         this.selectedView = '1W';
-//                       }
-//                     },
-//                   );
-//                 },
-//               ),
-//               GestureDetector(
-//                 child: Text('1M'),
-//                 onTap: () {
-//                   setState(
-//                     () {
-//                       if (selectedView != '1M') {
-//                         this.previousPrices = newPrices;
-//                         this.newPrices = widget.portfolio.pM;
-//                         this.selectedView = '1M';
-//                       }
-//                     },
-//                   );
-//                 },
-//               ),
-//               GestureDetector(
-//                 child: Text('Max'),
-//                 onTap: () {
-//                   setState(
-//                     () {
-//                       if (selectedView != 'Max') {
-//                         this.previousPrices = newPrices;
-//                         this.newPrices = widget.portfolio.pMax;
-//                         this.selectedView = 'Max';
-//                       }
-//                     },
-//                   );
-//                 },
-//               ),
-//             ],
-//           ),
-//           color: Colors.grey[500],
-//         )
-//       ],
-//     );
-//   }
-// }
-
-// class PriceTransitionGraph extends StatelessWidget {
-//   final List<double> prices1;
-//   final List<double> prices2;
-
-//   PriceTransitionGraph({@required this.prices1, @required this.prices2}) {
-//     print('Constructing');
-//   }
-
-//   @override
-//   Widget build(BuildContext context) {
-//     Tween<double> _graphTransition = Tween<double>(begin: 0, end: 1);
-//     return TweenAnimationBuilder(
-//       curve: Curves.easeOutQuart,
-//       duration: Duration(milliseconds: 500),
-//       tween: _graphTransition,
-//       builder: (_, double percentComlpete, __) {
-//         if (prices1 == null) {
-//           return PriceGraph2(prices: this.prices2, scale: percentComlpete);
-//         } else {
-//           return PriceGraph2(
-//               prices: matrixMultiply([this.prices1, this.prices2], [1 - percentComlpete, percentComlpete]));
-//         }
-//       },
-//     );
-//   }
-// }
-
-// class PriceGraph2 extends StatelessWidget {
-//   final double tPad = 0.05;
-//   final double bPad = 0.05;
-//   final double lPad = 0.05;
-//   final double rPad = 0;
-//   final double yaxisPadT = 0.05;
-//   final double yaxisPadB = 0.08;
-//   final double xaxisPadR = 0.05;
-//   final List<double> prices;
-//   final double scale;
-
-//   const PriceGraph2({@required this.prices, this.scale});
-
-//   @override
-//   Widget build(BuildContext context) {
-//     print(this.prices);
-
-//     return CustomPaint(
-//       size: Size(400, 200),
-//       painter: MiniPriceChartPainter(
-//           prices: prices,
-//           tPad:
-//               this.scale == null ? tPad : tPad + (1 - this.scale) * (1 - tPad - yaxisPadT - bPad - yaxisPadB),
-//           bPad: bPad,
-//           lPad: lPad,
-//           rPad: rPad,
-//           yaxisPadB: yaxisPadB,
-//           yaxisPadT: yaxisPadT,
-//           xaxisPadR: xaxisPadR),
-//     );
-//   }
-// }
 
 class TabbedPriceGraph extends StatefulWidget {
   final Portfolio portfolio;
@@ -232,7 +52,7 @@ class _TabbedPriceGraphState extends State<TabbedPriceGraph> with SingleTickerPr
                 int g2 = _tabController.index;
                 bool moving = _tabController.indexIsChanging;
                 double pcComplete = (g1 == g2) ? 0 : (_tabController.animation.value - g1) / (g2 - g1);
-                // print('$g1, $g2, $pcComplete, $moving');
+
                 List<List<double>> ps = [
                   this.widget.portfolio.pH,
                   this.widget.portfolio.pD,
@@ -286,7 +106,7 @@ class PriceGraph extends StatefulWidget {
   final List<double> prices;
   final double tPad = 0.05;
   final double bPad = 0.05;
-  final double lPad = 0.05;
+  final double lPad = 0.08;
   final double rPad = 0;
   final double yaxisPadT = 0;
   final double yaxisPadB = 0.08;
@@ -302,20 +122,22 @@ class _PriceGraphState extends State<PriceGraph> {
   double touchX;
   double touchY;
   MiniPriceChartPainter priceChartPainter;
-  double width;
+  double graphWidth;
   double height = 200;
   double pmin;
   double pmax;
   double priceY;
+  double portfolioInit;
 
   @override
   void initState() {
     super.initState();
+    portfolioInit = widget.prices[0];
   }
 
   /// given an x-coordinate in pixels, return an interpolated y-coordinate in currency
   double _pxToY(px) {
-    double i = ((widget.prices.length - 1) * (px / width - widget.lPad)) /
+    double i = ((widget.prices.length - 1) * (px / graphWidth - widget.lPad)) /
         (1 - widget.lPad - widget.rPad - widget.xaxisPadR);
     if (i > (widget.prices.length - 1)) {
       return widget.prices[widget.prices.length - 1];
@@ -345,7 +167,19 @@ class _PriceGraphState extends State<PriceGraph> {
       pmin = null;
     }
 
-    width = MediaQuery.of(context).size.width * 0.7;
+    // this is a dumb hacky way of checking whether we've just switched portfolios
+    // in which case, we need to reset all of the touch variables
+    if (portfolioInit != null) {
+      if (portfolioInit != widget.prices[0]) {
+        touchX = null;
+        touchY = null;
+        priceY = null;
+        pmin = null;
+      }
+      portfolioInit = widget.prices[0];
+    }
+
+    graphWidth = MediaQuery.of(context).size.width * 0.7;
 
     if (pmin == null) {
       pmin = widget.prices.reduce(min);
@@ -355,30 +189,32 @@ class _PriceGraphState extends State<PriceGraph> {
     return Row(children: [
       GestureDetector(
         onTapDown: (details) {
-          setState(() {
-            // we're further than the right edge of the graph so clip
-            if (details.localPosition.dx > width * (1 - widget.rPad - widget.xaxisPadR))
-              touchX = width * (1 - widget.rPad - widget.xaxisPadR);
-            // we're further than the left edge of the graph so clip
-            else if (details.localPosition.dx < width * widget.lPad)
-              touchX = width * widget.lPad;
-            // all good
-            else
-              touchX = details.localPosition.dx;
-
-            touchY = _pxToPy(touchX);
-            priceY = _pxToY(touchX);
-          });
-        },
-        onPanUpdate: (details) {
-          if (touchX != null) {
+          if (!widget.moving) {
             setState(() {
               // we're further than the right edge of the graph so clip
-              if (details.localPosition.dx > width * (1 - widget.rPad - widget.xaxisPadR))
-                touchX = width * (1 - widget.rPad - widget.xaxisPadR);
+              if (details.localPosition.dx > graphWidth * (1 - widget.rPad - widget.xaxisPadR))
+                touchX = graphWidth * (1 - widget.rPad - widget.xaxisPadR);
               // we're further than the left edge of the graph so clip
-              else if (details.localPosition.dx < width * widget.lPad)
-                touchX = width * widget.lPad;
+              else if (details.localPosition.dx < graphWidth * widget.lPad)
+                touchX = graphWidth * widget.lPad;
+              // all good
+              else
+                touchX = details.localPosition.dx;
+
+              touchY = _pxToPy(touchX);
+              priceY = _pxToY(touchX);
+            });
+          }
+        },
+        onPanUpdate: (details) {
+          if (touchX != null && !widget.moving) {
+            setState(() {
+              // we're further than the right edge of the graph so clip
+              if (details.localPosition.dx > graphWidth * (1 - widget.rPad - widget.xaxisPadR))
+                touchX = graphWidth * (1 - widget.rPad - widget.xaxisPadR);
+              // we're further than the left edge of the graph so clip
+              else if (details.localPosition.dx < graphWidth * widget.lPad)
+                touchX = graphWidth * widget.lPad;
               // all good
               else
                 touchX = details.localPosition.dx;
@@ -391,7 +227,7 @@ class _PriceGraphState extends State<PriceGraph> {
         child: Stack(
           children: [
             CustomPaint(
-              size: Size(width, height),
+              size: Size(graphWidth, height),
               painter: TouchLinePainter(
                 touchX,
                 touchY,
@@ -399,36 +235,48 @@ class _PriceGraphState extends State<PriceGraph> {
                 bPad: widget.bPad,
               ),
             ),
-            CustomPaint(
-              size: Size(width, height),
-              painter: MiniPriceChartPainter(
-                prices: widget.prices,
-                moving: widget.moving,
-                tPad: widget.tPad,
-                bPad: widget.bPad,
-                lPad: widget.lPad,
-                rPad: widget.rPad,
-                yaxisPadT: widget.yaxisPadT,
-                yaxisPadB: widget.yaxisPadB,
-                xaxisPadR: widget.xaxisPadR,
-              ),
-            ),
+            Consumer(builder: (context, watch, value) {
+              String currency = watch(settingsProvider).currency;
+
+              return CustomPaint(
+                size: Size(graphWidth, height),
+                painter: MiniPriceChartPainter(
+                  prices: widget.prices,
+                  moving: widget.moving,
+                  currency: currency,
+                  tPad: widget.tPad,
+                  bPad: widget.bPad,
+                  lPad: widget.lPad,
+                  rPad: widget.rPad,
+                  yaxisPadT: widget.yaxisPadT,
+                  yaxisPadB: widget.yaxisPadB,
+                  xaxisPadR: widget.xaxisPadR,
+                ),
+              );
+            })
           ],
         ),
       ),
       Expanded(
-          child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Center(
-              child: Text('${widget.moving ? '' : formatCurrency(priceY ?? widget.prices.last, 'GBP')}',
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Consumer(builder: (context, watch, value) {
+              String currency = watch(settingsProvider).currency;
+              return Center(
+                child: Text(
+                  '${widget.moving ? '' : formatCurrency(priceY ?? widget.prices.last, currency)}',
                   style: TextStyle(
                     fontWeight: FontWeight.w300,
                     fontSize: 20,
                     color: Colors.grey[800],
-                  )))
-        ],
-      ))
+                  ),
+                ),
+              );
+            })
+          ],
+        ),
+      )
     ]);
   }
 }
@@ -480,6 +328,7 @@ class TouchLinePainter extends CustomPainter {
 
 class MiniPriceChartPainter extends CustomPainter {
   bool moving;
+  String currency;
   List<double> prices;
   final double tPad;
   final double bPad;
@@ -492,6 +341,7 @@ class MiniPriceChartPainter extends CustomPainter {
   MiniPriceChartPainter(
       {this.prices,
       this.moving,
+      this.currency,
       this.tPad,
       this.bPad,
       this.lPad,
@@ -522,8 +372,10 @@ class MiniPriceChartPainter extends CustomPainter {
       );
 
     int N = prices.length;
-    double pmin = prices.reduce(min);
-    double pmax = prices.reduce(max);
+    int xMax = range(N).reduce((prev, cur) => prices[prev] > prices[cur] ? prev : cur);
+    int xMin = range(N).reduce((prev, cur) => prices[prev] < prices[cur] ? prev : cur);
+    double pmin = prices[xMin];
+    double pmax = prices[xMax];
 
     double yToPy(y) {
       return size.height *
@@ -567,43 +419,44 @@ class MiniPriceChartPainter extends CustomPainter {
       shading.lineTo(pathpX[i], pathpY[i]);
     }
 
-    // for (int i = 0; i < ticks.length; i++) {
-    //   double pY = yToPy(ticks[i]);
+    if (!moving) {
+      TextSpan minPriceText = TextSpan(
+        text: formatCurrency(pmin, this.currency),
+        style: TextStyle(color: Colors.grey[850], fontSize: 12, fontWeight: FontWeight.w400),
+      );
 
-    //   if (pY > tPad * size.height && pY < (1 - bPad) * size.height) {
-    //     TextPainter textPainter = TextPainter(
-    //         text: TextSpan(
-    //           text: formatCurrency(ticks[i], 'GBP'),
-    //           style: TextStyle(
-    //             color: Colors.grey[850],
-    //             fontSize: 12,
-    //             fontWeight: FontWeight.w400,
-    //           ),
-    //         ),
-    //         textDirection: TextDirection.ltr,
-    //         textAlign: TextAlign.center);
+      TextSpan maxPriceText = TextSpan(
+        text: formatCurrency(pmax, this.currency),
+        style: TextStyle(color: Colors.grey[850], fontSize: 12, fontWeight: FontWeight.w400),
+      );
 
-    //     textPainter.layout(minWidth: 0, maxWidth: 60);
-    //     textPainter.paint(
-    //         canvas,
-    //         Offset(lPad * size.width, pY) -
-    //             Offset(textPainter.width + 7, (textPainter.height / 2)));
+      TextPainter minPricePainter =
+          TextPainter(text: minPriceText, textDirection: TextDirection.ltr, textAlign: TextAlign.center);
 
-    //     yaxis.moveTo(lPad * size.width - 3, pY);
-    //     yaxis.lineTo(lPad * size.width + 3, pY);
-    //   }
-    // }
+      TextPainter maxPricePainter =
+          TextPainter(text: maxPriceText, textDirection: TextDirection.ltr, textAlign: TextAlign.center);
 
-    // yaxis.moveTo(lPad * size.width, tPad * size.height);
-    // yaxis.lineTo(lPad * size.width, (1 - bPad) * size.height);
+      minPricePainter.layout(minWidth: 0, maxWidth: 60);
+      maxPricePainter.layout(minWidth: 0, maxWidth: 60);
 
-    // xaxis.moveTo(lPad * size.width, (1 - bPad) * size.height);
-    // xaxis.lineTo((1 - rPad) * size.width, (1 - bPad) * size.height);
+      minPricePainter.paint(
+        canvas,
+        Offset(
+          xToPx(xMin) - minPricePainter.width / 2,
+          yToPy(pmin) + 2,
+        ),
+      );
+      maxPricePainter.paint(
+        canvas,
+        Offset(
+          xToPx(xMax) - maxPricePainter.width / 2,
+          yToPy(pmax) - maxPricePainter.height - 2,
+        ),
+      );
+    }
 
     canvas.drawPath(line, linePaint);
     canvas.drawPath(shading, shadePaint);
-    // canvas.drawPath(yaxis, axisPaint);
-    // canvas.drawPath(xaxis, axisPaint);
   }
 
   @override

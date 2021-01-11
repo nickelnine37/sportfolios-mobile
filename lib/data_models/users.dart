@@ -13,7 +13,6 @@ class User {
   User._(this.uid, this.email, this.uname);
 
   factory User(fb_auth.User user) {
-    print('Calling user class');
     return user != null? User._(user.uid, user.email, user.displayName) : null;
   }
 
