@@ -9,7 +9,6 @@ import 'package:sportfolios_alpha/utils/number_format.dart';
 
 double _pi = 3.1415926535;
 
-
 /// Pie chart widget wrapper: returns an animation that refires every time the page is rebuilt
 /// creating an animated circle-spin effect. We also calulate some information used in the pie
 /// chart here, such as the value of each asset and where the bin edges start and stop.
@@ -22,25 +21,22 @@ class AnimatedDonutChart extends StatefulWidget {
 }
 
 class _AnimatedDonutChartState extends State<AnimatedDonutChart> {
-
-    // this is highly hacky but I can't get the TweenAnimationBuilder to refire
-    // unless I keep shifting its end value on each rebuild. So basically, its 
-    // incremented by one, and then the relevant amount is subtracted off endValue
+  // this is highly hacky but I can't get the TweenAnimationBuilder to refire
+  // unless I keep shifting its end value on each rebuild. So basically, its
+  // incremented by one, and then the relevant amount is subtracted off endValue
   double endValue = 0;
 
   @override
   Widget build(BuildContext context) {
-
     // do some pre-computation here
     List<double> _values = [];
     List<double> _binEdges = [0.0];
 
-    int nContracts = this.widget.portfolio.contracts.length;
+    int nContracts = widget.portfolio.contracts.length;
 
-    for (int i = 0; i < nContracts; i++) {
-      double value = this.widget.portfolio.contracts[i].price * this.widget.portfolio.amounts[i];
-      _values.add(value);
-    }
+    _values = range(nContracts)
+        .map((i) => widget.portfolio.contracts[i].price * widget.portfolio.amounts[i])
+        .toList();
 
     // note, bin edges are cacluated in metric angle! i.e. 0=>0, 2pi=>1
     double _runningTotal = 0;
@@ -128,7 +124,6 @@ class _PieChartState extends State<PieChart> {
 
   @override
   Widget build(BuildContext context) {
-    
     // set the widget width to be [widthFactor1] of the screen real estate
     // this must be done at build time
     if (this.width == null) {
@@ -168,7 +163,7 @@ class _PieChartState extends State<PieChart> {
           '${formatCurrency(centerText, currency)}',
           style: TextStyle(
             fontWeight: FontWeight.w300,
-            fontSize: 28,
+            fontSize: 26,
             color: Colors.grey[800].withOpacity(widget.percentComplete),
           ),
         );
@@ -180,7 +175,8 @@ class _PieChartState extends State<PieChart> {
         Center(
           child: Container(
             child: Center(
-              child: Text(this.selectedSegment == null ? 'Portfolio Overview' : '${asset.name} (${asset.longShort})', 
+              child: Text(
+                this.selectedSegment == null ? 'Portfolio Overview' : '${asset.name} (${asset.longShort})',
                 // asset.name + "${this.selectedSegment == null ? '' : ' (${asset.longShort})'}",
                 style: TextStyle(fontSize: 20, fontWeight: FontWeight.w300),
               ),
@@ -237,7 +233,15 @@ class _PieChartState extends State<PieChart> {
                 height: this.width,
                 child: Center(
                   child: Stack(
-                    children: <Widget>[centralText] +
+                    children: <Widget>[
+                          centralText,
+                          Center(
+                            child: CustomPaint(
+                              painter: DonutShadowPainter(percentComplete: widget.percentComplete),
+                              size: Size(this.width * widthFactor2, this.width * widthFactor2),
+                            ),
+                          )
+                        ] +
                         segmentPainters
                             .map(
                               (segment) => Center(
@@ -413,11 +417,11 @@ class DonutSegmentPainter extends CustomPainter {
       ..style = PaintingStyle.stroke
       ..strokeWidth = 15;
 
-    Paint shadowPaint = Paint()
-      ..color = Colors.grey[500].withOpacity(this.opacity)
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = 15
-      ..maskFilter = MaskFilter.blur(BlurStyle.normal, 5);
+    // Paint shadowPaint = Paint()
+    //   ..color = Colors.grey[500].withOpacity(this.opacity)
+    //   ..style = PaintingStyle.stroke
+    //   ..strokeWidth = 15
+    //   ..maskFilter = MaskFilter.blur(BlurStyle.normal, 5);
 
     Path path = Path();
     double startAngle = 2 * _pi * (this.start - 0.25);
@@ -425,7 +429,7 @@ class DonutSegmentPainter extends CustomPainter {
 
     path.addArc(Rect.fromLTWH(0, 0, size.width, size.height), startAngle, endAngle);
 
-    canvas.drawPath(path.shift(Offset(2, 2)), shadowPaint);
+    // canvas.drawPath(path.shift(Offset(2, 2)), shadowPaint);
     canvas.drawPath(path, arcPaint);
 
     // draw an arc based on the canvas size
@@ -467,6 +471,38 @@ class DonutSegmentPainter extends CustomPainter {
               Offset(
                   0.5 * size.width - (textPainter.width / 2), 0.5 * size.width - (textPainter.height / 2)));
     }
+  }
+
+  @override
+  bool shouldRepaint(covariant CustomPainter oldDelegate) {
+    return true;
+  }
+}
+
+class DonutShadowPainter extends CustomPainter {
+  final double percentComplete;
+
+  // hacky - but this needs to be set in two places
+  final double widthFactor2 = 0.6;
+
+  DonutShadowPainter({
+    @required this.percentComplete,
+  });
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    Paint shadowPaint = Paint()
+      ..color = Colors.grey[500]
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 15
+      ..maskFilter = MaskFilter.blur(BlurStyle.normal, 5);
+
+    Path path = Path();
+    double startAngle = -_pi / 2;
+    double endAngle = 2 * _pi * (this.percentComplete);
+
+    path.addArc(Rect.fromLTWH(2.5, 2.5, size.width - 5, size.height - 5), startAngle, endAngle);
+    canvas.drawPath(path, shadowPaint);
   }
 
   @override

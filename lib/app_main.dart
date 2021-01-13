@@ -1,8 +1,6 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:sportfolios_alpha/data_models/contracts.dart';
-import 'package:sportfolios_alpha/data_models/portfolios.dart';
-import 'package:sportfolios_alpha/screens/home.dart';
+import 'package:sportfolios_alpha/screens/home/home.dart';
 import 'package:sportfolios_alpha/screens/leaderboard.dart';
 import 'package:sportfolios_alpha/screens/portfolio/portfolio_page.dart';
 import 'package:sportfolios_alpha/screens/settings.dart';

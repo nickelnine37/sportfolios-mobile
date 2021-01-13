@@ -34,8 +34,7 @@ dependencies:
   provider: ^4.3.2+3
   shared_preferences: ^0.5.12+4
   flutter_riverpod: ^0.12.1
-  fl_chart: ^0.12.2
-  
+
 dev_dependencies:
   flutter_test:
     sdk: flutter
