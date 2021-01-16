@@ -7,6 +7,10 @@ class Contract {
   double price;
   String contractType;
   String longShort;
+  List<String> searchTerms;
+
+  // only for player contracts
+  String team;
 
   // info to to be shown on left of tile
   String info1;
@@ -67,6 +71,8 @@ class Contract {
     else {
       longShort = 'short';
     }
+
+    searchTerms = data['search_terms'].cast<String>();
   }
 
   @override
@@ -118,6 +124,8 @@ class PlayerContract extends Contract {
       this.info3 = data['team'].split(" ")[0];
     else
       this.info3 = data['team'];
+
+    team = data['team'];
 
     super.setData(data);
   }

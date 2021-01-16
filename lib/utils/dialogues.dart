@@ -1,3 +1,4 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:sportfolios_alpha/data_models/leagues.dart';
 
@@ -97,7 +98,7 @@ class LeagueSelectorDialogue extends StatelessWidget {
                     leading: Container(
                       width: 35,
                       height: 35,
-                      child: Image.network(leagues[i].imageURL),
+                      child: CachedNetworkImage(imageUrl: leagues[i].imageURL),
                     ),
                     trailing: Text(leagues[i].countryFlagEmoji),
                     onTap: () {
