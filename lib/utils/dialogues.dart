@@ -26,7 +26,7 @@ class BasicDialog extends StatelessWidget {
   }
 
   dialogContent(BuildContext context) {
-    const double padding = 16.0;
+    const double padding = 30;
     return Container(
       padding: EdgeInsets.only(top: padding, left: padding, right: padding),
       decoration: BoxDecoration(
@@ -40,7 +40,7 @@ class BasicDialog extends StatelessWidget {
         children: <Widget>[
           Text(this.title, style: TextStyle(fontSize: 24.0, fontWeight: FontWeight.w700)),
           SizedBox(height: 16.0),
-          Text(description, textAlign: TextAlign.center, style: TextStyle(fontSize: 16.0)),
+          Text(description, textAlign: TextAlign.justify, style: TextStyle(fontSize: 16.0)),
           SizedBox(height: 24.0),
           Align(
             alignment: Alignment.bottomRight,

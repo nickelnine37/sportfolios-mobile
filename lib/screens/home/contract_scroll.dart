@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
-import 'package:sportfolios_alpha/data_models/contracts.dart';
 import 'package:sportfolios_alpha/data_models/leagues.dart';
 import 'package:sportfolios_alpha/fetch/fetch_contracts.dart';
 import 'package:sportfolios_alpha/screens/home/contract_tile.dart';
+import 'package:sportfolios_alpha/utils/string_utils.dart';
 
-/// Widget for
+/// Widget for main scroll view of contracts
 class ContractScroll extends StatefulWidget {
   final League league;
   final String contractType;
@@ -93,9 +93,13 @@ class ContractScrollState extends State<ContractScroll> with AutomaticKeepAliveC
           print(snapshot.error.toString());
           return Center(child: Text('Error'));
         } else {
+          int nTiles = _selectedContractFetcher.loadedResults.length + 2;
+          if (nTiles == 2) {
+            nTiles += 1;
+          }
           return ListView.separated(
             controller: _scrollController,
-            itemCount: _selectedContractFetcher.loadedResults.length + 2,
+            itemCount: nTiles,
             itemBuilder: (context, index) {
               if (index == 0) {
                 return Container(
@@ -104,41 +108,56 @@ class ContractScrollState extends State<ContractScroll> with AutomaticKeepAliveC
                   child: TextField(
                     controller: _textController,
                     onSubmitted: (String value) async {
-                      _searchQueryContractFetcher = SearchQueryContractFetcher(
-                        value.trim().toLowerCase(),
-                        widget.league.leagueID,
-                        widget.contractType,
-                      );
-                      await _searchQueryContractFetcher.get10();
-                      _selectedContractFetcher = _searchQueryContractFetcher;
-                      setState(() {});
+                      if (value != null && value.trim() != '') {
+                        _searchQueryContractFetcher = SearchQueryContractFetcher(
+                          value.trim().toLowerCase(),
+                          widget.league.leagueID,
+                          widget.contractType,
+                        );
+                        await _searchQueryContractFetcher.get10();
+                        _selectedContractFetcher = _searchQueryContractFetcher;
+                        setState(() {});
+                      }
                     },
                     decoration: InputDecoration(
                       focusedBorder: InputBorder.none,
                       enabledBorder: InputBorder.none,
-                      hintText:
-                          'Search ${widget.contractType.split('_')[0]} contracts (${widget.contractType.split('_')[1]})',
+                      hintText: formatTitle(
+                          'Search ${widget.contractType.split('_')[0]} contracts (${widget.contractType.split('_')[1]})'),
                       icon: Icon(Icons.search),
                       suffixIcon: IconButton(
                         icon: Icon(Icons.clear),
                         onPressed: () {
                           _textController.clear();
                           _selectedContractFetcher = _defaultContractFetcher;
-                          FocusScope.of(context).unfocus();
+                          // close keyboard - not sure exactly what's going on here...
+                          if (!FocusScope.of(context).hasPrimaryFocus) {
+                            FocusManager.instance.primaryFocus.unfocus();
+                          }
                           setState(() {});
                         },
                       ),
                     ),
                   ),
                 );
-              } else if (index == _selectedContractFetcher.loadedResults.length + 1) {
+              } else if (index == nTiles - 1) {
                 if (_selectedContractFetcher.finished) {
                   return Container(height: 0);
                 } else {
-                  return Padding(padding: EdgeInsets.all(8.0), child: Center(child: CircularProgressIndicator()));
+                  return Padding(
+                    padding: EdgeInsets.all(8.0),
+                    child: Center(child: CircularProgressIndicator()),
+                  );
                 }
               }
-              return ContractTile(contract: _selectedContractFetcher.loadedResults[index - 1]);
+              if (_selectedContractFetcher.loadedResults.length == 0) {
+                return Padding(
+                  padding: const EdgeInsets.all(25.0),
+                  child: Center(child: Text("Sorry, no results :'(")),
+                );
+              } else {
+                return ContractTile(contract: _selectedContractFetcher.loadedResults[index - 1], league: widget.league);
+              }
             },
             separatorBuilder: (context, index) => Divider(
               thickness: 2,

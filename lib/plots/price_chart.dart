@@ -1,17 +1,20 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:sportfolios_alpha/data_models/portfolios.dart';
+import 'package:sportfolios_alpha/data_models/contracts.dart';
 import 'package:sportfolios_alpha/providers/settings_provider.dart';
 import 'package:sportfolios_alpha/utils/arrays.dart';
 import 'dart:math';
 import 'dart:ui' as ui;
 
-import 'package:sportfolios_alpha/utils/axis_range.dart';
+// import 'package:sportfolios_alpha/utils/axis_range.dart';
 import 'package:sportfolios_alpha/utils/number_format.dart';
 
 class TabbedPriceGraph extends StatefulWidget {
-  final Portfolio portfolio;
-  const TabbedPriceGraph({@required this.portfolio});
+  final Instrument portfolio;
+  final Color color1;
+  final Color color2;
+
+  const TabbedPriceGraph({@required this.portfolio, this.color1 = Colors.green, this.color2 = Colors.green});
 
   @override
   _TabbedPriceGraphState createState() => _TabbedPriceGraphState();
@@ -50,7 +53,6 @@ class _TabbedPriceGraphState extends State<TabbedPriceGraph> with SingleTickerPr
                 // TODO: add initial animation
                 int g1 = _tabController.previousIndex;
                 int g2 = _tabController.index;
-                bool moving = _tabController.indexIsChanging;
                 double pcComplete = (g1 == g2) ? 0 : (_tabController.animation.value - g1) / (g2 - g1);
 
                 List<List<double>> ps = [
@@ -61,7 +63,11 @@ class _TabbedPriceGraphState extends State<TabbedPriceGraph> with SingleTickerPr
                   this.widget.portfolio.pMax
                 ];
                 return PriceGraph(
-                    prices: matrixMultiply([ps[g1], ps[g2]], [1 - pcComplete, pcComplete]), moving: moving);
+                  prices: matrixMultiply([ps[g1], ps[g2]], [1 - pcComplete, pcComplete]),
+                  moving: _tabController.indexIsChanging,
+                  color1: widget.color1,
+                  color2: widget.color2,
+                );
               },
             ),
           ),
@@ -72,24 +78,24 @@ class _TabbedPriceGraphState extends State<TabbedPriceGraph> with SingleTickerPr
                 width: 200,
                 height: 30,
                 padding: EdgeInsets.only(bottom: 5, top: 2, left: 3, right: 3),
-                decoration: BoxDecoration(
-                  color: Colors.black.withOpacity(0.05),
-                  borderRadius: BorderRadius.all(Radius.circular(5.0)),
-                  border: Border.all(
-                    color: Colors.grey[500],
-                    width: 1,
-                  ),
-                ),
+                // decoration: BoxDecoration(
+                //   color: Colors.black.withOpacity(0.05),
+                //   borderRadius: BorderRadius.all(Radius.circular(5.0)),
+                //   border: Border.all(
+                //     color: Colors.grey[500],
+                //     width: 1,
+                //   ),
+                // ),
                 child: TabBar(
                   controller: _tabController,
                   labelPadding: EdgeInsets.symmetric(horizontal: 2, vertical: 2),
                   indicatorSize: TabBarIndicatorSize.label,
                   tabs: [
-                    Tab(child: Text('1h', style: TextStyle(fontSize: 15, fontWeight: FontWeight.w400))),
-                    Tab(child: Text('1d', style: TextStyle(fontSize: 15, fontWeight: FontWeight.w400))),
-                    Tab(child: Text('1w', style: TextStyle(fontSize: 15, fontWeight: FontWeight.w400))),
-                    Tab(child: Text('1M', style: TextStyle(fontSize: 15, fontWeight: FontWeight.w400))),
-                    Tab(child: Text('Max', style: TextStyle(fontSize: 15, fontWeight: FontWeight.w400))),
+                    Tab(child: Text('1h', style: TextStyle(fontSize: 15, fontWeight: FontWeight.w500))),
+                    Tab(child: Text('1d', style: TextStyle(fontSize: 15, fontWeight: FontWeight.w500))),
+                    Tab(child: Text('1w', style: TextStyle(fontSize: 15, fontWeight: FontWeight.w500))),
+                    Tab(child: Text('1M', style: TextStyle(fontSize: 15, fontWeight: FontWeight.w500))),
+                    Tab(child: Text('Max', style: TextStyle(fontSize: 15, fontWeight: FontWeight.w500))),
                   ],
                 ),
               ),
@@ -104,6 +110,9 @@ class _TabbedPriceGraphState extends State<TabbedPriceGraph> with SingleTickerPr
 class PriceGraph extends StatefulWidget {
   final bool moving;
   final List<double> prices;
+  final Color color1;
+  final Color color2;
+
   final double tPad = 0.05;
   final double bPad = 0.05;
   final double lPad = 0.08;
@@ -112,7 +121,7 @@ class PriceGraph extends StatefulWidget {
   final double yaxisPadB = 0.08;
   final double xaxisPadR = 0.05;
 
-  PriceGraph({this.prices, this.moving});
+  PriceGraph({this.prices, this.moving, this.color1, this.color2});
 
   @override
   _PriceGraphState createState() => _PriceGraphState();
@@ -242,6 +251,8 @@ class _PriceGraphState extends State<PriceGraph> {
                 size: Size(graphWidth, height),
                 painter: MiniPriceChartPainter(
                   prices: widget.prices,
+                  color1: widget.color1,
+                  color2: widget.color2,
                   moving: widget.moving,
                   currency: currency,
                   tPad: widget.tPad,
@@ -327,9 +338,11 @@ class TouchLinePainter extends CustomPainter {
 }
 
 class MiniPriceChartPainter extends CustomPainter {
+  List<double> prices;
   bool moving;
   String currency;
-  List<double> prices;
+  Color color1;
+  Color color2;
   final double tPad;
   final double bPad;
   final double lPad;
@@ -342,6 +355,8 @@ class MiniPriceChartPainter extends CustomPainter {
       {this.prices,
       this.moving,
       this.currency,
+      this.color1, 
+      this.color2,
       this.tPad,
       this.bPad,
       this.lPad,
@@ -353,7 +368,7 @@ class MiniPriceChartPainter extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
     Paint linePaint = Paint()
-      ..color = Colors.green
+      ..color = color1
       ..style = PaintingStyle.stroke
       ..strokeJoin = StrokeJoin.round
       ..strokeWidth = 2.0;
@@ -366,8 +381,8 @@ class MiniPriceChartPainter extends CustomPainter {
         Offset(100, 0),
         Offset(100, 180),
         [
-          Colors.green[800].withOpacity(0.45),
-          Colors.green[800].withOpacity(0.04),
+          color2.withOpacity(0.45),
+          color2.withOpacity(0.04),
         ],
       );
 

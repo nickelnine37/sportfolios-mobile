@@ -1,4 +1,5 @@
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:sportfolios_alpha/data_models/leagues.dart';
 import 'package:sportfolios_alpha/providers/settings_provider.dart';
 import 'package:sportfolios_alpha/screens/home/contract_details.dart';
 import 'package:sportfolios_alpha/utils/number_format.dart';
@@ -11,12 +12,14 @@ import 'package:sportfolios_alpha/data_models/contracts.dart';
 
 class ContractTile extends StatefulWidget {
   final Contract contract;
+  final League league;
   final double height;
   final double imageHeight;
   final EdgeInsets padding;
 
   ContractTile({
-    this.contract,
+    @required this.contract,
+    @required this.league,
     this.height = 115.0,
     this.imageHeight = 50.0,
     this.padding = const EdgeInsets.symmetric(vertical: 10, horizontal: 10),
@@ -37,8 +40,15 @@ class ContractTileState extends State<ContractTile> {
 
   void _goToContractDetailsPage() {
     Navigator.of(context).push(MaterialPageRoute<void>(builder: (BuildContext context) {
-      return ContractDetails(widget.contract);
+      return ContractDetails(widget.contract, widget.league);
     }));
+  }
+
+  Widget _valueChangeText(String currency, double valueChange, double percentChange) {
+    String sign = valueChange > 0 ? '+' : '-';
+    return Text(
+        '$sign${formatPercentage(percentChange.abs(), currency)}  ($sign${formatCurrency(valueChange.abs(), currency)})',
+        style: TextStyle(fontSize: 12, color: valueChange > 0 ? Colors.green[300] : Colors.red[300]));
   }
 
   @override
@@ -78,14 +88,9 @@ class ContractTileState extends State<ContractTile> {
                   builder: (context, watch, value) {
                     String currency = watch(settingsProvider).currency;
                     return Column(crossAxisAlignment: CrossAxisAlignment.end, children: [
-                      Text(formatCurrency(widget.contract.price, currency), style: TextStyle(fontSize: upperTextSize),),
+                      Text(formatCurrency(widget.contract.value, currency), style: TextStyle(fontSize: upperTextSize),),
                       SizedBox(height: spacing),
-                      Text(
-                          '${widget.contract.dayValueChange > 0 ? '+' : '-'}${formatCurrency(widget.contract.dayValueChange.abs(), currency)}  (${widget.contract.dayValueChange > 0 ? '+' : '-'}${formatCurrency(widget.contract.dayValueChange.abs(), currency)})',
-                          style: TextStyle(
-                              fontSize: lowerTextSize,
-                              color:
-                                  widget.contract.dayValueChange > 0 ? Colors.green[300] : Colors.red[300])),
+                      _valueChangeText(currency, widget.contract.dayValueChange, widget.contract.dayReturn),
                     ]);
                   },
                 )

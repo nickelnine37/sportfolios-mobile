@@ -1,21 +1,9 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:flutter/cupertino.dart';
 
-class Contract {
+class Instrument {
   String name;
-  String imageURL;
-  double price;
-  String contractType;
-  String longShort;
-  List<String> searchTerms;
-
-  // only for player contracts
-  String team;
-
-  // info to to be shown on left of tile
-  String info1;
-  String info2;
-  String info3;
+  double value;
+  String id;
 
   List<double> pH;
   List<double> pD;
@@ -35,44 +23,57 @@ class Contract {
   double monthValueChange;
   double totalValueChange;
 
+  void computeValues() {
+    value = pH.last;
 
+    hourValueChange = (value - pH.first);
+    dayValueChange = (value - pD.first);
+    weekValueChange = (value - pW.first);
+    monthValueChange = (value - pM.first);
+    totalValueChange = (value - pMax.first);
 
+    hourReturn = hourValueChange / pH.first;
+    dayReturn = dayValueChange / pD.first;
+    weekReturn = weekValueChange / pW.first;
+    monthReturn = monthValueChange / pM.first;
+    totalReturn = totalValueChange / pMax.first;
+  }
+}
+
+class Contract extends Instrument {
+  String name;
+  String imageURL;
+  double value;
+  String contractType;
+  String longShort;
+  List<String> searchTerms;
+  String contractID;
+
+  // only for player contracts
+  String team;
+
+  // info to to be shown on left of tile
+  String info1;
+  String info2;
+  String info3;
 
   setData(data) {
-    this.imageURL = data['image'];
-    this.pH = List<double>.from(
-        data['pH']?.map((item) => 1.0 * item)?.toList() ?? []);
-    this.pD = List<double>.from(
-        data['pD']?.map((item) => 1.0 * item)?.toList() ?? []);
-    this.pW = List<double>.from(
-        data['pW']?.map((item) => 1.0 * item)?.toList() ?? []);
-    this.pM = List<double>.from(
-        data['pM']?.map((item) => 1.0 * item)?.toList() ?? []);
-    this.pMax = List<double>.from(
-        data['pMax']?.map((item) => 1.0 * item)?.toList() ?? []);
+    imageURL = data['image'];
 
-    this.price = this.pH.last;
+    pH = List<double>.from(data['pH'].map((item) => 1.0 * item).toList());
+    pD = List<double>.from(data['pD'].map((item) => 1.0 * item).toList());
+    pW = List<double>.from(data['pW'].map((item) => 1.0 * item).toList());
+    pM = List<double>.from(data['pM'].map((item) => 1.0 * item).toList());
+    pMax = List<double>.from(data['pMax'].map((item) => 1.0 * item).toList());
 
-    hourValueChange = (this.price - this.pH.first);
-    dayValueChange = (this.price - this.pD.first);
-    weekValueChange = (this.price - this.pW.first);
-    monthValueChange = (this.price - this.pM.first);
-    totalValueChange = (this.price - this.pMax.first);
-
-    hourReturn = hourValueChange / this.pH.first;
-    dayReturn = hourValueChange / this.pD.first;
-    weekReturn = hourValueChange / this.pW.first;
-    monthReturn = hourValueChange / this.pM.first;
-    totalReturn = hourValueChange / this.pMax.first;
-
-    if (data['type'].contains('long')) {
+    if (data['type'].contains('long'))
       longShort = 'long';
-    }
-    else {
+    else
       longShort = 'short';
-    }
 
     searchTerms = data['search_terms'].cast<String>();
+
+    super.computeValues();
   }
 
   @override
@@ -84,17 +85,20 @@ class Contract {
 class TeamContract extends Contract {
   String contractType = 'team';
 
-  TeamContract.fromMap(Map<String, dynamic> data) {
+  TeamContract.fromSnapshot(DocumentSnapshot snapshot) {
+
+    id = snapshot.id;
+    Map<String, dynamic> data = snapshot.data();
+    
     if (data == null) {
       print('WARNING: TeamContract passed null data');
       return;
     }
 
-    this.name = data['team_name'];
-    this.info1 = "P ${data['played']}";
-    this.info2 =
-        "GD ${data['goal_difference'] > 0 ? '+' : '-'}${data['goal_difference'].abs()}";
-    this.info3 = "PTS ${data['points']}";
+    name = data['team_name'];
+    info1 = "P ${data['played']}";
+    info2 = "GD ${data['goal_difference'] > 0 ? '+' : '-'}${data['goal_difference'].abs()}";
+    info3 = "PTS ${data['points']}";
 
     super.setData(data);
   }
@@ -103,7 +107,11 @@ class TeamContract extends Contract {
 class PlayerContract extends Contract {
   String contractType = 'player';
 
-  PlayerContract.fromMap(Map<String, dynamic> data) {
+  PlayerContract.fromSnapshot(DocumentSnapshot snapshot) {
+
+    id = snapshot.id;
+    Map<String, dynamic> data = snapshot.data();
+
     if (data == null) {
       print('WARNING: PlayerContract passed null data');
       return;
@@ -111,70 +119,22 @@ class PlayerContract extends Contract {
     if (data['name'].length > 24) {
       List names = data['name'].split(" ");
       if (names.length > 2)
-        this.name = names[0] + ' ' + names[names.length - 1];
+        name = names[0] + ' ' + names[names.length - 1];
       else
-        this.name = names[names.length - 1];
+        name = names[names.length - 1];
     } else
-      this.name = data['name'];
+      name = data['name'];
 
-    this.info1 = data['country_flag'] + ' ' + data['position'];
-    this.info2 = "${data['rating']}";
+    info1 = data['country_flag'] + ' ' + data['position'];
+    info2 = "${data['rating']}";
 
     if (data['team'].length > 20)
-      this.info3 = data['team'].split(" ")[0];
+      info3 = data['team'].split(" ")[0];
     else
-      this.info3 = data['team'];
+      info3 = data['team'];
 
     team = data['team'];
 
     super.setData(data);
   }
-}
-
-Future<List<Contract>> get10Contracts(
-    {@required String contractType,
-    @required int leagueID,
-    @required DocumentSnapshot lastDocument}) async {
-  List<Contract> newContracts = [];
-  QuerySnapshot results;
-  Query query;
-
-  if (contractType == 'player_long' || contractType == 'player_short') {
-    query = FirebaseFirestore.instance
-        .collection('contracts')
-        .where('league_id', isEqualTo: leagueID)
-        .where('type', isEqualTo: contractType)
-        .orderBy('rating', descending: true)
-        .limit(10);
-  } else if (contractType == 'team_long' || contractType == 'team_short') {
-    query = FirebaseFirestore.instance
-        .collection('contracts')
-        .where('league_id', isEqualTo: leagueID)
-        .where('type', isEqualTo: contractType)
-        .orderBy('points', descending: true)
-        .limit(10);
-  } else
-    throw ErrorDescription(
-        'contractType must be "player_long", "player_short", "team_long" or "team_short"');
-
-  if (lastDocument == null)
-    results = await query.get();
-  else
-    results = await query.startAfterDocument(lastDocument).get();
-
-  if (results.docs.isEmpty) return newContracts;
-
-  lastDocument = results.docs[results.docs.length - 1];
-
-  results.docs.forEach((result) {
-    if (contractType == 'player_long' || contractType == 'player_short') {
-      newContracts.add(PlayerContract.fromMap(result.data()));
-    } else if (contractType == 'team_long' || contractType == 'team_short') {
-      newContracts.add(TeamContract.fromMap(result.data()));
-    }
-  });
-
-  await Future.delayed(Duration(seconds: 2), () => 12);
-
-  return newContracts;
 }

@@ -37,8 +37,8 @@ class ContractFetcher {
 
         loadedResults.addAll(
           results.docs.map<Contract>((DocumentSnapshot item) => contractType.contains('player')
-              ? PlayerContract.fromMap(item.data())
-              : TeamContract.fromMap(item.data())),
+              ? PlayerContract.fromSnapshot(item)
+              : TeamContract.fromSnapshot(item)),
         );
       }
     }

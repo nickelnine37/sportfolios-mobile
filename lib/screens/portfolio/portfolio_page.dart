@@ -4,8 +4,8 @@ import 'package:flutter/material.dart';
 import 'package:sportfolios_alpha/data_models/contracts.dart';
 import 'package:sportfolios_alpha/data_models/portfolios.dart';
 import 'package:sportfolios_alpha/providers/authenication_provider.dart';
-import 'package:sportfolios_alpha/screens/portfolio/donut.dart';
-import 'package:sportfolios_alpha/screens/portfolio/price_chart.dart';
+import 'package:sportfolios_alpha/plots/donut_chart.dart';
+import 'package:sportfolios_alpha/plots/price_chart.dart';
 import 'package:sportfolios_alpha/utils/arrays.dart';
 // import 'package:sportfolios_alpha/utils/axis_range.dart';
 
@@ -57,9 +57,9 @@ class _PortfolioPageState extends State<PortfolioPage> {
         // turn this item fetched from the database into a [Contract] object
         Contract thisContract;
         if (contractSnapshot['type'].contains('team'))
-          thisContract = TeamContract.fromMap(contractSnapshot.data());
+          thisContract = TeamContract.fromSnapshot(contractSnapshot);
         else
-          thisContract = PlayerContract.fromMap(contractSnapshot.data());
+          thisContract = PlayerContract.fromSnapshot(contractSnapshot);
 
         // add the contract and the amount held of that contract to a list
         contracts.add(thisContract);
@@ -68,6 +68,7 @@ class _PortfolioPageState extends State<PortfolioPage> {
 
       // Create a [Portfolio] object ad add it to the userPortfolios list
       userPortfolios.add(Portfolio(
+        portfolioId: portfolioSnapshot.id,
         name: portfolioSnapshot['name'],
         contracts: contracts,
         amounts: amounts,

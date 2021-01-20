@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:sportfolios_alpha/data_models/leagues.dart';
 import 'package:sportfolios_alpha/screens/home/contract_scroll.dart';
 import 'package:sportfolios_alpha/utils/dialogues.dart';
-import 'package:sportfolios_alpha/utils/marquee.dart';
+// import 'package:sportfolios_alpha/utils/marquee.dart';
 import 'package:intl/intl.dart';
 
 class MainView extends StatefulWidget {
@@ -56,36 +56,35 @@ class _MainViewState extends State<MainView> {
                 Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.start,
-                      crossAxisAlignment: CrossAxisAlignment.center,
-                      children: [
-                        Text(league.name, style: TextStyle(fontSize: 28.0, color: Colors.white)),
-                        Container(
-                          padding: EdgeInsets.all(0),
-                          width: 30,
-                          height: 20,
-                          child: Center(
-                            child: IconButton(
-                              padding: EdgeInsets.all(0),
-                              icon: Icon(Icons.arrow_drop_down, color: Colors.white),
-                              onPressed: () async {
-                                int i = await showDialog(
-                                  context: context,
-                                  builder: (context) {
-                                    return LeagueSelectorDialogue(widget.leagues);
-                                  },
-                                );
-                                if (i != null && i != selectedLeague) {
-                                  setState(() {
-                                    selectedLeague = i;
-                                  });
-                                }
-                              },
+                    GestureDetector(
+                      onTap: () async {
+                        int i = await showDialog(
+                          context: context,
+                          builder: (context) {
+                            return LeagueSelectorDialogue(widget.leagues);
+                          },
+                        );
+                        if (i != null && i != selectedLeague) {
+                          setState(() {
+                            selectedLeague = i;
+                          });
+                        }
+                      },
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.start,
+                        crossAxisAlignment: CrossAxisAlignment.center,
+                        children: [
+                          Text(league.name, style: TextStyle(fontSize: 28.0, color: Colors.white)),
+                          Container(
+                            padding: EdgeInsets.all(0),
+                            width: 30,
+                            height: 20,
+                            child: Center(
+                              child: Icon(Icons.arrow_drop_down, color: Colors.white),
                             ),
                           ),
-                        ),
-                      ],
+                        ],
+                      ),
                     ),
                     Text(
                       league.countryFlagEmoji + '  ' + league.country,

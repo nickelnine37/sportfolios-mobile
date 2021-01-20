@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/all.dart';
-// import 'package:sportfolios_alpha/data_models/contracts.dart';
 import 'package:sportfolios_alpha/data_models/portfolios.dart';
 import 'package:sportfolios_alpha/providers/settings_provider.dart';
 import 'package:sportfolios_alpha/utils/arrays.dart';
@@ -35,7 +34,7 @@ class _AnimatedDonutChartState extends State<AnimatedDonutChart> {
     int nContracts = widget.portfolio.contracts.length;
 
     _values = range(nContracts)
-        .map((i) => widget.portfolio.contracts[i].price * widget.portfolio.amounts[i])
+        .map((i) => widget.portfolio.contracts[i].value * widget.portfolio.amounts[i])
         .toList();
 
     // note, bin edges are cacluated in metric angle! i.e. 0=>0, 2pi=>1

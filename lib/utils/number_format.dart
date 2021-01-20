@@ -3,7 +3,6 @@ import 'package:intl/intl.dart';
 List<String> _supportedCurrencies = ['GBP', 'EUR', 'USD'];
 
 String _checkCurrency(currency) {
-
   if (currency == null) {
     print('Warning: null currency passed. Defaulting to GBP');
     currency = 'GBP';
@@ -18,7 +17,6 @@ String _checkCurrency(currency) {
 }
 
 String formatCurrency(double amount, String currency) {
-
   NumberFormat currencyFormatter;
   double priceConversionRatio;
 
@@ -27,22 +25,19 @@ String formatCurrency(double amount, String currency) {
   switch (currency) {
     case 'USD':
       {
-        currencyFormatter =
-            NumberFormat.simpleCurrency(locale: 'en_US', decimalDigits: 2);
+        currencyFormatter = NumberFormat.simpleCurrency(locale: 'en_US', decimalDigits: 2);
         priceConversionRatio = 1.35;
       }
       break;
     case 'GBP':
       {
-        currencyFormatter =
-            NumberFormat.simpleCurrency(locale: 'en_GB', decimalDigits: 2);
+        currencyFormatter = NumberFormat.simpleCurrency(locale: 'en_GB', decimalDigits: 2);
         priceConversionRatio = 1.0;
       }
       break;
     case 'EUR':
       {
-        currencyFormatter =
-            NumberFormat.simpleCurrency(locale: 'eu', decimalDigits: 2);
+        currencyFormatter = NumberFormat.simpleCurrency(locale: 'eu', decimalDigits: 2);
         priceConversionRatio = 1.11;
       }
       break;
@@ -52,7 +47,6 @@ String formatCurrency(double amount, String currency) {
 }
 
 String formatPercentage(double percent, String currency) {
-  
   NumberFormat percentFormatter;
 
   currency = _checkCurrency(currency);
@@ -60,23 +54,43 @@ String formatPercentage(double percent, String currency) {
   switch (currency) {
     case 'USD':
       {
-        percentFormatter = NumberFormat.decimalPercentPattern(
-            locale: 'en_US', decimalDigits: 1);
+        percentFormatter = NumberFormat.decimalPercentPattern(locale: 'en_US', decimalDigits: 1);
       }
       break;
     case 'GBP':
       {
-        percentFormatter = NumberFormat.decimalPercentPattern(
-            locale: 'en_GB', decimalDigits: 1);
+        percentFormatter = NumberFormat.decimalPercentPattern(locale: 'en_GB', decimalDigits: 1);
       }
       break;
     case 'EUR':
       {
-        percentFormatter =
-            NumberFormat.decimalPercentPattern(locale: 'eu', decimalDigits: 1);
+        percentFormatter = NumberFormat.decimalPercentPattern(locale: 'eu', decimalDigits: 1);
       }
       break;
   }
 
   return percentFormatter.format(percent);
+}
+
+String formatDecimal(double number, String currency, [int decimalPlaces = 2]) {
+  currency = _checkCurrency(currency);
+
+  switch (currency) {
+    case 'USD':
+      {
+        return number.toStringAsFixed(decimalPlaces);
+      }
+      break;
+    case 'GBP':
+      {
+        return number.toStringAsFixed(decimalPlaces);
+      }
+      break;
+    case 'EUR':
+      {
+        return number.toStringAsFixed(decimalPlaces).replaceFirst('.', ',');
+      }
+      break;
+  }
+  return number.toStringAsFixed(decimalPlaces);
 }
