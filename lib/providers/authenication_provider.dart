@@ -1,21 +1,24 @@
 import 'package:riverpod/all.dart';
 import 'package:sportfolios_alpha/data_models/users.dart';
-import 'package:firebase_auth/firebase_auth.dart' as fb_auth;
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 
-final authenticationProvider = StreamProvider.autoDispose<User>((ref) {
+final authenticationProvider = StreamProvider.autoDispose<SportfoliosUser>((ref) {
   return AuthService().userStream;
 });
 
 class AuthService {
-  final _auth = fb_auth.FirebaseAuth.instance;
+  final FirebaseAuth _auth = FirebaseAuth.instance;
 
-  User get user {
-    return User(_auth.currentUser);
+  SportfoliosUser get user {
+    return SportfoliosUser(_auth.currentUser);
   }
-  
-  Stream<User> get userStream {
-    return _auth.authStateChanges().map((fb_auth.User user) => User(user));
+
+  Stream<SportfoliosUser> get userStream {
+    return _auth
+        .userChanges()
+        .where((User user) => user.emailVerified)
+        .map((User user) => SportfoliosUser(user));
   }
 
   void signOut() {
@@ -23,42 +26,64 @@ class AuthService {
     print('Signing user out');
   }
 
-  Future<String> signInWithEmail(
-      {@required String email, @required String password}) async {
+  Future<FirebaseAuthException> signInWithEmail({@required String email, @required String password}) async {
     try {
       await _auth.signInWithEmailAndPassword(email: email, password: password);
-      print('User signed in successfully');
-      // TODO: add email verification
       return null;
-    } catch (error) {
-      print('Login error: ' + error.toString());
-      return 'Login failed. Please check your details and try again.';
+    } on FirebaseAuthException catch (error) {
+      print('Login error: ' + error.message);
+      return error;
     }
   }
 
-  Future<void> sendResetPasswordEmail({@required String email}) async {
+  Future<FirebaseAuthException> sendResetPasswordEmail({@required String email}) async {
     try {
       await _auth.sendPasswordResetEmail(email: email);
-    } catch (e) {
-      print(e.toString());
+      return null;
+    } catch (error) {
+      print('Error sending password reset' + error.message);
+      return error;
     }
   }
 
-  Future<User> createNewUser(
-      {@required String email,
-      @required String username,
-      @required String password}) async {
+  Future<FirebaseAuthException> createNewUser({
+    @required String email,
+    @required String username,
+    @required String password,
+  }) async {
     try {
-      fb_auth.UserCredential result = await _auth
-          .createUserWithEmailAndPassword(email: email, password: password);
-      fb_auth.User user = result.user;
-      await user.updateProfile(displayName: username);
-      // TODO: avoid username clashes?
-      print(user.toString());
-      return User(user);
-    } catch (e) {
-      print(e.toString());
+      UserCredential result = await _auth.createUserWithEmailAndPassword(email: email, password: password);
+      await result.user.updateProfile(displayName: username);
+      return null;
+    } on FirebaseAuthException catch (error) {
+      print('Error creating new user: ' + error.message);
+      return error;
+    }
+  }
+
+  Future<FirebaseAuthException> sendVerificationEmail() async {
+    if (_auth.currentUser != null) {
+      try {
+        await _auth.currentUser.sendEmailVerification();
+        return null;
+      }
+      on FirebaseAuthException catch (error) {
+        print('Error sending verification email: ' + error.message);
+        return error;
+      }
+    }
+    else {
+      print('Cannot send verification email as user is null');
       return null;
     }
+    
+  }
+
+  bool isVerified() {
+    if (_auth.currentUser == null) {
+      return false;
+    }
+    _auth.currentUser.reload();
+    return _auth.currentUser.emailVerified;
   }
 }

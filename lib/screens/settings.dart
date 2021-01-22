@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/all.dart';
 import 'package:sportfolios_alpha/providers/authenication_provider.dart';
 import 'package:sportfolios_alpha/providers/settings_provider.dart';
+import 'package:sportfolios_alpha/screens/login/gatekeeper.dart';
 import 'package:sportfolios_alpha/utils/dialogues.dart';
 
 class Settings extends StatefulWidget {
@@ -12,10 +13,18 @@ class Settings extends StatefulWidget {
 }
 
 class _SettingsState extends State<Settings> {
+
+  GateKeeper gateKeeper;
+
   final AuthService _auth = AuthService();
 
   @override
   Widget build(BuildContext context) {
+
+    if (gateKeeper == null) {
+      gateKeeper = GateKeeper(context);
+    }
+
     return Scaffold(
         appBar: AppBar(
           elevation: 0,
@@ -41,7 +50,7 @@ class _SettingsState extends State<Settings> {
                           description: 'Are you sure you want to sign out?',
                           buttonText: 'Confirm',
                           action: () {
-                            _auth.signOut();
+                            gateKeeper.exit();
                           },
                         );
                       });
@@ -124,21 +133,20 @@ class _SettingsBodyState extends State<SettingsBody> {
               );
             })),
         Divider(thickness: 2),
-        ListTile(
-          leading: Text(
-            'Public profile',
-            style: TextStyle(fontSize: 16.0),
-          ),
-          trailing: Consumer(builder: (context, watch, child) {
-            bool public =
-                watch(authenticationProvider).data?.value?.public ?? false;
-            return Switch(
-              value: public,
-              onChanged: (value) {},
-            );
-          }),
-          // TODO: add logic for toggling public user
-        ),
+        // ListTile(
+        //   leading: Text(
+        //     'Public profile',
+        //     style: TextStyle(fontSize: 16.0),
+        //   ),
+        //   trailing: Consumer(builder: (context, watch, child) {
+        //     bool public =
+        //         watch(authenticationProvider).data?.value?.public ?? false;
+        //     return Switch(
+        //       value: public,
+        //       onChanged: (value) {},
+        //     );
+        //   }),
+        // ),
         Divider(thickness: 2),
         ListTile(
           leading: Text(

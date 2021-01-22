@@ -1,13 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:sportfolios_alpha/providers/authenication_provider.dart';
+import 'package:sportfolios_alpha/screens/login/gatekeeper.dart';
 import 'package:sportfolios_alpha/screens/login/login_utils.dart';
+import 'package:sportfolios_alpha/screens/login/verify.dart';
 
 class AccountRegistrationPage extends StatefulWidget {
   AccountRegistrationPage({Key key}) : super(key: key);
 
   @override
-  _AccountRegistrationPageState createState() =>
-      _AccountRegistrationPageState();
+  _AccountRegistrationPageState createState() => _AccountRegistrationPageState();
 }
 
 class _AccountRegistrationPageState extends State<AccountRegistrationPage> {
@@ -15,6 +16,7 @@ class _AccountRegistrationPageState extends State<AccountRegistrationPage> {
   String _username;
   String _password1;
   // String _password2;
+  String errorText;
 
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
   final AuthService _authService = AuthService();
@@ -25,11 +27,13 @@ class _AccountRegistrationPageState extends State<AccountRegistrationPage> {
   bool _isVisible = false;
   bool _isStart = true;
 
+  GateKeeper gateKeeper;
+
   @override
   void initState() {
     super.initState();
     _isStart
-        ? Future.delayed(Duration(milliseconds: 1000), () {
+        ? Future.delayed(Duration(milliseconds: 400), () {
             setState(() {
               _isVisible = true;
               _isStart = false;
@@ -40,9 +44,12 @@ class _AccountRegistrationPageState extends State<AccountRegistrationPage> {
 
   @override
   Widget build(BuildContext context) {
+    if (gateKeeper == null) {
+      gateKeeper = GateKeeper(context);
+    }
+
     return Scaffold(
-      appBar:
-          AppBar(elevation: 0, iconTheme: IconThemeData(color: Colors.white)),
+      appBar: AppBar(elevation: 0, iconTheme: IconThemeData(color: Colors.white)),
       backgroundColor: Colors.blue[200],
       body: AnimatedOpacity(
         curve: Curves.easeInOutQuart,
@@ -146,27 +153,49 @@ class _AccountRegistrationPageState extends State<AccountRegistrationPage> {
                       ),
                       SizedBox(height: 35),
                       ButtonTheme(
-                        shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(30)),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
                         minWidth: 300,
                         height: 50,
                         child: RaisedButton(
                           elevation: 0,
                           child: Text(
                             'REGISTER',
-                            style: TextStyle(
-                                color: Colors.white,
-                                fontSize: 18,
-                                letterSpacing: 1),
+                            style: TextStyle(color: Colors.white, fontSize: 18, letterSpacing: 1),
                           ),
-                          onPressed: () {
+                          onPressed: () async {
                             if (_formKey.currentState.validate()) {
                               _formKey.currentState.save();
-                              _authService.createNewUser(
-                                  email: this._email,
-                                  username: this._username,
-                                  password: this._password1);
-                              Navigator.of(context).pop();
+
+                              // close the keyboard
+                              if (!FocusScope.of(context).hasPrimaryFocus) {
+                                FocusManager.instance.primaryFocus.unfocus();
+                              }
+
+                              // save the form state
+                              _formKey.currentState.save();
+                              
+                              // register user and check for problems
+                              String error = await gateKeeper.registerUser(
+                                  email: _email, username: _username, password: _password1);
+                              
+                              // if no problems happened with registering, push to verification stage
+                              if (error == null) {
+                                Navigator.of(context).push(
+                                  MaterialPageRoute(
+                                    builder: (context) {
+                                      return VerifyScreen(email: _email);
+                                    },
+                                  ),
+                                );
+                              } 
+
+                              // otherwise display error
+                              else {
+                                setState(() {
+                                  errorText = error;
+                                });
+                              }
+
                             }
                           },
                         ),
@@ -175,6 +204,9 @@ class _AccountRegistrationPageState extends State<AccountRegistrationPage> {
                   ),
                 ),
                 SizedBox(height: 13),
+                (errorText == null)
+                    ? Container()
+                    : Container(height: 20, child: Text(errorText, style: TextStyle(color: Colors.red))),
               ],
             ),
           ),
