@@ -1,3 +1,4 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:riverpod/all.dart';
 import 'package:sportfolios_alpha/data_models/users.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -12,6 +13,10 @@ class AuthService {
 
   SportfoliosUser get user {
     return SportfoliosUser(_auth.currentUser);
+  }
+
+  String get currentUid {
+    return _auth.currentUser.uid;
   }
 
   Stream<SportfoliosUser> get userStream {
@@ -54,6 +59,11 @@ class AuthService {
     try {
       UserCredential result = await _auth.createUserWithEmailAndPassword(email: email, password: password);
       await result.user.updateProfile(displayName: username);
+      CollectionReference users = FirebaseFirestore.instance.collection('users');
+      users
+          .doc(result.user.uid)
+          .set({'portfolios': []})
+          .catchError((error) => print("Failed to add user database entry: $error"));
       return null;
     } on FirebaseAuthException catch (error) {
       print('Error creating new user: ' + error.message);
@@ -66,24 +76,21 @@ class AuthService {
       try {
         await _auth.currentUser.sendEmailVerification();
         return null;
-      }
-      on FirebaseAuthException catch (error) {
+      } on FirebaseAuthException catch (error) {
         print('Error sending verification email: ' + error.message);
         return error;
       }
-    }
-    else {
+    } else {
       print('Cannot send verification email as user is null');
       return null;
     }
-    
   }
 
-  bool isVerified() {
+  Future<bool> isVerified() async {
     if (_auth.currentUser == null) {
       return false;
     }
-    _auth.currentUser.reload();
+    await _auth.currentUser.reload();
     return _auth.currentUser.emailVerified;
   }
 }

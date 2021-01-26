@@ -1,7 +1,6 @@
 import 'dart:async';
 
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:sportfolios_alpha/app_main.dart';
 import 'package:sportfolios_alpha/providers/authenication_provider.dart';
@@ -13,11 +12,23 @@ class GateKeeper {
 
   GateKeeper(this.context);
 
+  Future<void> checkForCurrentUser() async {
+    if (await _authService.isVerified()) {
+      Navigator.of(context).pushReplacement(
+        MaterialPageRoute(
+          builder: (context) {
+            return AppMain();
+          },
+        ),
+      );
+    }
+  }
+
   Future<String> enter({@required String email, @required String password}) async {
     FirebaseAuthException signInProblem =
         await _authService.signInWithEmail(email: email, password: password);
     if (signInProblem == null) {
-      if (_authService.isVerified()) {
+      if (await _authService.isVerified()) {
         Navigator.of(context).pushReplacement(
           MaterialPageRoute(
             builder: (context) {
@@ -48,10 +59,8 @@ class GateKeeper {
     @required String username,
     @required String password,
   }) async {
-    print('creating new user...');
     FirebaseAuthException newUserProblem =
         await _authService.createNewUser(email: email, username: username, password: password);
-    print('...completed');
     if (newUserProblem == null) {
       return null;
     } else {
@@ -79,11 +88,11 @@ class GateKeeper {
 
   Future<void> awaitVerification() async {
     int i = 0;
-    Timer timer = Timer.periodic(
+    Timer.periodic(
       Duration(seconds: 5),
-      (timer) {
+      (timer) async {
         print('Waiting: ${i++}');
-        if (_authService.isVerified()) {
+        if (await _authService.isVerified()) {
           timer.cancel();
           Navigator.of(context).pushReplacement(
             MaterialPageRoute(

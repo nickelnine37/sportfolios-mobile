@@ -175,7 +175,7 @@ class _PieChartState extends State<PieChart> {
           child: Container(
             child: Center(
               child: Text(
-                this.selectedSegment == null ? 'Portfolio Overview' : '${asset.name} (${asset.longShort})',
+                this.selectedSegment == null ? 'Portfolio Overview' : '${asset.name} (${asset.longOrShort})',
                 // asset.name + "${this.selectedSegment == null ? '' : ' (${asset.longShort})'}",
                 style: TextStyle(fontSize: 20, fontWeight: FontWeight.w300),
               ),

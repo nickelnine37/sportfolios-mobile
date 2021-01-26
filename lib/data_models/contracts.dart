@@ -1,6 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 
 class Instrument {
+  
   String name;
   double value;
   String id;

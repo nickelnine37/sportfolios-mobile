@@ -16,7 +16,7 @@ class _SettingsState extends State<Settings> {
 
   GateKeeper gateKeeper;
 
-  final AuthService _auth = AuthService();
+  // final AuthService _auth = AuthService();
 
   @override
   Widget build(BuildContext context) {

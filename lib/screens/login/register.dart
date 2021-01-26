@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:sportfolios_alpha/providers/authenication_provider.dart';
+// import 'package:sportfolios_alpha/providers/authenication_provider.dart';
 import 'package:sportfolios_alpha/screens/login/gatekeeper.dart';
 import 'package:sportfolios_alpha/screens/login/login_utils.dart';
 import 'package:sportfolios_alpha/screens/login/verify.dart';
@@ -19,7 +19,7 @@ class _AccountRegistrationPageState extends State<AccountRegistrationPage> {
   String errorText;
 
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
-  final AuthService _authService = AuthService();
+  // final AuthService _authService = AuthService();
 
   final TextEditingController _pass = TextEditingController();
   final TextEditingController _confirmPass = TextEditingController();

@@ -130,16 +130,16 @@ class ContractPageHeader extends ConsumerWidget {
   final League league;
   const ContractPageHeader(this.contract, this.league);
 
-  Widget _valueChangeText(String currency, double valueChange, double percentChange) {
-    String sign = valueChange > 0 ? '+' : '-';
-    return Text(
-      '$sign${formatPercentage(percentChange.abs(), currency)}  ($sign${formatCurrency(valueChange.abs(), currency)})',
-      style: TextStyle(
-        fontSize: 12,
-        color: valueChange > 0 ? Colors.green[300] : Colors.red[300],
-      ),
-    );
-  }
+  // Widget _valueChangeText(String currency, double valueChange, double percentChange) {
+  //   String sign = valueChange > 0 ? '+' : '-';
+  //   return Text(
+  //     '$sign${formatPercentage(percentChange.abs(), currency)}  ($sign${formatCurrency(valueChange.abs(), currency)})',
+  //     style: TextStyle(
+  //       fontSize: 12,
+  //       color: valueChange > 0 ? Colors.green[300] : Colors.red[300],
+  //     ),
+  //   );
+  // }
 
   @override
   Widget build(BuildContext context, ScopedReader watch) {

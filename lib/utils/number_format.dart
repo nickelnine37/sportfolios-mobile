@@ -16,6 +16,15 @@ String _checkCurrency(currency) {
   return currency;
 }
 
+String getCurrencySymbol(String currency) {
+  String out = formatCurrency(0, currency);
+
+  if (currency == 'EUR')
+    return out[-1];
+  else
+    return out[0];
+}
+
 String formatCurrency(double amount, String currency) {
   NumberFormat currencyFormatter;
   double priceConversionRatio;
@@ -75,22 +84,8 @@ String formatPercentage(double percent, String currency) {
 String formatDecimal(double number, String currency, [int decimalPlaces = 2]) {
   currency = _checkCurrency(currency);
 
-  switch (currency) {
-    case 'USD':
-      {
-        return number.toStringAsFixed(decimalPlaces);
-      }
-      break;
-    case 'GBP':
-      {
-        return number.toStringAsFixed(decimalPlaces);
-      }
-      break;
-    case 'EUR':
-      {
-        return number.toStringAsFixed(decimalPlaces).replaceFirst('.', ',');
-      }
-      break;
-  }
-  return number.toStringAsFixed(decimalPlaces);
+  if (currency == 'EUR')
+    return number.toStringAsFixed(decimalPlaces).replaceFirst('.', ',');
+  else
+    return number.toStringAsFixed(decimalPlaces);
 }
