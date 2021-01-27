@@ -1,7 +1,7 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
-import 'package:sportfolios_alpha/data_models/leagues.dart';
+import 'package:sportfolios_alpha/data/models/leagues.dart';
 import 'package:sportfolios_alpha/screens/home/app_bar.dart';
 
 // this gets called only when a sport has been selected
@@ -44,7 +44,7 @@ class _HomeBodyState extends State<HomeBody> {
     if (sport == 'Football') {
       QuerySnapshot result = await FirebaseFirestore.instance.collection('leagues').get();
       return result.docs
-          .map((DocumentSnapshot leagueSnapshot) => League.fromMap(leagueSnapshot.data()))
+          .map((DocumentSnapshot leagueSnapshot) => League.fromSnapshot(leagueSnapshot))
           .toList();
     } else {
       return [];

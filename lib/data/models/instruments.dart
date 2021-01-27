@@ -1,7 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:flutter_riverpod/all.dart';
 import 'package:sportfolios_alpha/data/firebase/contracts.dart';
 import 'package:sportfolios_alpha/data/models/base.dart';
+import 'package:sportfolios_alpha/utils/arrays.dart';
 
 class Instrument extends BaseDataModel {
   String name;
@@ -25,9 +25,12 @@ class Instrument extends BaseDataModel {
   double monthValueChange;
   double totalValueChange;
 
-  @override
-  Instrument populate(DocumentSnapshot snapshot) {
+  Instrument(String id) : super(id);
+
+  computeValueChange() {
     value = pH.last;
+
+    print('$id, $value');
 
     hourValueChange = (value - pH.first);
     dayValueChange = (value - pD.first);
@@ -40,9 +43,29 @@ class Instrument extends BaseDataModel {
     weekReturn = weekValueChange / pW.first;
     monthReturn = monthValueChange / pM.first;
     totalReturn = totalValueChange / pMax.first;
+  }
 
-    super.populate(snapshot);
-    return this;
+  @override
+  String toString() {
+    return 'Instrument($id)';
+  }
+}
+
+class Cash extends Instrument {
+  Cash() : super('cash') {
+    name = 'Cash';
+    pH = ones(120);
+    pD = ones(120);
+    pW = ones(120);
+    pM = ones(120);
+    pMax = ones(120);
+
+    super.computeValueChange();
+  }
+
+  @override
+  String toString() {
+    return 'Cash()';
   }
 }
 
@@ -58,12 +81,9 @@ class Contract extends Instrument {
   String info2;
   String info3;
 
-  Contract(String contractId) {
-    id = contractId;
-  }
+  Contract(String contractId) : super(contractId);
 
-  @override
-  Contract populate(DocumentSnapshot snapshot) {
+  Contract.fromDocumentSnapshot(DocumentSnapshot snapshot) : super(snapshot.id) {
     Map<String, dynamic> data = snapshot.data();
 
     // pH = List<double>.from(data['pH'].map((item) => 1.0 * item));
@@ -115,8 +135,7 @@ class Contract extends Instrument {
     searchTerms = data['search_terms'].cast<String>();
     imageURL = data['image'];
 
-    super.populate(snapshot);
-    return this;
+    super.computeValueChange();
   }
 
   @override
@@ -125,34 +144,53 @@ class Contract extends Instrument {
   }
 }
 
-
 class Portfolio extends Instrument {
   String name;
   bool public;
-  List<Contract> contracts;
+  List<Instrument> contracts;
+  List<double> amounts;
 
-  Portfolio(String portfolioId) {
-    id = portfolioId;
+  Portfolio(String portfolioId) : super(portfolioId);
+
+  Portfolio.fromDocumentSnapshot(DocumentSnapshot snapshot) : super(snapshot.id) {
+    Map<String, dynamic> data = snapshot.data();
+    name = data['name'];
+    public = data['public'];
+    contracts =
+        data['contracts'].keys.map<Instrument>((String contractId) => Instrument(contractId)).toList();
+    amounts = data['contracts']
+        .keys
+        .map<double>((String contractId) => 1.0 * data['contracts'][contractId])
+        .toList();
+  }
+
+  Future<void> populateContracts() async {
+
+    if (contracts == null) {
+      print('Cannot get contracts - try adding portfolio from snapshot first');
+      return;
+    }
+    List<Instrument> contractsNew = [];
+    for (Instrument contract in contracts) {
+      if (contract.id == 'cash') {
+        contractsNew.add(Cash());
+      } else {
+        contractsNew.add(await getContractById(contract.id));
+      }
+    }
+    contracts = contractsNew;
+
+    pH = matrixMultiply(this.contracts.map((contract) => contract.pH).toList(), this.amounts);
+    pD = matrixMultiply(this.contracts.map((contract) => contract.pD).toList(), this.amounts);
+    pW = matrixMultiply(this.contracts.map((contract) => contract.pW).toList(), this.amounts);
+    pM = matrixMultiply(this.contracts.map((contract) => contract.pM).toList(), this.amounts);
+    pMax = matrixMultiply(this.contracts.map((contract) => contract.pMax).toList(), this.amounts);
+
+    super.computeValueChange();
   }
 
   @override
-  Portfolio populate(DocumentSnapshot snapshot) {
-    Map<String, dynamic> data = snapshot.data();
-    name = data['name'];
-    public = data['public'];
-    contracts = data['contracts'].map((String contractId) => Contract(contractId));
-    return this;
-  }
-
-  Future<Portfolio> populateDeep (DocumentSnapshot snapshot) async {
-    Map<String, dynamic> data = snapshot.data();
-    name = data['name'];
-    public = data['public'];
-    
-    contracts = [];
-    for (String contractId in data['contracts']) {
-      contracts.add(await getContractById(contractId));
-    }
-    return this;
+  String toString() {
+    return 'Portfolio(${contracts.toString()})';
   }
 }

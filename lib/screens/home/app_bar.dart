@@ -1,6 +1,6 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
-import 'package:sportfolios_alpha/data_models/leagues.dart';
+import 'package:sportfolios_alpha/data/models/leagues.dart';
 import 'package:sportfolios_alpha/screens/home/contract_scroll.dart';
 import 'package:sportfolios_alpha/utils/dialogues.dart';
 // import 'package:sportfolios_alpha/utils/marquee.dart';

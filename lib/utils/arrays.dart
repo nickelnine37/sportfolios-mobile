@@ -66,3 +66,11 @@ List<double> matrixMultiply(List<List<double>> transposedMatrix, List array) {
 List<double> zeros(int N) {
     return List.generate(N, (int i) => 0);
 }
+
+List<double> ones(int N) {
+    return List.generate(N, (int i) => 1);
+}
+
+List<double> ns(int N, double n) {
+    return List.generate(N, (int i) => n);
+}

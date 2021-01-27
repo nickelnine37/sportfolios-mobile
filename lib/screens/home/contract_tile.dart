@@ -1,12 +1,12 @@
 import 'package:cached_network_image/cached_network_image.dart';
-import 'package:sportfolios_alpha/data_models/leagues.dart';
+import 'package:sportfolios_alpha/data/models/leagues.dart';
 import 'package:sportfolios_alpha/providers/settings_provider.dart';
 import 'package:sportfolios_alpha/screens/home/contract_details.dart';
 import 'package:sportfolios_alpha/utils/number_format.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'dart:math';
 import 'package:flutter/material.dart';
-import 'package:sportfolios_alpha/data_models/contracts.dart';
+import 'package:sportfolios_alpha/data/models/instruments.dart';
 
 
 

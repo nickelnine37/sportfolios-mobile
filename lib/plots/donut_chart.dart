@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/all.dart';
-import 'package:sportfolios_alpha/data_models/portfolios.dart';
+import 'package:sportfolios_alpha/data/models/instruments.dart';
 import 'package:sportfolios_alpha/providers/settings_provider.dart';
 import 'package:sportfolios_alpha/utils/arrays.dart';
 import 'package:sportfolios_alpha/utils/colors.dart';
@@ -41,7 +41,7 @@ class _AnimatedDonutChartState extends State<AnimatedDonutChart> {
     double _runningTotal = 0;
     for (double value in _values) {
       _runningTotal += value;
-      _binEdges.add(_runningTotal / this.widget.portfolio.value);
+      _binEdges.add(_runningTotal / widget.portfolio.value);
     }
 
     // increment endValue here
@@ -156,17 +156,19 @@ class _PieChartState extends State<PieChart> {
 
     // Container for central text. Change opacity with percentComplete
     Center centralText = Center(
-      child: Consumer(builder: (context, watch, value) {
-        String currency = watch(settingsProvider).currency;
-        return Text(
-          '${formatCurrency(centerText, currency)}',
-          style: TextStyle(
-            fontWeight: FontWeight.w300,
-            fontSize: 26,
-            color: Colors.grey[800].withOpacity(widget.percentComplete),
-          ),
-        );
-      }),
+      child: Consumer(
+        builder: (context, watch, value) {
+          String currency = watch(settingsProvider).currency;
+          return Text(
+            '${formatCurrency(centerText, currency)}',
+            style: TextStyle(
+              fontWeight: FontWeight.w300,
+              fontSize: 26,
+              color: Colors.grey[800].withOpacity(widget.percentComplete),
+            ),
+          );
+        },
+      ),
     );
 
     return Column(
@@ -175,7 +177,7 @@ class _PieChartState extends State<PieChart> {
           child: Container(
             child: Center(
               child: Text(
-                this.selectedSegment == null ? 'Portfolio Overview' : '${asset.name} (${asset.longOrShort})',
+                this.selectedSegment == null ? 'Portfolio Overview' : '${asset.name}',
                 // asset.name + "${this.selectedSegment == null ? '' : ' (${asset.longShort})'}",
                 style: TextStyle(fontSize: 20, fontWeight: FontWeight.w300),
               ),
@@ -194,7 +196,7 @@ class _PieChartState extends State<PieChart> {
                 child: Consumer(
                   builder: (context, watch, value) {
                     String currency = watch(settingsProvider).currency;
-                    int amount =
+                    double amount =
                         (this.selectedSegment == null) ? 1 : widget.portfolio.amounts[this.selectedSegment];
                     return Column(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -370,14 +372,14 @@ Widget _portfolioInfoBox(
       SizedBox(height: 4),
       Center(
         child: Text(
-          '${retrn > 0 ? "+" : "-"}' +
+          '${retrn >= 0 ? "+" : "-"}' +
               formatPercentage(retrn.abs(), currency) +
-              '  (${retrn > 0 ? "+" : "-"}' +
+              '  (${retrn >= 0 ? "+" : "-"}' +
               formatCurrency(valueChange.abs(), currency) +
               ')',
           style: TextStyle(
             fontSize: 12,
-            color: retrn > 0 ? Colors.green.withOpacity(opacity) : Colors.red.withOpacity(opacity),
+            color: retrn >= 0 ? Colors.green.withOpacity(opacity) : Colors.red.withOpacity(opacity),
           ),
         ),
       ),

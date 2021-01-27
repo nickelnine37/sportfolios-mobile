@@ -1,16 +1,15 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:flutter_riverpod/all.dart';
 
 /// A data model models any document coming from firebase. This is the base class that all
 /// others shoudl inherit from. 
 class BaseDataModel {
 
-  String id;
+  final String id;
+  BaseDataModel(this.id);
 
-  // BaseDataModel(this.id);
-
-  BaseDataModel populate(DocumentSnapshot snapshot){
-    id = snapshot.id;
-    return this;
+  @override
+  String toString() {
+    return 'BaseDataModel($id)';
   }
-
 }

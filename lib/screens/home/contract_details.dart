@@ -4,8 +4,8 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/all.dart';
 import 'package:palette_generator/palette_generator.dart';
-import 'package:sportfolios_alpha/data_models/contracts.dart';
-import 'package:sportfolios_alpha/data_models/leagues.dart';
+import 'package:sportfolios_alpha/data/models/instruments.dart';
+import 'package:sportfolios_alpha/data/models/leagues.dart';
 import 'package:sportfolios_alpha/plots/payout_graph.dart';
 import 'package:sportfolios_alpha/providers/settings_provider.dart';
 import 'package:sportfolios_alpha/plots/price_chart.dart';
@@ -57,7 +57,7 @@ class _ContractDetailsState extends State<ContractDetails> {
                 // backgroundColor: palette.paletteColors[0].color,
                 title: Text(
                   widget.contract.name +
-                      (widget.contract.contractType.contains('long') ? ' (long)' : ' (short)'),
+                      ' (${widget.contract.longOrShort})',
                   style: TextStyle(color: Colors.white),
                 ),
                 iconTheme: IconThemeData(color: Colors.white),
@@ -109,7 +109,7 @@ class _ContractDetailsState extends State<ContractDetails> {
                   PayoutGraph(range(20).map((i) => exp(i / 5)).toList(), palette.paletteColors[3].color),
                   SizedBox(height: 35),
                   TabbedPriceGraph(
-                      portfolio: widget.contract,
+                      instrument: widget.contract,
                       color1: palette.paletteColors[0].color,
                       color2: palette.paletteColors[1].color),
                   SizedBox(height: 35),

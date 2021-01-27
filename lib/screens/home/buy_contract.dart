@@ -3,8 +3,8 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:sportfolios_alpha/data_models/contracts.dart';
-import 'package:sportfolios_alpha/data_models/leagues.dart';
+import 'package:sportfolios_alpha/data/models/instruments.dart';
+import 'package:sportfolios_alpha/data/models/leagues.dart';
 import 'package:sportfolios_alpha/providers/authenication_provider.dart';
 import 'package:sportfolios_alpha/providers/settings_provider.dart';
 import 'package:sportfolios_alpha/utils/number_format.dart';
@@ -84,7 +84,7 @@ class _BuyContractState extends State<BuyContract> {
                     Text(
                         'Buy ' +
                             widget.contract.name +
-                            '${widget.contract.contractType.contains('long') ? ', long' : ', short'}',
+                            ', ${widget.contract.longOrShort}',
                         textAlign: TextAlign.center,
                         style: TextStyle(fontSize: 20, fontWeight: FontWeight.w400)),
                     SizedBox(height: 5),
@@ -159,6 +159,14 @@ class _BuyFormState extends State<BuyForm> {
   final TextEditingController _priceController = TextEditingController();
   String _selectedPortfolioId;
   Map<String, dynamic> _finalFormFields = {'portfolioId': null, 'units': null, 'price': null};
+
+  @override
+  void dispose() {
+    // Clean up the controller when the widget is disposed.
+    _unitController.dispose();
+    _priceController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {

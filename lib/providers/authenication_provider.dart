@@ -1,6 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:riverpod/all.dart';
-import 'package:sportfolios_alpha/data_models/users.dart';
+import 'package:sportfolios_alpha/data/models/users.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 
@@ -11,9 +11,9 @@ final authenticationProvider = StreamProvider.autoDispose<SportfoliosUser>((ref)
 class AuthService {
   final FirebaseAuth _auth = FirebaseAuth.instance;
 
-  SportfoliosUser get user {
-    return SportfoliosUser(_auth.currentUser);
-  }
+  // SportfoliosUser get user {
+  //   return SportfoliosUser(_auth.currentUser);
+  // }
 
   String get currentUid {
     return _auth.currentUser.uid;

@@ -29,6 +29,15 @@ class _AccountRegistrationPageState extends State<AccountRegistrationPage> {
 
   GateKeeper gateKeeper;
 
+
+  @override
+  void dispose() {
+    // Clean up the controller when the widget is disposed.
+    _pass.dispose();
+    _confirmPass.dispose();
+    super.dispose();
+  }
+
   @override
   void initState() {
     super.initState();

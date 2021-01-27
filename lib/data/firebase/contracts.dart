@@ -3,7 +3,7 @@ import 'package:sportfolios_alpha/data/models/instruments.dart';
 
 Future<Contract> getContractById(String id) async {
   DocumentSnapshot snapshot = await FirebaseFirestore.instance.collection('contracts').doc(id).get();
-  return Contract(id).populate(snapshot);
+  return Contract.fromDocumentSnapshot(snapshot);
 }
 
 class ContractFetcher {
@@ -42,7 +42,7 @@ class ContractFetcher {
         lastDocument = results.docs.last;
 
         loadedResults.addAll(
-          results.docs.map<Contract>((DocumentSnapshot snapshot) => Contract(snapshot.id).populate(snapshot)),
+          results.docs.map<Contract>((DocumentSnapshot snapshot) => Contract.fromDocumentSnapshot(snapshot)),
         );
       }
     }

@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:sportfolios_alpha/data_models/leagues.dart';
-import 'package:sportfolios_alpha/fetch/fetch_contracts.dart';
+import 'package:sportfolios_alpha/data/models/leagues.dart';
+import 'package:sportfolios_alpha/data/firebase/contracts.dart';
 import 'package:sportfolios_alpha/screens/home/contract_tile.dart';
 import 'package:sportfolios_alpha/utils/string_utils.dart';
 
@@ -41,6 +41,12 @@ class ContractScrollState extends State<ContractScroll> with AutomaticKeepAliveC
   void initState() {
     super.initState();
     _scrollController.addListener(_scrollListener);
+  }
+  @override
+  void dispose() {
+    // Clean up the controller when the widget is disposed.
+    _textController.dispose();
+    super.dispose();
   }
 
   /// helper function: has the user just switched leagues on us?
