@@ -1,6 +1,7 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:sportfolios_alpha/data/models/leagues.dart';
 import 'package:sportfolios_alpha/screens/home/app_bar.dart';
 
@@ -32,6 +33,7 @@ class HomeBody extends StatefulWidget {
 class _HomeBodyState extends State<HomeBody> {
   Future<List<League>> _leaguesFuture;
   String _lastLoadedSport;
+  String initialLeagueId;
 
   @override
   void initState() {
@@ -42,6 +44,8 @@ class _HomeBodyState extends State<HomeBody> {
   Future<List<League>> _getLeagues(String sport) async {
     _lastLoadedSport = sport;
     if (sport == 'Football') {
+      SharedPreferences prefs = await SharedPreferences.getInstance();
+      initialLeagueId = prefs.getString('selectedLeague');
       QuerySnapshot result = await FirebaseFirestore.instance.collection('leagues').get();
       return result.docs
           .map((DocumentSnapshot leagueSnapshot) => League.fromSnapshot(leagueSnapshot))
@@ -49,44 +53,6 @@ class _HomeBodyState extends State<HomeBody> {
     } else {
       return [];
     }
-  }
-
-  @override
-  Widget build(BuildContext context) {
-//
-    // we've just switched sports, so load the new leagues
-    if (_lastLoadedSport != widget.selectedSport) {
-      setState(() {
-        _leaguesFuture = _getLeagues(widget.selectedSport);
-      });
-    }
-
-    return FutureBuilder(
-      future: _leaguesFuture,
-      builder: (BuildContext context, AsyncSnapshot snapshot) {
-        // loading a new sport
-        if (snapshot.connectionState != ConnectionState.done) {
-          return _buildScaffold(title: '', body: Center(child: CircularProgressIndicator()));
-        } else if (snapshot.hasData) {
-          List<League> leagues = snapshot.data;
-
-          // no leagues for this sport yet
-          if (leagues.length == 0) {
-            return _buildScaffold(title: widget.selectedSport, body: _apologise(widget.selectedSport));
-          } else {
-            return MainView(
-              sport: widget.selectedSport,
-              leagues: leagues,
-              drawerKey: widget.parentScaffoldKey,
-            );
-          }
-        } else if (snapshot.hasError) {
-          return _buildScaffold(title: 'Error :(', body: Center(child: Text("That's an error, I'm afraid")));
-        } else {
-          return _buildScaffold(title: '', body: Center(child: CircularProgressIndicator()));
-        }
-      },
-    );
   }
 
   Scaffold _buildScaffold({String title, Widget body}) {
@@ -119,6 +85,45 @@ class _HomeBodyState extends State<HomeBody> {
           )
         ],
       ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+//
+    // we've just switched sports, so load the new leagues
+    if (_lastLoadedSport != widget.selectedSport) {
+      setState(() {
+        _leaguesFuture = _getLeagues(widget.selectedSport);
+      });
+    }
+
+    return FutureBuilder(
+      future: _leaguesFuture,
+      builder: (BuildContext context, AsyncSnapshot snapshot) {
+        // loading a new sport
+        if (snapshot.connectionState != ConnectionState.done) {
+          return _buildScaffold(title: '', body: Center(child: CircularProgressIndicator()));
+        } else if (snapshot.hasData) {
+          List<League> leagues = snapshot.data;
+
+          // no leagues for this sport yet
+          if (leagues.length == 0) {
+            return _buildScaffold(title: widget.selectedSport, body: _apologise(widget.selectedSport));
+          } else {
+            return MainView(
+              sport: widget.selectedSport,
+              leagues: leagues,
+              initialLeagueId: initialLeagueId,
+              drawerKey: widget.parentScaffoldKey,
+            );
+          }
+        } else if (snapshot.hasError) {
+          return _buildScaffold(title: 'Error :(', body: Center(child: Text("That's an error, I'm afraid")));
+        } else {
+          return _buildScaffold(title: '', body: Center(child: CircularProgressIndicator()));
+        }
+      },
     );
   }
 }

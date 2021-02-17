@@ -3,6 +3,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:sportfolios_alpha/data/firebase/portfolios.dart';
 import 'package:sportfolios_alpha/data/models/instruments.dart';
 import 'package:sportfolios_alpha/data/models/leagues.dart';
 import 'package:sportfolios_alpha/providers/authenication_provider.dart';
@@ -10,12 +11,7 @@ import 'package:sportfolios_alpha/providers/settings_provider.dart';
 import 'package:sportfolios_alpha/utils/number_format.dart';
 import 'package:intl/intl.dart';
 
-class PortfolioWireframe {
-  final String name;
-  final String id;
 
-  PortfolioWireframe(this.name, this.id);
-}
 
 class BuyContract extends StatefulWidget {
   final Contract contract;
@@ -28,7 +24,7 @@ class BuyContract extends StatefulWidget {
 }
 
 class _BuyContractState extends State<BuyContract> {
-  Future<List<PortfolioWireframe>> _portfoliosFuture;
+  Future<List<Portfolio>> _portfoliosFuture;
 
   @override
   void initState() {
@@ -37,17 +33,14 @@ class _BuyContractState extends State<BuyContract> {
     _portfoliosFuture = _getPortfolios();
   }
 
-  Future<List<PortfolioWireframe>> _getPortfolios() async {
+  Future<List<Portfolio>> _getPortfolios() async {
     AuthService _authService = AuthService();
-    List<PortfolioWireframe> out = [];
+    List<Portfolio> out = [];
     DocumentSnapshot userSnapshot =
         await FirebaseFirestore.instance.collection('users').doc(_authService.currentUid).get();
     List<String> portfolioIds = List<String>.from(userSnapshot.data()['portfolios']);
-    print(portfolioIds);
     for (String portfolioId in portfolioIds) {
-      DocumentSnapshot portfolioSnapshot =
-          await FirebaseFirestore.instance.collection('portfolios').doc(portfolioId).get();
-      out.add(PortfolioWireframe(portfolioSnapshot.data()['name'], portfolioSnapshot.id));
+      out.add(await getPortfolioById(portfolioId));
     }
     return out;
   }
@@ -143,7 +136,7 @@ class _BuyContractState extends State<BuyContract> {
 }
 
 class BuyForm extends StatefulWidget {
-  final List<PortfolioWireframe> portfolios;
+  final List<Portfolio> portfolios;
   final Contract contract;
   final String currency;
 
@@ -158,7 +151,7 @@ class _BuyFormState extends State<BuyForm> {
   final TextEditingController _unitController = TextEditingController();
   final TextEditingController _priceController = TextEditingController();
   String _selectedPortfolioId;
-  Map<String, dynamic> _finalFormFields = {'portfolioId': null, 'units': null, 'price': null};
+  Map<String, dynamic> _finalFormFields = {'portfolioId': null, 'contractId': null, 'units': null, 'price': null};
 
   @override
   void dispose() {
@@ -170,6 +163,7 @@ class _BuyFormState extends State<BuyForm> {
 
   @override
   Widget build(BuildContext context) {
+
     if (widget.portfolios.length == 0) {
       _selectedPortfolioId = 'new';
     } else {
@@ -218,7 +212,6 @@ class _BuyFormState extends State<BuyForm> {
                             ),
                           ],
                       onChanged: (String id) {
-                        print(id);
                         setState(() {
                           _selectedPortfolioId = id;
                         });
@@ -313,7 +306,7 @@ class _BuyFormState extends State<BuyForm> {
                       Text(getCurrencySymbol(widget.currency)),
                       SizedBox(width: 5),
                       Container(
-                        width: 100,
+                        width: 98,
                         height: 48,
                         child: TextFormField(
                           keyboardType: TextInputType.numberWithOptions(signed: false, decimal: true),
@@ -339,7 +332,11 @@ class _BuyFormState extends State<BuyForm> {
                             try {
                               double val = double.parse(value);
                               if (val < 0.5) {
-                                return 'Vlaue must be more than ${formatCurrency(0.5, widget.currency)}';
+                                return 'Value must be more than ${formatCurrency(0.5, widget.currency)}';
+                              }
+                              Portfolio portfolio = widget.portfolios.firstWhere((portfolio) => portfolio.id == _selectedPortfolioId);
+                              if (portfolio.contractIdAmountMap['cash'] < val) {
+                                return 'Insufficient funds in this portfolio';
                               }
                               return null;
                             } catch (error) {
@@ -368,7 +365,9 @@ class _BuyFormState extends State<BuyForm> {
                   if (!FocusScope.of(context).hasPrimaryFocus) {
                     FocusManager.instance.primaryFocus.unfocus();
                   }
+                  _finalFormFields['contractId'] = widget.contract.id;
                   print(_finalFormFields);
+                  buyContract(_finalFormFields);
                 },
               ),
             )

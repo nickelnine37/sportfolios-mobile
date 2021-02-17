@@ -8,12 +8,10 @@ final authenticationProvider = StreamProvider.autoDispose<SportfoliosUser>((ref)
   return AuthService().userStream;
 });
 
+/// a class to handle basic authentication tasks
 class AuthService {
+  // for interacting with firebase
   final FirebaseAuth _auth = FirebaseAuth.instance;
-
-  // SportfoliosUser get user {
-  //   return SportfoliosUser(_auth.currentUser);
-  // }
 
   String get currentUid {
     return _auth.currentUser.uid;
@@ -31,7 +29,10 @@ class AuthService {
     print('Signing user out');
   }
 
-  Future<FirebaseAuthException> signInWithEmail({@required String email, @required String password}) async {
+  Future<FirebaseAuthException> signInWithEmail({
+    @required String email,
+    @required String password,
+  }) async {
     try {
       await _auth.signInWithEmailAndPassword(email: email, password: password);
       return null;
@@ -46,7 +47,7 @@ class AuthService {
       await _auth.sendPasswordResetEmail(email: email);
       return null;
     } catch (error) {
-      print('Error sending password reset' + error.message);
+      print('Error sending password reset: ${error.message}');
       return error;
     }
   }
@@ -62,8 +63,7 @@ class AuthService {
       CollectionReference users = FirebaseFirestore.instance.collection('users');
       users
           .doc(result.user.uid)
-          .set({'portfolios': []})
-          .catchError((error) => print("Failed to add user database entry: $error"));
+          .set({'portfolios': []}).catchError((error) => print("Failed to add user database entry: $error"));
       return null;
     } on FirebaseAuthException catch (error) {
       print('Error creating new user: ' + error.message);
@@ -71,13 +71,14 @@ class AuthService {
     }
   }
 
+  /// senda verification email to the curent user
   Future<FirebaseAuthException> sendVerificationEmail() async {
     if (_auth.currentUser != null) {
       try {
         await _auth.currentUser.sendEmailVerification();
         return null;
       } on FirebaseAuthException catch (error) {
-        print('Error sending verification email: ' + error.message);
+        print('Error sending verification email: ${error.message}');
         return error;
       }
     } else {
@@ -86,10 +87,18 @@ class AuthService {
     }
   }
 
+  /// refresh the token??? Needed sometimes 
+  /// https://stackoverflow.com/questions/47243702/firebase-token-email-verified-going-weird
+  Future<void> refreshToken() async {
+    await _auth.currentUser.getIdToken(true);
+  }
+
+  /// check whether there is a current user signed in, 
+  /// and whether that user is email-verified
   Future<bool> isVerified() async {
-    if (_auth.currentUser == null) {
-      return false;
-    }
+    // if there is no user signed in, return false
+    if (_auth.currentUser == null) return false;
+    // else reload user details, and check if they're email-verified
     await _auth.currentUser.reload();
     return _auth.currentUser.emailVerified;
   }

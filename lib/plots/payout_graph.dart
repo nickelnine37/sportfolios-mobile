@@ -133,7 +133,6 @@ class Bar extends CustomPainter {
 
   @override
   void paint(Canvas canvas, Size size) {
-    // print(opacity);
     int n = payouts.length;
     double pmax = payouts.reduce(max);
     double barWidth = 0.95 * size.width / n;

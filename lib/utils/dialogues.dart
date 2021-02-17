@@ -102,7 +102,7 @@ class LeagueSelectorDialogue extends StatelessWidget {
                     ),
                     trailing: Text(leagues[i].countryFlagEmoji),
                     onTap: () {
-                      Navigator.of(context).pop(i);
+                      Navigator.of(context).pop(leagues[i].id);
                     },
                   );
                 },

@@ -73,6 +73,7 @@ class _HomeState extends State<Home> {
 
   @override
   Widget build(BuildContext context) {
+
     return Scaffold(
       key: _scaffoldKey,
       body: HomeBody(selectedSport: _selectedSport, parentScaffoldKey: _scaffoldKey),
@@ -109,5 +110,3 @@ class _HomeState extends State<Home> {
     );
   }
 }
-
-

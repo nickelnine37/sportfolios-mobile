@@ -30,8 +30,6 @@ class Instrument extends BaseDataModel {
   computeValueChange() {
     value = pH.last;
 
-    print('$id, $value');
-
     hourValueChange = (value - pH.first);
     dayValueChange = (value - pD.first);
     weekValueChange = (value - pW.first);
@@ -149,6 +147,7 @@ class Portfolio extends Instrument {
   bool public;
   List<Instrument> contracts;
   List<double> amounts;
+  Map<String, dynamic> contractIdAmountMap;
 
   Portfolio(String portfolioId) : super(portfolioId);
 
@@ -156,12 +155,22 @@ class Portfolio extends Instrument {
     Map<String, dynamic> data = snapshot.data();
     name = data['name'];
     public = data['public'];
+
+    print(3);
+
     contracts =
         data['contracts'].keys.map<Instrument>((String contractId) => Instrument(contractId)).toList();
+
+    print(4);
+
     amounts = data['contracts']
         .keys
         .map<double>((String contractId) => 1.0 * data['contracts'][contractId])
         .toList();
+
+    print(5);
+
+    contractIdAmountMap = Map<String, dynamic>.from(data['contracts']);
   }
 
   Future<void> populateContracts() async {

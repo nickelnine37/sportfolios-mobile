@@ -1,40 +1,50 @@
 import 'dart:async';
-
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:sportfolios_alpha/app_main.dart';
 import 'package:sportfolios_alpha/providers/authenication_provider.dart';
 import 'package:sportfolios_alpha/screens/login/login.dart';
 
+/// This class is used to decide whether or not to let a user into the app
 class GateKeeper {
+  //
+  /// [AuthService] instance helps us handle authentication tasks
   AuthService _authService = AuthService();
+
+  /// we need to have access to the [BuildContext] of wherever this class has been
+  /// instantiated, so that we are able to use [Navigator] to push into the main app
   BuildContext context;
 
   GateKeeper(this.context);
 
-  Future<void> checkForCurrentUser() async {
+  /// check to see whether there is a user logged in, and whether they are email-verified
+  Future<void> checkCurrentUser() async {
     if (await _authService.isVerified()) {
-      Navigator.of(context).pushReplacement(
+      Navigator.of(context).pushAndRemoveUntil(
         MaterialPageRoute(
           builder: (context) {
             return AppMain();
           },
         ),
+        (route) => false,
       );
     }
   }
 
   Future<String> enter({@required String email, @required String password}) async {
-    FirebaseAuthException signInProblem =
-        await _authService.signInWithEmail(email: email, password: password);
+    FirebaseAuthException signInProblem = await _authService.signInWithEmail(
+      email: email,
+      password: password,
+    );
     if (signInProblem == null) {
       if (await _authService.isVerified()) {
-        Navigator.of(context).pushReplacement(
+        Navigator.of(context).pushAndRemoveUntil(
           MaterialPageRoute(
             builder: (context) {
               return AppMain();
             },
           ),
+          (route) => false,
         );
         return 'Success';
       } else {
@@ -94,12 +104,18 @@ class GateKeeper {
         print('Waiting: ${i++}');
         if (await _authService.isVerified()) {
           timer.cancel();
-          Navigator.of(context).pushReplacement(
+
+          /// this is necessary because firebase doesn't know that the user
+          /// is email verified until it refreshes the token...?
+          /// https://stackoverflow.com/questions/47243702/firebase-token-email-verified-going-weird
+          await _authService.refreshToken();
+          Navigator.of(context).pushAndRemoveUntil(
             MaterialPageRoute(
               builder: (context) {
                 return AppMain();
               },
             ),
+            (route) => false,
           );
         }
       },

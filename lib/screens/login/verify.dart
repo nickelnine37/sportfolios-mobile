@@ -35,7 +35,7 @@ class _VerifyScreenState extends State<VerifyScreen> {
             Container(
               padding: EdgeInsets.all(35),
               child: Text(
-                'Click the link in the email sent to ${widget.email} to confirm your account',
+                "Click the link in the email sent to ${widget.email} to confirm your account. You may have to check your spam folder :'( ",
                 style: TextStyle(color: Colors.white, fontSize: 22),
               ),
             ),

@@ -35,7 +35,6 @@ class _TabbedPriceGraphState extends State<TabbedPriceGraph> with SingleTickerPr
 
   @override
   Widget build(BuildContext context) {
-    print(widget.instrument);
     return DefaultTabController(
       length: 5,
       child: Column(

@@ -1,28 +1,55 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:sportfolios_alpha/data/models/leagues.dart';
 import 'package:sportfolios_alpha/screens/home/contract_scroll.dart';
 import 'package:sportfolios_alpha/utils/dialogues.dart';
-// import 'package:sportfolios_alpha/utils/marquee.dart';
 import 'package:intl/intl.dart';
 
 class MainView extends StatefulWidget {
   final List<League> leagues;
   final String sport;
   final GlobalKey<ScaffoldState> drawerKey;
+  final initialLeagueId;
 
-  MainView({@required this.sport, @required this.leagues, @required this.drawerKey});
+  MainView({
+    @required this.sport,
+    @required this.leagues,
+    @required this.initialLeagueId,
+    @required this.drawerKey,
+  });
 
   @override
   _MainViewState createState() => _MainViewState();
 }
 
 class _MainViewState extends State<MainView> {
-  int selectedLeague = 0;
+  String selectedLeagueId;
+  SharedPreferences prefs;
+
+  @override
+  void initState() { 
+    super.initState();
+    _getPrefs();
+  }
+
+  Future<void> _getPrefs() async {
+    prefs =  await SharedPreferences.getInstance();
+  }
 
   @override
   Widget build(BuildContext context) {
-    League league = widget.leagues[selectedLeague];
+
+    if (selectedLeagueId == null) {
+      if (widget.initialLeagueId == null) {
+        selectedLeagueId = widget.leagues[0].id;
+      }
+      else {
+        selectedLeagueId = widget.initialLeagueId;
+      }
+    }
+
+    League league = widget.leagues.firstWhere((leagueElement) => leagueElement.id == selectedLeagueId);
 
     return DefaultTabController(
       length: 4,
@@ -58,15 +85,16 @@ class _MainViewState extends State<MainView> {
                   children: [
                     GestureDetector(
                       onTap: () async {
-                        int i = await showDialog(
+                        String newlySelectedLeague = await showDialog(
                           context: context,
                           builder: (context) {
                             return LeagueSelectorDialogue(widget.leagues);
                           },
                         );
-                        if (i != null && i != selectedLeague) {
+                        if (newlySelectedLeague != null && newlySelectedLeague != selectedLeagueId) {
+                          prefs.setString('selectedLeague', newlySelectedLeague);
                           setState(() {
-                            selectedLeague = i;
+                            selectedLeagueId = newlySelectedLeague;
                           });
                         }
                       },

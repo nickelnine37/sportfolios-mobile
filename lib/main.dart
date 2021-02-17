@@ -1,68 +1,99 @@
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
+import 'package:sportfolios_alpha/app_main.dart';
+import 'package:sportfolios_alpha/providers/authenication_provider.dart';
 import 'package:sportfolios_alpha/screens/login/login.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+/// It all begins here...
 void main() async {
+  /// run these two lines to ensure Firebase is up and running
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp();
+
+  /// wrap the whole app in a riverpod [ProviderScope]
   runApp(ProviderScope(child: MyApp()));
 }
 
-class MyApp extends StatelessWidget {
+/// Main stateless widget for the whole app
+class MyApp extends StatefulWidget {
+  @override
+  _MyAppState createState() => _MyAppState();
+}
+
+class _MyAppState extends State<MyApp> {
+  /// use this to check whether a user is verified
+  Future<bool> verifiedUser;
+
+  /// set some theme data
   final ThemeData theme = ThemeData(primaryColor: Colors.blue[200]);
+
+  /// check whether the user is verified here
+  @override
+  void initState() {
+    verifiedUser = AuthService().isVerified();
+    super.initState();
+  }
 
   @override
   Widget build(BuildContext context) {
+    /// our main app widget returns a Material app
     return MaterialApp(
       title: 'SportFolios Alpha',
       theme: theme,
-      home: LoginPage(),
+
+      /// use FutureBuilder while we wait to find out whether user is verified
+      home: FutureBuilder(
+        future: verifiedUser,
+        builder: (context, snapshot) {
+          /// run this block when we've completed the verification request
+          if (snapshot.connectionState == ConnectionState.done) {
+            /// future will return a bool
+            bool userIsVerified = snapshot.data;
+
+            /// user is verified
+            if (userIsVerified)
+              return AppMain();
+
+            /// user is not verified
+            else
+              return LoginPage();
+          }
+
+          /// if we have an error
+          else if (snapshot.hasError) {
+            /// just direct them to the login screen...
+            print('Error checking user verification status: ${snapshot.error}');
+            return LoginPage();
+          }
+
+          /// we're still checking... just show a blank screen
+          else {
+            return BlankPage();
+          }
+        },
+      ),
     );
   }
-
 }
 
-// class LoginDirector extends StatelessWidget {
-//   final AuthService _auth = AuthService();
+/// helper widget that just returns a blank page with some colour gradient
+class BlankPage extends StatelessWidget {
+  const BlankPage({Key key}) : super(key: key);
 
-//   // stream builder: when Authservice().user is null, return the login page. Else, return the main app
-//   @override
-//   Widget build(BuildContext context) {
-//     return StreamBuilder(
-//         stream: _auth.userStream,
-//         initialData: LoginPage(),
-//         builder: (context, snapshot) {
-//           if (snapshot.hasData) {
-//             return AppMain();
-//           } else {
-//             return LoginPage();
-//           }
-//         });
-//   }
-// }
-
-
-// RiverPod method...
-
-// class LoginDirector extends ConsumerWidget {
-
-//   final AuthService _auth = AuthService();
-
-//   @override
-//   Widget build(BuildContext context, ScopedReader watch) {
-
-//     Stream<User> user = watch(authenticationProvider.stream);
-
-//     return StreamBuilder(stream: user,
-//     initialData: LoginPage(),
-//     builder: (context, snapshot) {
-//       if (snapshot.hasData) {
-//         return AppMain();
-//       }
-//       else {
-//         return LoginPage();
-//       }
-//     });
-//   }
-// }
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: Colors.white,
+      body: Container(
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+            colors: [Colors.blue[300], Colors.white],
+          ),
+        ),
+      ),
+    );
+  }
+}

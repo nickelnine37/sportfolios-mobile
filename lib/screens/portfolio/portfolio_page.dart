@@ -27,7 +27,6 @@ class _PortfolioPageState extends State<PortfolioPage> {
   /// To be called when the portfolio page is initialised. This will load
   /// the user's portfolios from firebase. It returns a list of [Portfolio]s
   Future<List<Portfolio>> _getPortfolios() async {
-    print('getting');
     // load the entry in the users collection for the current user
     // this is where a list of their portfolios is located
     DocumentSnapshot result =
@@ -38,7 +37,6 @@ class _PortfolioPageState extends State<PortfolioPage> {
 
     // iterate through the array containing the list of documentIDs for their portfolios
     for (String portfolioId in result['portfolios']) {
-      print(portfolioId);
       Portfolio portfolio = await getDeepPortfolioById(portfolioId);
       userPortfolios.add(portfolio);
     }
@@ -94,7 +92,6 @@ class _PortfolioPageState extends State<PortfolioPage> {
               appBar: AppBar(
                 // iconTheme: ,
                 centerTitle: true,
-                elevation: 0,
                 title: DropdownButton(
                   value: selectedPortfolio,
                   items: range(userPortfolios.length)
