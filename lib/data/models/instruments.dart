@@ -84,12 +84,6 @@ class Contract extends Instrument {
   Contract.fromDocumentSnapshot(DocumentSnapshot snapshot) : super(snapshot.id) {
     Map<String, dynamic> data = snapshot.data();
 
-    // pH = List<double>.from(data['pH'].map((item) => 1.0 * item));
-    // pD = List<double>.from(data['pD'].map((item) => 1.0 * item));
-    // pW = List<double>.from(data['pW'].map((item) => 1.0 * item));
-    // pM = List<double>.from(data['pM'].map((item) => 1.0 * item));
-    // pMax = List<double>.from(data['pMax'].map((item) => 1.0 * item));
-
     pH = data['pH'].cast<double>();
     pD = data['pD'].cast<double>();
     pW = data['pW'].cast<double>();
@@ -156,19 +150,13 @@ class Portfolio extends Instrument {
     name = data['name'];
     public = data['public'];
 
-    print(3);
-
     contracts =
         data['contracts'].keys.map<Instrument>((String contractId) => Instrument(contractId)).toList();
-
-    print(4);
 
     amounts = data['contracts']
         .keys
         .map<double>((String contractId) => 1.0 * data['contracts'][contractId])
         .toList();
-
-    print(5);
 
     contractIdAmountMap = Map<String, dynamic>.from(data['contracts']);
   }

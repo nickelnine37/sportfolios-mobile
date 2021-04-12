@@ -5,7 +5,7 @@ import 'package:sportfolios_alpha/screens/login/register.dart';
 import 'package:sportfolios_alpha/screens/login/reset_password.dart';
 
 /// Main login widget. This consists of three pages:
-/// 1. The main login page, for users who aldready have an account. This is where we start
+/// 1. The main login page, for users who already have an account. This is where we start
 /// 2. A register page, where users can register a new account
 /// 3. A fogot-my-password page, where users can be sent an email with a link to reset their password.
 /// Each page is split into two widgets: one main widget, which is a wire-frame containing all
@@ -39,8 +39,7 @@ class _LoginPageState extends State<LoginPage> {
 
   @override
   Widget build(BuildContext context) {
-    /// variable is a [GestureDetector] (clickable) forgot password text
-    /// this redirects to the password reset page
+    /// variable is a [GestureDetector] (clickable) forgot password text. this redirects to the password reset page
     GestureDetector forgotPassword = GestureDetector(
       onTap: () {
         Navigator.of(context).push(
@@ -113,11 +112,11 @@ class _LoginPageState extends State<LoginPage> {
                 /// [LoginForm] contains email and password input and LOGIN button
                 LoginForm(),
 
-                // FORGOT PASSWORD clickable
+                /// [forgotPassword] FORGOT PASSWORD clickable
                 forgotPassword,
                 SizedBox(height: 140),
 
-                // REGISTER clickable
+                /// [signUp] SIGN UP CLICKABLE
                 Text("Don't have an account yet?", style: TextStyle(color: Colors.blue[400], fontSize: 17)),
                 SizedBox(height: 14),
                 signUp,
@@ -260,10 +259,7 @@ class _LoginFormState extends State<LoginForm> {
           ),
         ),
         SizedBox(height: 15),
-        Container(
-          height: 20,
-          child: Text(_errorText, style: TextStyle(color: Colors.red)),
-        ),
+        Container(height: 20, child: Text(_errorText, style: TextStyle(color: Colors.red))),
         SizedBox(height: 8),
       ],
     );
