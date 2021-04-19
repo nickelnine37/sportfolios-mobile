@@ -84,6 +84,10 @@ class _TabbedPriceGraphState extends State<TabbedPriceGraph> with SingleTickerPr
                 //   ),
                 // ),
                 child: TabBar(
+                  labelColor: Colors.grey[900],
+                  unselectedLabelColor: Colors.grey[400],
+                  indicatorColor: Colors.grey[600],
+                  indicatorWeight: 1,
                   controller: _tabController,
                   labelPadding: EdgeInsets.symmetric(horizontal: 2, vertical: 2),
                   indicatorSize: TabBarIndicatorSize.label,
@@ -287,17 +291,26 @@ class _PriceGraphState extends State<PriceGraph> {
           children: [
             Consumer(builder: (context, watch, value) {
               String currency = watch(settingsProvider).currency;
-              return Center(
-                child: Text(
-                  '${widget.moving ? '' : formatCurrency(priceY ?? widget.prices.last, currency)}',
-                  style: TextStyle(
-                    fontWeight: FontWeight.w300,
-                    fontSize: 20,
-                    color: Colors.grey[800],
+              double returns = (priceY ?? widget.prices.last) / widget.prices.first - 1;
+              return Column(
+                children: [
+                  Center(
+                    child: Text(
+                      '${widget.moving ? '' : formatCurrency(priceY ?? widget.prices.last, currency)}',
+                      style: TextStyle(
+                        fontWeight: FontWeight.w300,
+                        fontSize: 20,
+                        color: Colors.grey[800],
+                      ),
+                    ),
                   ),
-                ),
+                  Text(
+                    '${returns >= 0 ? "+": "-"}${formatPercentage(returns, currency)}',
+                    style: TextStyle(color: returns >= 0 ? Colors.green : Colors.red),
+                  )
+                ],
               );
-            })
+            }),
           ],
         ),
       )

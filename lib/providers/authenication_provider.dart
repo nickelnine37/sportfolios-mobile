@@ -93,6 +93,10 @@ class AuthService {
     await _auth.currentUser.getIdToken(true);
   }
 
+  Future<String> getJWTToken() async {
+    return await _auth.currentUser.getIdToken(false);
+  }
+
   /// check whether there is a current user signed in, 
   /// and whether that user is email-verified
   Future<bool> isVerified() async {

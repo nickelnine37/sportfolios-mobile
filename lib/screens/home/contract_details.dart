@@ -29,7 +29,6 @@ class _ContractDetailsState extends State<ContractDetails> {
 
   @override
   void initState() {
-    // TODO: implement initState
     super.initState();
     paletteFuture = _getPalette();
   }
