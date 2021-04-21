@@ -28,7 +28,6 @@ class _BuyContractState extends State<BuyContract> {
 
   @override
   void initState() {
-    // TODO: implement initState
     super.initState();
     _portfoliosFuture = _getPortfolios();
   }

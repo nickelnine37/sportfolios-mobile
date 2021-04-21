@@ -5,12 +5,10 @@ import 'package:sportfolios_alpha/providers/authenication_provider.dart';
 Future<Portfolio> getPortfolioById(String portfoliloId) async {
   DocumentSnapshot snapshot =
       await FirebaseFirestore.instance.collection('portfolios').doc(portfoliloId).get();
-  print(2);
   return Portfolio.fromDocumentSnapshot(snapshot);
 }
 
 Future<Portfolio> getDeepPortfolioById(String portfolioId) async {
-  print(1);
   Portfolio portfolio = await getPortfolioById(portfolioId);
   portfolio.populateContracts();
   return portfolio;

@@ -36,6 +36,7 @@ dependencies:
   flutter_riverpod: ^0.12.1
   cached_network_image: ^2.5.0
   palette_generator: ^0.2.3
+  http: ^0.12.1
 
 dev_dependencies:
   flutter_test:

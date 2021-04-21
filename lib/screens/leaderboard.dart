@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+/// The portfolio leaderboard page!
+/// TODO: Implement!
 class Leaderboard extends StatefulWidget {
   Leaderboard({Key key}) : super(key: key);
 

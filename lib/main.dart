@@ -15,7 +15,10 @@ void main() async {
   runApp(ProviderScope(child: MyApp()));
 }
 
-/// Main stateless widget for the whole app
+/// Main widget for the whole app
+/// For now it is Stateful, as we need to use a FutureBuilder in the State to determine whether a user is logged in
+/// Maybe a stream would be better, but as of yet I have no way to build a stream that also accounts for 
+/// whether a user has their email verified
 class MyApp extends StatefulWidget {
   @override
   _MyAppState createState() => _MyAppState();
@@ -32,9 +35,10 @@ class _MyAppState extends State<MyApp> {
   @override
   void initState() {
     verifiedUser = AuthService().isVerified();
+    // print(await AuthService().getJWTToken());
     super.initState();
   }
-
+ 
   @override
   Widget build(BuildContext context) {
     /// our main app widget returns a Material app
@@ -79,7 +83,6 @@ class _MyAppState extends State<MyApp> {
 
 /// helper widget that just returns a blank page with some colour gradient
 class BlankPage extends StatelessWidget {
-  const BlankPage({Key key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
