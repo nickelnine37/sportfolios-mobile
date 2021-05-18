@@ -15,19 +15,15 @@ class BasicDialog extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+        const double padding = 30;
+
     return Dialog(
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(12),
       ),
       elevation: 0.0,
       backgroundColor: Colors.transparent,
-      child: dialogContent(context),
-    );
-  }
-
-  dialogContent(BuildContext context) {
-    const double padding = 30;
-    return Container(
+      child: Container(
       padding: EdgeInsets.only(top: padding, left: padding, right: padding),
       decoration: BoxDecoration(
         color: Colors.white,
@@ -38,7 +34,7 @@ class BasicDialog extends StatelessWidget {
       child: Column(
         mainAxisSize: MainAxisSize.min, // To make the card compact
         children: <Widget>[
-          Text(this.title, style: TextStyle(fontSize: 24.0, fontWeight: FontWeight.w700)),
+          Text(this.title, style: TextStyle(fontSize: 24.0, fontWeight: FontWeight.w700), textAlign: TextAlign.center,),
           SizedBox(height: 16.0),
           Text(description, textAlign: TextAlign.justify, style: TextStyle(fontSize: 16.0)),
           SizedBox(height: 24.0),
@@ -54,8 +50,10 @@ class BasicDialog extends StatelessWidget {
           )
         ],
       ),
+    ),
     );
   }
+
 }
 
 class LeagueSelectorDialogue extends StatelessWidget {
@@ -102,7 +100,7 @@ class LeagueSelectorDialogue extends StatelessWidget {
                     ),
                     trailing: Text(leagues[i].countryFlagEmoji),
                     onTap: () {
-                      Navigator.of(context).pop(leagues[i].id);
+                      Navigator.of(context).pop(leagues[i].leagueID);
                     },
                   );
                 },

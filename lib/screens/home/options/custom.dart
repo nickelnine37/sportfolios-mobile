@@ -1,0 +1,200 @@
+import 'package:flutter/material.dart';
+import 'package:sportfolios_alpha/data/models/instruments.dart';
+import 'package:sportfolios_alpha/plots/payout_graph.dart';
+import 'package:sportfolios_alpha/plots/price_chart.dart';
+import 'package:sportfolios_alpha/utils/arrays.dart';
+import 'package:sportfolios_alpha/utils/dialogues.dart';
+import 'package:sportfolios_alpha/utils/number_format.dart';
+
+class CustomDetails extends StatefulWidget {
+  final Contract contract;
+
+  CustomDetails(this.contract);
+
+  @override
+  _CustomDetailsState createState() => _CustomDetailsState();
+}
+
+class _CustomDetailsState extends State<CustomDetails> with AutomaticKeepAliveClientMixin<CustomDetails>  {
+  String helpText =
+      'A custom contract gives you full autonomy to design your own payout structure. Drag each bar on the payout graph up and down to create your desired payout. ';
+  double lrPadding = 25;
+  List<double> p1;
+  List<double> p2;
+  bool reversed = false;
+  Map priceHistory;
+  int selectedBar;
+  double graphWidth;
+  double graphHeight = 150;
+
+  @override
+  void initState() {
+    p1 = range(widget.contract.n).map((int i) => 10.0).toList();
+    p2 = range(widget.contract.n).map((int i) => 10.0).toList();
+    super.initState();
+  }
+
+  @override
+  void dispose() {
+    super.dispose();
+  }
+
+    @override
+  bool get wantKeepAlive => true;
+
+  void updateHistory() {
+    priceHistory = widget.contract.getHistoricalValue(p1);
+  }
+
+  void _makeSelection(Offset touchLocation) {
+    int x = (widget.contract.n * touchLocation.dx / graphWidth).floor();
+    if (x < 0) {
+      x = 0;
+    } else if (x > widget.contract.n - 1) {
+      x = widget.contract.n;
+    }
+    double y = 10 * (1 - (touchLocation.dy - 20) / (graphHeight + 20));
+
+    if (y < 0) {
+      y = 0;
+    }
+    if (y > 10) {
+      y = 10;
+    }
+    p2 = range(widget.contract.n).map((int i) => i == x ? y : p2[i]).toList();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    if (graphWidth == null) {
+      graphWidth = MediaQuery.of(context).size.width - 2 * lrPadding;
+    }
+
+    if (priceHistory == null) {
+      updateHistory();
+    }
+
+    return SingleChildScrollView(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: <Widget>[
+          SizedBox(height: 10),
+          PageHeader(p1, widget.contract, 'Binary', helpText),
+          GestureDetector(
+            child: TrueStaticPayoutGraph(p1, Colors.blue, lrPadding, graphHeight, true),
+            onTapDown: (TapDownDetails details) {
+              _makeSelection(details.localPosition);
+              if (p2 != p1) {
+                setState(() {
+                  p1 = p2;
+                });
+              }
+            },
+            onPanUpdate: (DragUpdateDetails details) {
+              _makeSelection(details.localPosition);
+
+              if (p2 != p1) {
+                setState(() {
+                  p1 = p2;
+                });
+              }
+            },
+            onPanEnd: (DragEndDetails details) {
+              setState(() {
+                updateHistory();
+              });
+            },
+            onTapUp: (TapUpDetails details) {
+              setState(() {
+                updateHistory();
+              });
+            },
+          ),
+          SizedBox(height: 35),
+          TabbedPriceGraph(priceHistory: priceHistory),
+          SizedBox(height: 20)
+        ],
+      ),
+    );
+  }
+}
+
+class PageHeader extends StatelessWidget {
+  final List<double> quantity;
+  final Contract contract;
+  final String type;
+  final String helpText;
+
+  PageHeader(this.quantity, this.contract, this.type, this.helpText);
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+        crossAxisAlignment: CrossAxisAlignment.center,
+        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+        children: [
+          Container(
+            width: 80,
+            child: Center(
+              child: Column(
+                children: [
+                  Text(
+                    formatCurrency(contract.getCurrentValue(quantity), 'GBP'),
+                    style: TextStyle(fontSize: 25, fontWeight: FontWeight.w300),
+                  ),
+                  Text(
+                    'per contract',
+                    style: TextStyle(fontSize: 12),
+                  )
+                ],
+              ),
+            ),
+          ),
+          Padding(
+            padding: const EdgeInsets.all(8.0),
+            child: FlatButton(
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(10),
+              ),
+              child: Text('BUY', style: TextStyle(color: Colors.white)),
+              onPressed: () {
+                showModalBottomSheet(
+                  isScrollControlled: true,
+                  elevation: 100,
+                  shape:
+                      RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(25.0))),
+                  context: context,
+                  builder: (context) {
+                    return Container(
+                      child: Text('Hey'),
+                    );
+                  },
+                );
+              },
+              color: Colors.green[400],
+              minWidth: MediaQuery.of(context).size.width * 0.4,
+            ),
+          ),
+          Container(
+            width: 80,
+            child: Center(
+              child: IconButton(
+                icon: Icon(Icons.info_outline, size: 23),
+                onPressed: () {
+                  showDialog(
+                      context: context,
+                      builder: (context) {
+                        return BasicDialog(
+                          title: type + ' contracts: information',
+                          description: helpText,
+                          buttonText: 'OK',
+                          action: () {},
+                        );
+                      });
+                },
+              ),
+            ),
+          ),
+        ]);
+  }
+}

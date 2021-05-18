@@ -100,6 +100,7 @@ class ContractScrollState extends State<ContractScroll> with AutomaticKeepAliveC
           return Center(child: Text('Error'));
         } else {
           int nTiles = _selectedContractFetcher.loadedResults.length + 2;
+          // make space for the apology tile
           if (nTiles == 2) {
             nTiles += 1;
           }
@@ -108,6 +109,7 @@ class ContractScrollState extends State<ContractScroll> with AutomaticKeepAliveC
             itemCount: nTiles,
             itemBuilder: (context, index) {
               if (index == 0) {
+                // the top tile contains the seach bar
                 return Container(
                   padding: EdgeInsets.only(left: 10, right: 10, bottom: 1),
                   height: 47,
@@ -116,9 +118,10 @@ class ContractScrollState extends State<ContractScroll> with AutomaticKeepAliveC
                     onSubmitted: (String value) async {
                       if (value != null && value.trim() != '') {
                         _searchQueryContractFetcher = SearchQueryContractFetcher(
-                          value.trim().toLowerCase(),
-                          widget.league.leagueID,
-                          widget.contractType,
+                          search: value.trim().toLowerCase(),
+                          leagueID: widget.league.leagueID,
+                          contractType: widget.contractType,
+                          alreadyLoaded: _defaultContractFetcher.loadedResults
                         );
                         await _searchQueryContractFetcher.get10();
                         _selectedContractFetcher = _searchQueryContractFetcher;
@@ -129,7 +132,7 @@ class ContractScrollState extends State<ContractScroll> with AutomaticKeepAliveC
                       focusedBorder: InputBorder.none,
                       enabledBorder: InputBorder.none,
                       hintText: formatTitle(
-                          'Search ${widget.contractType.split('_')[0]} contracts (${widget.contractType.split('_')[1]})'),
+                          'Search'),
                       icon: Icon(Icons.search),
                       suffixIcon: IconButton(
                         icon: Icon(Icons.clear),
@@ -147,6 +150,7 @@ class ContractScrollState extends State<ContractScroll> with AutomaticKeepAliveC
                   ),
                 );
               } else if (index == nTiles - 1) {
+                // final tile contains the loading spinner
                 if (_selectedContractFetcher.finished) {
                   return Container(height: 0);
                 } else {
@@ -157,6 +161,7 @@ class ContractScrollState extends State<ContractScroll> with AutomaticKeepAliveC
                 }
               }
               if (_selectedContractFetcher.loadedResults.length == 0) {
+                // no results here
                 return Padding(
                   padding: const EdgeInsets.all(25.0),
                   child: Center(child: Text("Sorry, no results :'(")),

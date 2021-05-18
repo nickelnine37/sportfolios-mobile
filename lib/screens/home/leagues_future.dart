@@ -33,7 +33,7 @@ class HomeBody extends StatefulWidget {
 class _HomeBodyState extends State<HomeBody> {
   Future<List<League>> _leaguesFuture;
   String _lastLoadedSport;
-  String initialLeagueId;
+  int initialLeagueId;
 
   @override
   void initState() {
@@ -45,7 +45,7 @@ class _HomeBodyState extends State<HomeBody> {
     _lastLoadedSport = sport;
     if (sport == 'Football') {
       SharedPreferences prefs = await SharedPreferences.getInstance();
-      initialLeagueId = prefs.getString('selectedLeague');
+      initialLeagueId = prefs.getInt('selectedLeague');
       QuerySnapshot result = await FirebaseFirestore.instance.collection('leagues').get();
       return result.docs
           .map((DocumentSnapshot leagueSnapshot) => League.fromSnapshot(leagueSnapshot))

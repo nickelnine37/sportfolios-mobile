@@ -1,26 +1,44 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:sportfolios_alpha/data/api/requests.dart';
 import 'package:sportfolios_alpha/data/models/instruments.dart';
 
+
 Future<Contract> getContractById(String id) async {
-  DocumentSnapshot snapshot = await FirebaseFirestore.instance.collection('contracts').doc(id).get();
-  return Contract.fromDocumentSnapshot(snapshot);
+  DocumentSnapshot snapshot;
+  if (id[id.length - 1] == 'T') {
+    snapshot = await FirebaseFirestore.instance.collection('teams').doc(id).get();
+  } else {
+    snapshot = await FirebaseFirestore.instance.collection('players').doc(id).get();
+  }
+
+   Map<String, double> prices = await getBackPrices([snapshot.id]);
+   Map<String, Map> dailyPrices = await getDailyBackPrices([snapshot.id]);
+
+  return Contract.fromDocumentSnapshotAndPrices(snapshot, prices[snapshot.id], dailyPrices[snapshot.id]);
 }
 
 class ContractFetcher {
-
   DocumentSnapshot lastDocument;
   Query baseQuery;
   int leagueID;
   String contractType;
   List<Contract> loadedResults = [];
   bool finished = false;
+  List<Contract> alreadyLoaded;
 
-  void setData() {
+  void setData({ List<Contract> alreadyLoaded=null, String search=null}) {
     // work out whether this is a player or team contract and order by different metric accordingly
-    if (contractType.contains('player')) {
+
+    if (contractType == 'players') {
       baseQuery = baseQuery.orderBy('rating', descending: true).limit(10);
     } else {
       baseQuery = baseQuery.orderBy('points', descending: true).limit(10);
+    }
+
+    this.alreadyLoaded = alreadyLoaded;
+
+    if (alreadyLoaded != null) {
+      loadedResults.addAll(alreadyLoaded.where((Contract contract) => contract.searchTerms.contains(search)));
     }
   }
 
@@ -28,10 +46,10 @@ class ContractFetcher {
     if (!finished) {
       QuerySnapshot results;
 
-      if (lastDocument == null) {
+      if (loadedResults.length == 0) {
         results = await baseQuery.get();
       } else {
-        results = await baseQuery.startAfterDocument(lastDocument).get();
+        results = await baseQuery.startAfterDocument(loadedResults.last.doc).get();
       }
 
       if (results.docs.length < 10) {
@@ -39,11 +57,14 @@ class ContractFetcher {
       }
 
       if (results.docs.length > 0) {
-        lastDocument = results.docs.last;
 
+        Map<String, double> prices = await getBackPrices(results.docs.map<String>((DocumentSnapshot snapshot) => snapshot.id).toList());
+        Map<String, Map> dailyPrices = await getDailyBackPrices(results.docs.map<String>((DocumentSnapshot snapshot) => snapshot.id).toList());
         loadedResults.addAll(
-          results.docs.map<Contract>((DocumentSnapshot snapshot) => Contract.fromDocumentSnapshot(snapshot)),
+          results.docs.map<Contract>((DocumentSnapshot snapshot) => Contract.fromDocumentSnapshotAndPrices(snapshot, prices[snapshot.id], dailyPrices[snapshot.id])),
         );
+                print(prices);        
+
       }
     }
   }
@@ -55,12 +76,9 @@ class DefaultContractFetcher extends ContractFetcher {
   String contractType;
 
   DefaultContractFetcher(this.leagueID, this.contractType) {
-    // set up basic query structure
-    baseQuery = FirebaseFirestore.instance
-        .collection('contracts')
-        .where('league_id', isEqualTo: leagueID)
-        .where('type', isEqualTo: contractType);
 
+    // set up basic query structure
+    baseQuery = FirebaseFirestore.instance.collection(contractType).where('league_id', isEqualTo: leagueID);
     super.setData();
   }
 }
@@ -70,15 +88,16 @@ class SearchQueryContractFetcher extends ContractFetcher {
   String search;
   int leagueID;
   String contractType;
+  List<Contract> alreadyLoaded;
 
-  SearchQueryContractFetcher(this.search, this.leagueID, this.contractType) {
+  SearchQueryContractFetcher({this.search, this.leagueID, this.contractType, this.alreadyLoaded}) {
+
     // set up basic query structure
     baseQuery = FirebaseFirestore.instance
-        .collection('contracts')
+        .collection(contractType)
         .where('league_id', isEqualTo: leagueID)
-        .where('type', isEqualTo: contractType)
         .where('search_terms', arrayContains: search);
 
-    super.setData();
+    super.setData(alreadyLoaded: this.alreadyLoaded, search: search);
   }
 }

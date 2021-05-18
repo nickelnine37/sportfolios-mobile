@@ -24,7 +24,7 @@ class MainView extends StatefulWidget {
 }
 
 class _MainViewState extends State<MainView> {
-  String selectedLeagueId;
+  int selectedLeagueId;
   SharedPreferences prefs;
 
   @override
@@ -42,17 +42,17 @@ class _MainViewState extends State<MainView> {
 
     if (selectedLeagueId == null) {
       if (widget.initialLeagueId == null) {
-        selectedLeagueId = widget.leagues[0].id;
+        selectedLeagueId = widget.leagues[0].leagueID;
       }
       else {
         selectedLeagueId = widget.initialLeagueId;
       }
     }
 
-    League league = widget.leagues.firstWhere((leagueElement) => leagueElement.id == selectedLeagueId);
+    League league = widget.leagues.firstWhere((leagueElement) => leagueElement.leagueID == selectedLeagueId);
 
     return DefaultTabController(
-      length: 4,
+      length: 2,
       child: Scaffold(
         appBar: AppBar(
           automaticallyImplyLeading: false,
@@ -60,11 +60,9 @@ class _MainViewState extends State<MainView> {
           toolbarHeight: 145,
           bottom: TabBar(
             labelPadding: EdgeInsets.all(5),
-            tabs: <Row>[
-              _makeTab('Teams', true),
-              _makeTab('Teams', false),
-              _makeTab('Players', true),
-              _makeTab('Players', false),
+            tabs: <Text>[
+              Text('Teams', style: TextStyle(fontSize: 15.0, color: Colors.white)),
+              Text('Players', style: TextStyle(fontSize: 15.0, color: Colors.white))
             ],
           ),
           title: Column(children: [
@@ -85,14 +83,14 @@ class _MainViewState extends State<MainView> {
                   children: [
                     GestureDetector(
                       onTap: () async {
-                        String newlySelectedLeague = await showDialog(
+                        int newlySelectedLeague = await showDialog(
                           context: context,
                           builder: (context) {
                             return LeagueSelectorDialogue(widget.leagues);
                           },
                         );
                         if (newlySelectedLeague != null && newlySelectedLeague != selectedLeagueId) {
-                          prefs.setString('selectedLeague', newlySelectedLeague);
+                          prefs.setInt('selectedLeague', newlySelectedLeague);
                           setState(() {
                             selectedLeagueId = newlySelectedLeague;
                           });
@@ -122,44 +120,48 @@ class _MainViewState extends State<MainView> {
                 ),
               ],
             ),
-            LeagueProgressBar(league),
+            LeagueProgressBar(league: league),
           ]),
         ),
         body: TabBarView(
           children: [
-            ContractScroll(league, 'team_long'),
-            ContractScroll(league, 'team_short'),
-            ContractScroll(league, 'player_long'),
-            ContractScroll(league, 'player_short'),
+            ContractScroll(league, 'teams'),
+            // ContractScroll(league, 'teams'),
+            ContractScroll(league, 'players'),
+            // ContractScroll(league, 'players'),
           ],
         ),
       ),
     );
   }
 
-  Row _makeTab(String text, bool up) {
-    Icon upArrow = Icon(
-      Icons.trending_up,
-      size: 20,
-      color: Colors.green[600],
-    );
-    Icon downArrow = Icon(
-      Icons.trending_down,
-      size: 20,
-      color: Colors.red[600],
-    );
+  // Row _makeTab(String text, bool up) {
+  //   Icon upArrow = Icon(
+  //     Icons.trending_up,
+  //     size: 20,
+  //     color: Colors.green[600],
+  //   );
+  //   Icon downArrow = Icon(
+  //     Icons.trending_down,
+  //     size: 20,
+  //     color: Colors.red[600],
+  //   );
 
-    return Row(mainAxisAlignment: MainAxisAlignment.spaceEvenly, children: [
-      Text(text, style: TextStyle(fontSize: 14.0, color: Colors.white)),
-      up ? upArrow : downArrow
-    ]);
-  }
+    // return Row(mainAxisAlignment: MainAxisAlignment.spaceEvenly, children: [
+    //   Text(text, style: TextStyle(fontSize: 14.0, color: Colors.white)),
+    //   up ? upArrow : downArrow
+    // ]);
+  // }
+
 }
 
 class LeagueProgressBar extends StatelessWidget {
   final League league;
+  final Color textColor;
+  final Color paintColor1;
+  final Color paintColor2;
 
-  const LeagueProgressBar(this.league);
+  const LeagueProgressBar({this.league, this.textColor=Colors.white, this.paintColor1=Colors.blue, this.paintColor2=Colors.grey});
 
   @override
   Widget build(BuildContext context) {
@@ -167,13 +169,13 @@ class LeagueProgressBar extends StatelessWidget {
       padding: EdgeInsets.symmetric(horizontal: 17),
       child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
         SizedBox(height: 18),
-        Container(width: double.infinity, child: CustomPaint(painter: LeagueProgressBarPainter(league))),
+        Container(width: double.infinity, child: CustomPaint(painter: LeagueProgressBarPainter(league, this.paintColor1, this.paintColor2))),
         SizedBox(height: 8),
         Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
           Text(DateFormat('d MMM yy').format(league.startDate),
-              style: TextStyle(fontSize: 14.0, color: Colors.white)),
+              style: TextStyle(fontSize: 14.0, color: textColor)),
           Text(DateFormat('d MMM yy').format(league.endDate),
-              style: TextStyle(fontSize: 14.0, color: Colors.white))
+              style: TextStyle(fontSize: 14.0, color: textColor))
         ]),
       ]),
     );
@@ -182,18 +184,21 @@ class LeagueProgressBar extends StatelessWidget {
 
 class LeagueProgressBarPainter extends CustomPainter {
   final League league;
-  LeagueProgressBarPainter(this.league);
+  final Color paintColor1;
+  final Color paintColor2;
+
+  LeagueProgressBarPainter(this.league, this.paintColor1, this.paintColor2);
 
   @override
   void paint(Canvas canvas, Size size) {
     Paint paintProgress = Paint()
-      ..color = Colors.blue[600]
+      ..color = paintColor1
       ..style = PaintingStyle.stroke
       ..strokeCap = StrokeCap.round
       ..strokeWidth = 5.0;
 
     Paint paintRemaining = Paint()
-      ..color = Colors.grey[600]
+      ..color = paintColor2
       ..style = PaintingStyle.stroke
       ..strokeCap = StrokeCap.round
       ..strokeWidth = 5.0;

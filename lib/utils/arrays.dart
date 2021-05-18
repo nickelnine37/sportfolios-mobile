@@ -1,3 +1,6 @@
+import 'dart:math' as math;
+
+
 List<int> range(int n0, [int end, int step]) {
   // mirrors python's range function
 
@@ -43,7 +46,38 @@ double dotProduct(List array1, List array2) {
 
 }
 
-List<double> matrixMultiply(List<List<double>> transposedMatrix, List array) {
+List<double> matrixMultiplyDoubleDouble (List<List<double>> transposedMatrix, List<double> array) {
+
+  List<double> out = transposedMatrix[0].map<double>((element) => element * array[0]).toList();
+  
+  for (int i=1; i<array.length; i++) {
+
+  for (int j=0; j<transposedMatrix[i].length; j++) {
+          out[j] += transposedMatrix[i][j] * array[i];
+        }
+    
+  }
+  
+  return out;
+}
+
+
+List<double> matrixMultiplyIntDouble (List<List<int>> transposedMatrix, List<double> array) {
+
+  List<double> out = transposedMatrix[0].map<double>((element) => element * array[0]).toList();
+  
+  for (int i=1; i<array.length; i++) {
+
+  for (int j=0; j<transposedMatrix[i].length; j++) {
+          out[j] += transposedMatrix[i][j] * array[i];
+        }
+    
+  }
+  
+  return out;
+}
+
+List<double> matrixMultiply(List<List<dynamic>> transposedMatrix, List array) {
 
   List<double> out;
   
@@ -73,4 +107,17 @@ List<double> ones(int N) {
 
 List<double> ns(int N, double n) {
     return List.generate(N, (int i) => n);
+}
+
+
+double getMax (List<double> y) {
+  return y.reduce(math.max);
+}
+
+int argMax (List<double> y) {
+  return range(y.length).reduce((prev, cur) => y[prev] > y[cur] ? prev : cur);
+}
+
+dynamic getSum (List y) {
+  return y.fold(0, (p, c) => p + c);
 }

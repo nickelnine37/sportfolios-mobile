@@ -16,3 +16,12 @@ List<Color> _defaultColors = [
 Color getColorCycle(int i, int N) {
   return _defaultColors[i % N];
 }
+
+Color fromHex(String colour) {
+    
+    final buffer = StringBuffer();
+    if (colour.length == 6 || colour.length == 7) buffer.write('ff');
+    buffer.write(colour.replaceFirst('#', ''));
+    return Color(int.parse(buffer.toString(), radix: 16));
+
+}

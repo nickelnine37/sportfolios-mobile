@@ -8,8 +8,6 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:sportfolios_alpha/data/models/instruments.dart';
 
-
-
 class ContractTile extends StatefulWidget {
   final Contract contract;
   final League league;
@@ -66,43 +64,59 @@ class ContractTileState extends State<ContractTile> {
                   child: CachedNetworkImage(
                     imageUrl: widget.contract.imageURL,
                     height: widget.imageHeight,
-                  ))
+                  ),
+                )
               : Container(height: widget.imageHeight),
           Expanded(
-              child: Container(
-            padding: EdgeInsets.only(left: 20),
-            child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-              Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(widget.contract.name, style: TextStyle(fontSize: upperTextSize)),
-                    SizedBox(height: spacing),
-                    Text(
-                      '${widget.contract.info1} • ${widget.contract.info2} • ${widget.contract.info3}',
-                      style: TextStyle(fontSize: lowerTextSize, color: Colors.grey[600]),
-                    ),
-                  ],
-                ),
-                Consumer(
-                  builder: (context, watch, value) {
-                    String currency = watch(settingsProvider).currency;
-                    return Column(crossAxisAlignment: CrossAxisAlignment.end, children: [
-                      Text(formatCurrency(widget.contract.value, currency), style: TextStyle(fontSize: upperTextSize),),
-                      SizedBox(height: spacing),
-                      _valueChangeText(currency, widget.contract.dayValueChange, widget.contract.dayReturn),
-                    ]);
-                  },
-                )
-              ]),
-              Expanded(
-                child: Container(
-                    padding: EdgeInsets.only(top: 10, bottom: 5, left: 10, right: 10),
-                    width: double.infinity,
-                    child: CustomPaint(painter: MiniPriceChartPainter(widget.contract.pD))),
-              )
-            ]),
-          ))
+            child: Container(
+              padding: EdgeInsets.only(left: 20),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(widget.contract.name, style: TextStyle(fontSize: upperTextSize)),
+                          SizedBox(height: spacing),
+                          Text(
+                            '${widget.contract.info1} • ${widget.contract.info2} • ${widget.contract.info3}',
+                            style: TextStyle(fontSize: lowerTextSize, color: Colors.grey[600]),
+                          ),
+                        ],
+                      ),
+                      Consumer(
+                        builder: (context, watch, value) {
+                          String currency = watch(settingsProvider).currency;
+                          return Column(
+                            crossAxisAlignment: CrossAxisAlignment.end,
+                            children: [
+                              Text(
+                                formatCurrency(widget.contract.currentBackValue, currency),
+                                style: TextStyle(fontSize: upperTextSize),
+                              ),
+                              SizedBox(height: spacing),
+                              _valueChangeText(
+                                  currency, widget.contract.dailyBackValue.values.last - widget.contract.dailyBackValue.values.first, (widget.contract.dailyBackValue.values.last - widget.contract.dailyBackValue.values.first) / widget.contract.dailyBackValue.values.first),
+                            ],
+                          );
+                        },
+                      )
+                    ],
+                  ),
+                  Expanded(
+                    child: Container(
+                        padding: EdgeInsets.only(top: 10, bottom: 5, left: 10, right: 10),
+                        width: double.infinity,
+                        child: CustomPaint(painter: MiniPriceChartPainter(widget.contract.dailyBackValue.values.toList())),
+                        ),
+                  )
+                ],
+              ),
+            ),
+          )
         ]),
       ),
     );
@@ -113,6 +127,7 @@ class MiniPriceChartPainter extends CustomPainter {
   List<double> pathY;
   Color lineColor;
   MiniPriceChartPainter(this.pathY) {
+
     if (this.pathY[0] > this.pathY[this.pathY.length - 1])
       this.lineColor = Colors.red[300];
     else
@@ -137,7 +152,7 @@ class MiniPriceChartPainter extends CustomPainter {
     Path path = Path();
     path.moveTo(pathpX[0], pathpY[0]);
     for (int i = 0; i < N; i++) {
-      if (i % 5 == 0) {
+      if (i % 3 == 0) {
         path.lineTo(pathpX[i], pathpY[i]);
       }
     }

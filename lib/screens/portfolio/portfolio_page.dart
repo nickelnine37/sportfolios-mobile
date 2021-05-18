@@ -140,7 +140,7 @@ class _PortfolioPageState extends State<PortfolioPage> {
                   SizedBox(height: 15),
                   Container(
                     padding: EdgeInsets.all(5),
-                    child: TabbedPriceGraph(instrument: userPortfolios[selectedPortfolio]),
+                    // child: TabbedPriceGraph(instrument: userPortfolios[selectedPortfolio]),
                   ),
                 ],
               ),

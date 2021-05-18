@@ -1,3 +1,5 @@
+import 'dart:collection';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:sportfolios_alpha/data/models/instruments.dart';
@@ -6,13 +8,15 @@ import 'package:sportfolios_alpha/utils/arrays.dart';
 import 'dart:math';
 import 'dart:ui' as ui;
 import 'package:sportfolios_alpha/utils/number_format.dart';
+ import 'package:intl/intl.dart' as intl;
 
 class TabbedPriceGraph extends StatefulWidget {
-  final Instrument instrument;
+
+  final Map<String, LinkedHashMap<int, double>> priceHistory;
   final Color color1;
   final Color color2;
 
-  const TabbedPriceGraph({@required this.instrument, this.color1 = Colors.green, this.color2 = Colors.green});
+  const TabbedPriceGraph({@required this.priceHistory, this.color1 = Colors.green, this.color2 = Colors.green});
 
   @override
   _TabbedPriceGraphState createState() => _TabbedPriceGraphState();
@@ -52,15 +56,24 @@ class _TabbedPriceGraphState extends State<TabbedPriceGraph> with SingleTickerPr
                 double pcComplete = (g1 == g2) ? 0 : (_tabController.animation.value - g1) / (g2 - g1);
 
                 List<List<double>> ps = [
-                  this.widget.instrument.pH,
-                  this.widget.instrument.pD,
-                  this.widget.instrument.pW,
-                  this.widget.instrument.pM,
-                  this.widget.instrument.pMax
+                  widget.priceHistory['h'].values.toList(),
+                  widget.priceHistory['d'].values.toList(),
+                  widget.priceHistory['w'].values.toList(),
+                  widget.priceHistory['m'].values.toList(),
+                  widget.priceHistory['M'].values.toList()
+                ];
+
+                List<List<int>> ts = [
+                  widget.priceHistory['h'].keys.toList(),
+                  widget.priceHistory['d'].keys.toList(),
+                  widget.priceHistory['w'].keys.toList(),
+                  widget.priceHistory['m'].keys.toList(),
+                  widget.priceHistory['M'].keys.toList()
                 ];
 
                 return PriceGraph(
-                  prices: matrixMultiply([ps[g1], ps[g2]], [1 - pcComplete, pcComplete]),
+                  prices: matrixMultiplyDoubleDouble([ps[g1], ps[g2]], [1 - pcComplete, pcComplete]),
+                  times: matrixMultiplyIntDouble([ts[g1], ts[g2]], [1 - pcComplete, pcComplete]),
                   moving: _tabController.indexIsChanging,
                   color1: widget.color1,
                   color2: widget.color2,
@@ -75,14 +88,6 @@ class _TabbedPriceGraphState extends State<TabbedPriceGraph> with SingleTickerPr
                 width: 200,
                 height: 30,
                 padding: EdgeInsets.only(bottom: 5, top: 2, left: 3, right: 3),
-                // decoration: BoxDecoration(
-                //   color: Colors.black.withOpacity(0.05),
-                //   borderRadius: BorderRadius.all(Radius.circular(5.0)),
-                //   border: Border.all(
-                //     color: Colors.grey[500],
-                //     width: 1,
-                //   ),
-                // ),
                 child: TabBar(
                   labelColor: Colors.grey[900],
                   unselectedLabelColor: Colors.grey[400],
@@ -110,6 +115,7 @@ class _TabbedPriceGraphState extends State<TabbedPriceGraph> with SingleTickerPr
 
 class PriceGraph extends StatefulWidget {
   final List<double> prices;
+  final List times;
   final bool moving;
   final Color color1;
   final Color color2;
@@ -122,7 +128,7 @@ class PriceGraph extends StatefulWidget {
   final double yaxisPadB = 0.08;
   final double xaxisPadR = 0.05;
 
-  PriceGraph({this.prices, this.moving, this.color1, this.color2});
+  PriceGraph({this.prices, this.times, this.moving, this.color1, this.color2});
 
   @override
   _PriceGraphState createState() => _PriceGraphState();
@@ -139,11 +145,29 @@ class _PriceGraphState extends State<PriceGraph> {
   double priceY;
   double portfolioInit;
   bool isConstant;
+  intl.DateFormat dateFormat;
+  int dt_t;
 
   @override
   void initState() {
     super.initState();
     portfolioInit = widget.prices[0];
+  
+  }
+
+  int formatTime(int t) {
+    if (dt_t == 0) {
+      return t;
+    }
+    else if (dt_t == 1) {
+      return t - (t % 900);
+    }
+    else if (dt_t == 2){
+      return t - (t % 3600);
+    }
+    else {
+      return t;
+    }
   }
 
   /// given an x-coordinate in pixels, return an interpolated y-coordinate in currency
@@ -179,10 +203,46 @@ class _PriceGraphState extends State<PriceGraph> {
     }
   }
 
+  String dateX;
+
+  String _pxToDateX (px) {
+    double i = ((widget.prices.length - 1) * (px / graphWidth - widget.lPad)) /
+          (1 - widget.lPad - widget.rPad - widget.xaxisPadR);
+      if (i > (widget.prices.length - 1)) {
+        return dateFormat.format(DateTime.fromMillisecondsSinceEpoch(formatTime((1000 * widget.times.last).floor())));
+      } else if (i < 0) {
+        return dateFormat.format(DateTime.fromMillisecondsSinceEpoch(formatTime((1000 * widget.times.first).floor())));
+      } else {
+        return dateFormat.format(DateTime.fromMillisecondsSinceEpoch(formatTime((1000 * ((1 - (i % 1)) * widget.times[i.floor()] + (i % 1) * widget.times[i.ceil()])).floor())));
+      }
+  }
+
   @override
   Widget build(BuildContext context) {
     // check if all values in the price array are the same
     isConstant = widget.prices.every((element) => element == widget.prices[0]);
+
+
+  double dt = widget.times[1] - widget.times[0];
+    dt_t = 0;
+    if (dt < 2 * 3600) {
+      dateFormat = intl.DateFormat('d MMM yy\nHH:mm');
+      if (dt < 15 * 60) {
+        dt_t = 0;
+      }
+      else if (dt < 3600) {
+        dt_t = 1;
+      }
+      else {
+        dt_t = 2;
+      }
+    }
+    else if (dt < 24 * 3600) {
+      dateFormat = intl.DateFormat('d MMM yy\nHH:00');
+    }
+    else {
+      dateFormat = intl.DateFormat('d MMM yy');
+    }
 
     // we're switching tabs so reset some variables
     if (widget.moving) {
@@ -211,9 +271,13 @@ class _PriceGraphState extends State<PriceGraph> {
       pmax = widget.prices.reduce(max);
     }
 
+    if (dateX == null) {
+      dateX = dateFormat.format(DateTime.fromMillisecondsSinceEpoch(formatTime((1000 * widget.times.last).floor())));
+    }
+
     return Row(children: [
       GestureDetector(
-        onTapDown: (details) {
+        onTapDown: (TapDownDetails details) {
           if (!widget.moving) {
             setState(() {
               // we're further than the right edge of the graph so clip
@@ -228,10 +292,12 @@ class _PriceGraphState extends State<PriceGraph> {
 
               touchY = _pxToPy(touchX);
               priceY = _pxToY(touchX);
+              dateX = _pxToDateX(touchX);
+
             });
           }
         },
-        onPanUpdate: (details) {
+        onPanUpdate: (DragUpdateDetails details) {
           if (touchX != null && !widget.moving) {
             setState(() {
               // we're further than the right edge of the graph so clip
@@ -246,6 +312,8 @@ class _PriceGraphState extends State<PriceGraph> {
 
               touchY = _pxToPy(touchX);
               priceY = _pxToY(touchX);
+              dateX = _pxToDateX(touchX);
+
             });
           }
         },
@@ -307,7 +375,9 @@ class _PriceGraphState extends State<PriceGraph> {
                   Text(
                     '${returns >= 0 ? "+": "-"}${formatPercentage(returns, currency)}',
                     style: TextStyle(color: returns >= 0 ? Colors.green : Colors.red),
-                  )
+                  ), 
+                  SizedBox(height: 10), 
+                  Text(dateX, textAlign: TextAlign.center)
                 ],
               );
             }),
