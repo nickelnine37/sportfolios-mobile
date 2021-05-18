@@ -376,7 +376,7 @@ class _PriceGraphState extends State<PriceGraph> {
                     '${returns >= 0 ? "+": "-"}${formatPercentage(returns, currency)}',
                     style: TextStyle(color: returns >= 0 ? Colors.green : Colors.red),
                   ), 
-                  SizedBox(height: 10), 
+                  SizedBox(height: 25), 
                   Text(dateX, textAlign: TextAlign.center)
                 ],
               );

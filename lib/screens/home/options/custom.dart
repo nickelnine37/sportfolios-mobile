@@ -2,9 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:sportfolios_alpha/data/models/instruments.dart';
 import 'package:sportfolios_alpha/plots/payout_graph.dart';
 import 'package:sportfolios_alpha/plots/price_chart.dart';
+import 'package:sportfolios_alpha/screens/home/options/info_box.dart';
 import 'package:sportfolios_alpha/utils/arrays.dart';
 import 'package:sportfolios_alpha/utils/dialogues.dart';
 import 'package:sportfolios_alpha/utils/number_format.dart';
+
+import 'header.dart';
 
 class CustomDetails extends StatefulWidget {
   final Contract contract;
@@ -15,7 +18,7 @@ class CustomDetails extends StatefulWidget {
   _CustomDetailsState createState() => _CustomDetailsState();
 }
 
-class _CustomDetailsState extends State<CustomDetails> with AutomaticKeepAliveClientMixin<CustomDetails>  {
+class _CustomDetailsState extends State<CustomDetails> with AutomaticKeepAliveClientMixin<CustomDetails> {
   String helpText =
       'A custom contract gives you full autonomy to design your own payout structure. Drag each bar on the payout graph up and down to create your desired payout. ';
   double lrPadding = 25;
@@ -26,6 +29,7 @@ class _CustomDetailsState extends State<CustomDetails> with AutomaticKeepAliveCl
   int selectedBar;
   double graphWidth;
   double graphHeight = 150;
+  bool locked = false;
 
   @override
   void initState() {
@@ -39,7 +43,7 @@ class _CustomDetailsState extends State<CustomDetails> with AutomaticKeepAliveCl
     super.dispose();
   }
 
-    @override
+  @override
   bool get wantKeepAlive => true;
 
   void updateHistory() {
@@ -62,6 +66,12 @@ class _CustomDetailsState extends State<CustomDetails> with AutomaticKeepAliveCl
       y = 10;
     }
     p2 = range(widget.contract.n).map((int i) => i == x ? y : p2[i]).toList();
+
+    if (p2 != p1) {
+      setState(() {
+        p1 = p2;
+      });
+    }
   }
 
   @override
@@ -79,37 +89,59 @@ class _CustomDetailsState extends State<CustomDetails> with AutomaticKeepAliveCl
         crossAxisAlignment: CrossAxisAlignment.center,
         children: <Widget>[
           SizedBox(height: 10),
-          PageHeader(p1, widget.contract, 'Binary', helpText),
-          GestureDetector(
-            child: TrueStaticPayoutGraph(p1, Colors.blue, lrPadding, graphHeight, true),
-            onTapDown: (TapDownDetails details) {
-              _makeSelection(details.localPosition);
-              if (p2 != p1) {
-                setState(() {
-                  p1 = p2;
-                });
-              }
-            },
-            onPanUpdate: (DragUpdateDetails details) {
-              _makeSelection(details.localPosition);
-
-              if (p2 != p1) {
-                setState(() {
-                  p1 = p2;
-                });
-              }
-            },
-            onPanEnd: (DragEndDetails details) {
-              setState(() {
-                updateHistory();
-              });
-            },
-            onTapUp: (TapUpDetails details) {
-              setState(() {
-                updateHistory();
-              });
-            },
+          PageHeader(p1, widget.contract, InfoBox(title: 'Binary contracts', pages: [
+                MiniInfoPage(
+                    'A custom contract gives you full autonomy to design your own payout structure. Drag each bar on the payout graph up and down to create your desired payout. ',
+                    Transform.rotate(
+                    angle: 3.14159 / 2,
+                    child: Icon(Icons.vertical_align_center, size: 80 )),
+                    Colors.blue[600]),
+                MiniInfoPage(
+                    'Hit the lock switch to keep your selected payout structure in place. You can also tap the reverse icon to flip the directionality of the cut-off.',
+                    Icon(Icons.loop, size: 80),
+                    Colors.grey[700]),
+                
+              ])),
+          Row(
+            children: [
+              Switch(
+                value: locked,
+                onChanged: (bool val) {
+                  setState(() {
+                    locked = val;
+                  });
+                },
+              ),
+              Text('Lock payout')
+            ],
           ),
+          locked
+              ? TrueStaticPayoutGraph(p1, Colors.blue, lrPadding, graphHeight, true)
+              : GestureDetector(
+                  child: TrueStaticPayoutGraph(p1, Colors.blue, lrPadding, graphHeight, false),
+                  onVerticalDragStart: (DragStartDetails details) {
+                    _makeSelection(details.localPosition);
+                  },
+                  onVerticalDragUpdate: (DragUpdateDetails details) {
+                    _makeSelection(details.localPosition);
+                  },
+                  onTapDown: (TapDownDetails details) {
+                    _makeSelection(details.localPosition);
+                  },
+                  onPanUpdate: (DragUpdateDetails details) {
+                    _makeSelection(details.localPosition);
+                  },
+                  onPanEnd: (DragEndDetails details) {
+                    setState(() {
+                      updateHistory();
+                    });
+                  },
+                  onTapUp: (TapUpDetails details) {
+                    setState(() {
+                      updateHistory();
+                    });
+                  },
+                ),
           SizedBox(height: 35),
           TabbedPriceGraph(priceHistory: priceHistory),
           SizedBox(height: 20)
@@ -119,82 +151,3 @@ class _CustomDetailsState extends State<CustomDetails> with AutomaticKeepAliveCl
   }
 }
 
-class PageHeader extends StatelessWidget {
-  final List<double> quantity;
-  final Contract contract;
-  final String type;
-  final String helpText;
-
-  PageHeader(this.quantity, this.contract, this.type, this.helpText);
-
-  @override
-  Widget build(BuildContext context) {
-    return Row(
-        crossAxisAlignment: CrossAxisAlignment.center,
-        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-        children: [
-          Container(
-            width: 80,
-            child: Center(
-              child: Column(
-                children: [
-                  Text(
-                    formatCurrency(contract.getCurrentValue(quantity), 'GBP'),
-                    style: TextStyle(fontSize: 25, fontWeight: FontWeight.w300),
-                  ),
-                  Text(
-                    'per contract',
-                    style: TextStyle(fontSize: 12),
-                  )
-                ],
-              ),
-            ),
-          ),
-          Padding(
-            padding: const EdgeInsets.all(8.0),
-            child: FlatButton(
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(10),
-              ),
-              child: Text('BUY', style: TextStyle(color: Colors.white)),
-              onPressed: () {
-                showModalBottomSheet(
-                  isScrollControlled: true,
-                  elevation: 100,
-                  shape:
-                      RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(25.0))),
-                  context: context,
-                  builder: (context) {
-                    return Container(
-                      child: Text('Hey'),
-                    );
-                  },
-                );
-              },
-              color: Colors.green[400],
-              minWidth: MediaQuery.of(context).size.width * 0.4,
-            ),
-          ),
-          Container(
-            width: 80,
-            child: Center(
-              child: IconButton(
-                icon: Icon(Icons.info_outline, size: 23),
-                onPressed: () {
-                  showDialog(
-                      context: context,
-                      builder: (context) {
-                        return BasicDialog(
-                          title: type + ' contracts: information',
-                          description: helpText,
-                          buttonText: 'OK',
-                          action: () {},
-                        );
-                      });
-                },
-              ),
-            ),
-          ),
-        ]);
-  }
-}

@@ -1,6 +1,7 @@
 import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:shimmer/shimmer.dart';
 import 'package:sportfolios_alpha/providers/settings_provider.dart';
 import 'package:sportfolios_alpha/utils/arrays.dart';
 import 'package:sportfolios_alpha/utils/number_format.dart';
@@ -162,31 +163,39 @@ class _TrueStaticPayoutGraphState extends State<TrueStaticPayoutGraph> {
             ),
           ),
         ),
-        !widget.lock ? GestureDetector(
-          onTapDown: (TapDownDetails details) {
-            int newSelectedBar = _selectedBar(details.localPosition);
-            if (newSelectedBar != selectedBar) {
-              setState(() {
-                selectedBar = newSelectedBar;
-              });
-            }
-          },
-          child: Container(
-            alignment: Alignment.topRight,
-            width: width,
-            height: widget.height,
-            child: Stack(
-              children: _rereshPainters(1),
-            ),
-          ),
-        ) : Container(
-            alignment: Alignment.topRight,
-            width: width,
-            height: widget.height,
-            child: Stack(
-              children: _rereshPainters(1),
-            ),
-          ),
+        Shimmer.fromColors(
+          baseColor: widget.color,
+          highlightColor: widget.color.withAlpha(200),
+          period: Duration(milliseconds: 3000),
+          enabled: !widget.lock,
+          child: widget.lock
+              ? GestureDetector(
+                  onTapDown: (TapDownDetails details) {
+                    int newSelectedBar = _selectedBar(details.localPosition);
+                    if (newSelectedBar != selectedBar) {
+                      setState(() {
+                        selectedBar = newSelectedBar;
+                      });
+                    }
+                  },
+                  child: Container(
+                    alignment: Alignment.topRight,
+                    width: width,
+                    height: widget.height,
+                    child: Stack(
+                      children: _rereshPainters(1),
+                    ),
+                  ),
+                )
+              : Container(
+                  alignment: Alignment.topRight,
+                  width: width,
+                  height: widget.height,
+                  child: Stack(
+                    children: _rereshPainters(1),
+                  ),
+                ),
+        )
       ],
     );
   } // decoration: BoxDecoration(

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:shimmer/shimmer.dart';
 import 'package:sportfolios_alpha/data/models/instruments.dart';
 import 'package:sportfolios_alpha/plots/payout_graph.dart';
 import 'package:sportfolios_alpha/plots/price_chart.dart';
@@ -6,6 +7,9 @@ import 'package:sportfolios_alpha/utils/arrays.dart';
 import 'package:sportfolios_alpha/utils/dialogues.dart';
 import 'package:sportfolios_alpha/utils/number_format.dart';
 import 'dart:math' as math;
+
+import 'header.dart';
+import 'info_box.dart';
 
 class LongShortDetails extends StatefulWidget {
   final Contract contract;
@@ -51,8 +55,6 @@ class _LongShortDetailsState extends State<LongShortDetails> with SingleTickerPr
 
   @override
   Widget build(BuildContext context) {
-
-
     if (p1 == null) {
       if (widget.type == 'Long') {
         p1 = range(widget.contract.n).map((i) => 10 * math.exp(-i / 6)).toList();
@@ -60,7 +62,6 @@ class _LongShortDetailsState extends State<LongShortDetails> with SingleTickerPr
         p1 = range(widget.contract.n).map((i) => 10 * math.exp(-(widget.contract.n - i - 1) / 6)).toList();
       }
       p2 = p1.map((i) => 10 - i).toList();
-
     }
 
     if (selectedQ == null) {
@@ -111,7 +112,82 @@ class _LongShortDetailsState extends State<LongShortDetails> with SingleTickerPr
                 ),
               ),
             ),
-            PageHeader(selectedQ, widget.contract, widget.type, helpText),
+            PageHeader(
+                selectedQ,
+                widget.contract,
+                InfoBox(
+                  title: '${widget.type} contracts',
+                  pages: widget.type == 'Long'
+                      ? [
+                          MiniInfoPage(
+                              'A basic long contract (also known as a long BACK) pays out more and more the higher a team places in the league, up to a maxmimum payout of £10 for 1st place.',
+                              Column(
+                                crossAxisAlignment: CrossAxisAlignment.center,
+                                children: [
+                                  Transform(
+                                      alignment: Alignment.center,
+                                      transform: Matrix4.rotationY(math.pi),
+                                      child: Icon(Icons.signal_cellular_alt, size: 80)),
+                                  Text(
+                                    '1    2    3 ',
+                                    style: TextStyle(fontSize: 12),
+                                  )
+                                ],
+                              ),
+                              Colors.blue[600]),
+                          MiniInfoPage(
+                              'This makes the BACK a great buy if you believe a team\'s potential is underestimated. The more the team outperforms expectations, the more your contract will climb in value.',
+                              Icon(Icons.trending_up, size: 80),
+                              Colors.green[600]),
+                          MiniInfoPage(
+                              'Alternatively, you can take the opposite side of the bet by buying a LAY contract. The payout structure of this contract is the inverse of the BACK, meaning its price is always £10 minus the BACK price.',
+                              Column(
+                                children: [
+                                  Icon(Icons.signal_cellular_alt, size: 80),
+                                  Text(
+                                    ' 1    2     3',
+                                    style: TextStyle(fontSize: 12),
+                                  )
+                                ],
+                              ),
+                              Colors.blue[600])
+                        ]
+                      : [
+                          MiniInfoPage(
+                              'A basic short contract (also known as a short BACK) pays out more and more the lower a team places in the league, up to a maxmimum payout of £10 for last place.',
+                              Column(
+                                children: [
+                                  Icon(Icons.signal_cellular_alt, size: 80),
+                                  Text(
+                                    '  18   19   20',
+                                    style: TextStyle(fontSize: 12),
+                                  )
+                                ],
+                              ),
+                              
+                              Colors.blue[600]),
+                          MiniInfoPage(
+                              'This makes the short BACK a great buy if you believe a team\'s potential is overestimated. The more the team underperforms expectations, the more your contract will climb in value.',
+                              Icon(Icons.trending_down, size: 80),
+                              Colors.red[600]),
+                          MiniInfoPage(
+                              'Alternatively, you can take the opposite side of the bet by buying a LAY contract. The payout structure of this contract is the inverse of the BACK, meaning its price is always £10 minus the BACK price.',
+                              Column(
+                                crossAxisAlignment: CrossAxisAlignment.center,
+                                children: [
+                                  Transform(
+                                      alignment: Alignment.center,
+                                      transform: Matrix4.rotationY(math.pi),
+                                      child: Icon(Icons.signal_cellular_alt, size: 80)),
+                                  Text(
+                                    '18   19   20',
+                                    style: TextStyle(fontSize: 12),
+                                  )
+                                ],
+                              ),
+                              Colors.blue[600])
+                        ],
+                )),
             Container(
               child: AnimatedBuilder(
                   animation: _tabController.animation,
@@ -124,13 +200,17 @@ class _LongShortDetailsState extends State<LongShortDetails> with SingleTickerPr
                             [1 - _tabController.animation.value, _tabController.animation.value],
                           ),
                           Colors.blue,
-                          lrPadding, graphHeight, false),
+                          lrPadding,
+                          graphHeight,
+                          true),
                     );
                   }),
             ),
-            SizedBox(height: 25,),
-            TabbedPriceGraph(priceHistory: priceHistory), 
-                              SizedBox(height: 20)
+            SizedBox(
+              height: 25,
+            ),
+            TabbedPriceGraph(priceHistory: priceHistory),
+            SizedBox(height: 20)
           ],
         ),
       ),
@@ -138,79 +218,3 @@ class _LongShortDetailsState extends State<LongShortDetails> with SingleTickerPr
   }
 }
 
-class PageHeader extends StatelessWidget {
-  final List<double> quantity;
-  final Contract contract;
-  final String type;
-  final String helpText;
-
-  PageHeader(this.quantity, this.contract, this.type, this.helpText);
-
-  @override
-  Widget build(BuildContext context) {
-    return Row(
-        crossAxisAlignment: CrossAxisAlignment.center,
-        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-        children: [
-          Container(
-            width: 80,
-            child: Center(
-              child: Column(
-                children: [
-                  Text(
-                    formatCurrency(contract.getCurrentValue(quantity), 'GBP'),
-                    style: TextStyle(fontSize: 25, fontWeight: FontWeight.w300),
-                  ),
-                  Text('per contract', style: TextStyle(fontSize: 12),)
-                ],
-              ),
-            ),
-          ),
-          Padding(
-            padding: const EdgeInsets.all(8.0),
-            child: FlatButton(
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(10),
-              ),
-              child: Text('BUY', style: TextStyle(color: Colors.white)),
-              onPressed: () {
-                showModalBottomSheet(
-                  isScrollControlled: true,
-                  elevation: 100,
-                  shape:
-                      RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(25.0))),
-                  context: context,
-                  builder: (context) {
-                    return Container(
-                      child: Text('Hey'),
-                    );
-                  },
-                );
-              },
-              color: Colors.green[400],
-              minWidth: MediaQuery.of(context).size.width * 0.4,
-            ),
-          ),
-          Container(
-            width: 80,
-            child: Center(
-              child: IconButton(
-                icon: Icon(Icons.info_outline, size: 23),
-                onPressed: () {
-                  showDialog(
-                      context: context,
-                      builder: (context) {
-                        return BasicDialog(
-                          title: type + ' contracts: information',
-                          description: helpText,
-                          buttonText: 'OK',
-                          action: () {},
-                        );
-                      });
-                },
-              ),
-            ),
-          ),
-        ]);
-  }
-}

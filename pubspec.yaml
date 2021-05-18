@@ -37,6 +37,7 @@ dependencies:
   cached_network_image: ^2.5.0
   palette_generator: ^0.2.3
   http: ^0.12.1
+  shimmer: ^1.1.2
 
 dev_dependencies:
   flutter_test:

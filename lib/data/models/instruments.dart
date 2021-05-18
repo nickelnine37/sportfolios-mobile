@@ -4,6 +4,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:sportfolios_alpha/data/firebase/contracts.dart';
 import 'package:sportfolios_alpha/data/models/base.dart';
 import 'package:sportfolios_alpha/utils/arrays.dart';
+import 'package:sportfolios_alpha/utils/numbers.dart';
 
 class Instrument extends BaseDataModel {
   String name;
@@ -175,7 +176,7 @@ class Contract extends Instrument {
   }
 
   double getCurrentValue(List<double> q) {
-      return dotProduct(q, currentHoldingExp) / currentHoldingExpSum;
+      return round(dotProduct(q, currentHoldingExp) / currentHoldingExpSum, 6);
   }
 
   void setHistoricalHoldings(Map xhist, Map bhist) {
@@ -193,10 +194,10 @@ class Contract extends Instrument {
 
   }
 
-   Map<String, LinkedHashMap<int, double>> getHistoricalValue (List<double> q) {
+   Map<String, LinkedHashMap<int, double>> getHistoricalValue(List<double> q) {
     Map<String, LinkedHashMap<int, double>> out =  Map<String, LinkedHashMap<int, double>>();
     historicalHoldingsExp.keys.forEach( (th) {
-      out[th] = LinkedHashMap.fromIterables(historicalHoldingsExp[th].keys, historicalHoldingsExp[th].keys.map((t) => dotProduct(q, historicalHoldingsExp[th][t]) / historicalHoldingExpSum[th][t]));
+      out[th] = LinkedHashMap.fromIterables(historicalHoldingsExp[th].keys, historicalHoldingsExp[th].keys.map((t) => round(dotProduct(q, historicalHoldingsExp[th][t]) / historicalHoldingExpSum[th][t], 6)));
     } );
     return out;
   }
