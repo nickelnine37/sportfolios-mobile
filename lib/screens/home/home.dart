@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:sportfolios_alpha/screens/home/leagues_future.dart';
 
 /// the primary purpose of this parent widget for the Home page is to provide a scaffold with a
-///  drawer where various options can be selected. This includes which sport the user is #
+/// drawer where various options can be selected. This includes which sport the user is #
 /// currently looking at, and an about dialogue. The only slightly tricky thing is that the
 /// drawer needs to be above the rest of the widget tree. That way, the new sport can be passed
 /// down the widget tree, triggering a new database call etc. To acheive this, we need a
