@@ -35,7 +35,6 @@ class _MyAppState extends State<MyApp> {
   @override
   void initState() {
     verifiedUser = AuthService().isVerified();
-    // print(await AuthService().getJWTToken());
     super.initState();
   }
  

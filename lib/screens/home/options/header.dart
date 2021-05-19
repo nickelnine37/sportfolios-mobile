@@ -2,12 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:sportfolios_alpha/data/models/instruments.dart';
 import 'package:sportfolios_alpha/utils/number_format.dart';
 
-import 'info_box.dart';
-
 class PageHeader extends StatelessWidget {
   final List<double> quantity;
   final Contract contract;
-  final InfoBox infoBox;
+  final Widget infoBox;
 
   PageHeader(this.quantity, this.contract, this.infoBox);
 

@@ -48,17 +48,18 @@ class _ContractDetailsState extends State<ContractDetails> {
     Color textColor = background.computeLuminance() > 0.5 ? Colors.grey[700] : Colors.white;
 
     return DefaultTabController(
-      
       length: 4,
       child: Scaffold(
         appBar: AppBar(
-          flexibleSpace: Container(decoration: BoxDecoration( gradient: LinearGradient(
-            colors: [background, Colors.white],
-            begin: const FractionalOffset(0.4, 0.5),
-            end: const FractionalOffset(1, 0),
-            stops: [0.0, 1.0],
-            tileMode: TileMode.clamp
-        ),)),
+          flexibleSpace: Container(
+              decoration: BoxDecoration(
+            gradient: LinearGradient(
+                colors: [background, Colors.white],
+                begin: const FractionalOffset(0.4, 0.5),
+                end: const FractionalOffset(1, 0),
+                stops: [0.0, 1.0],
+                tileMode: TileMode.clamp),
+          )),
           automaticallyImplyLeading: false,
           titleSpacing: 0,
           toolbarHeight: 145,
@@ -124,13 +125,11 @@ class _ContractDetailsState extends State<ContractDetails> {
           future: holdings,
           builder: (BuildContext context, AsyncSnapshot snapshot) {
             if (snapshot.hasData) {
-              widget.contract
-                  .setCurrentHolding(List<double>.from(snapshot.data[0]['x']), snapshot.data[0]['b']);
-              widget.contract
-                  .setHistoricalHoldings(snapshot.data[1]['xhist'], snapshot.data[1]['bhist']);
+              widget.contract.setCurrentHolding(List<double>.from(snapshot.data[0]['x']), snapshot.data[0]['b']);
+              widget.contract.setHistoricalHoldings(snapshot.data[1]['xhist'], snapshot.data[1]['bhist']);
 
               return TabBarView(
-                        physics: NeverScrollableScrollPhysics(),
+                physics: NeverScrollableScrollPhysics(),
                 children: [
                   LongShortDetails(widget.contract, 'Long'),
                   LongShortDetails(widget.contract, 'Short'),
@@ -146,10 +145,7 @@ class _ContractDetailsState extends State<ContractDetails> {
       ),
     );
   }
-
 }
-
-
 
 class ContractPageHeader extends ConsumerWidget {
   final Contract contract;

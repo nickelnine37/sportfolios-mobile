@@ -365,7 +365,7 @@ class _BuyFormState extends State<BuyForm> {
                     FocusManager.instance.primaryFocus.unfocus();
                   }
                   _finalFormFields['contractId'] = widget.contract.id;
-                  print(_finalFormFields);
+
                   buyContract(_finalFormFields);
                 },
               ),

@@ -44,13 +44,7 @@ class MiniDonutChartPainter extends CustomPainter {
       Path path = Path();
       double startAngle = 2 * pi * (this.start - 0.25);
       double endAngle = 2 * pi * (this.end - this.start);
-
-      print(start);
-
       start = end;
-
-      print(end);
-
       path.addArc(Rect.fromLTWH(0, 0, size.width, size.height), startAngle, endAngle);
 
       canvas.drawPath(path, arcPaint);

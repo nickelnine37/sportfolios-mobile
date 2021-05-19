@@ -63,7 +63,6 @@ class ContractFetcher {
         loadedResults.addAll(
           results.docs.map<Contract>((DocumentSnapshot snapshot) => Contract.fromDocumentSnapshotAndPrices(snapshot, prices[snapshot.id], dailyPrices[snapshot.id])),
         );
-                print(prices);        
 
       }
     }

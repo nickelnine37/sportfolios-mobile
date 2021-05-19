@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:sportfolios_alpha/data/api/requests.dart';
 import 'package:sportfolios_alpha/data/models/instruments.dart';
 import 'package:sportfolios_alpha/plots/payout_graph.dart';
 import 'package:sportfolios_alpha/plots/price_chart.dart';
@@ -30,11 +31,13 @@ class _CustomDetailsState extends State<CustomDetails> with AutomaticKeepAliveCl
   double graphWidth;
   double graphHeight = 150;
   bool locked = false;
+  DateTime lastRefreshed;
 
   @override
   void initState() {
     p1 = range(widget.contract.n).map((int i) => 10.0).toList();
     p2 = range(widget.contract.n).map((int i) => 10.0).toList();
+    lastRefreshed = DateTime.now();
     super.initState();
   }
 
@@ -84,70 +87,137 @@ class _CustomDetailsState extends State<CustomDetails> with AutomaticKeepAliveCl
       updateHistory();
     }
 
-    return SingleChildScrollView(
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.center,
-        children: <Widget>[
-          SizedBox(height: 10),
-          PageHeader(p1, widget.contract, InfoBox(title: 'Binary contracts', pages: [
-                MiniInfoPage(
-                    'A custom contract gives you full autonomy to design your own payout structure. Drag each bar on the payout graph up and down to create your desired payout. ',
-                    Transform.rotate(
-                    angle: 3.14159 / 2,
-                    child: Icon(Icons.vertical_align_center, size: 80 )),
-                    Colors.blue[600]),
-                MiniInfoPage(
-                    'Hit the lock switch to keep your selected payout structure in place. You can also tap the reverse icon to flip the directionality of the cut-off.',
-                    Icon(Icons.loop, size: 80),
-                    Colors.grey[700]),
-                
-              ])),
-          Row(
-            children: [
-              Switch(
-                value: locked,
-                onChanged: (bool val) {
-                  setState(() {
-                    locked = val;
-                  });
-                },
-              ),
-              Text('Lock payout')
-            ],
-          ),
-          locked
-              ? TrueStaticPayoutGraph(p1, Colors.blue, lrPadding, graphHeight, true)
-              : GestureDetector(
-                  child: TrueStaticPayoutGraph(p1, Colors.blue, lrPadding, graphHeight, false),
-                  onVerticalDragStart: (DragStartDetails details) {
-                    _makeSelection(details.localPosition);
-                  },
-                  onVerticalDragUpdate: (DragUpdateDetails details) {
-                    _makeSelection(details.localPosition);
-                  },
-                  onTapDown: (TapDownDetails details) {
-                    _makeSelection(details.localPosition);
-                  },
-                  onPanUpdate: (DragUpdateDetails details) {
-                    _makeSelection(details.localPosition);
-                  },
-                  onPanEnd: (DragEndDetails details) {
+    return RefreshIndicator(
+      onRefresh: () async {
+        if (DateTime.now().difference(lastRefreshed).inSeconds > 10) {
+          Map<String, dynamic> holdings = await getcurrentHoldings(widget.contract.id);
+          widget.contract.setCurrentHolding(List<double>.from(holdings['x']), holdings['b']);
+          Map<String, dynamic> historicalHoldings = await getHistoricalHoldings(widget.contract.id);
+          widget.contract.setHistoricalHoldings(historicalHoldings['xhist'], historicalHoldings['bhist']);
+          await Future.delayed(Duration(seconds: 1));
+          lastRefreshed = DateTime.now();
+          setState(() {});
+        } else {
+          await Future.delayed(Duration(seconds: 1));
+          print('Refreshed too fast!!');
+        }
+      },
+      child: SingleChildScrollView(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: <Widget>[
+            SizedBox(height: 10),
+            PageHeader(
+                p1,
+                widget.contract,
+                InfoBox(title: 'Binary contracts', pages: [
+                  MiniInfoPage(
+                      'A custom contract gives you full autonomy to design your own payout structure. Drag each bar on the payout graph up and down to create your desired payout. ',
+                      Icon(Icons.signal_cellular_alt, size: 80),
+                      Colors.blue[600]),
+                  MiniInfoPage(
+                      'Hit the lock switch to keep your selected payout structure in place. Once locked, touch each bar to view the exact payout. You can also tap the reverse icon to flip the directionality of the cut-off.',
+                      Transform.scale(scale: 1.8, child: Switch(value: false, onChanged: (value) {},)),
+                      Colors.grey[600]),
+                  MiniInfoPage(
+                      'You can also tap the reverse icon to flip the directionality of the cut-off.',
+                      Icon(Icons.loop, size: 80),
+                      Colors.grey[700]),
+                ])),
+            Row(
+              children: [
+                Switch(
+                  value: locked,
+                  onChanged: (bool val) {
                     setState(() {
-                      updateHistory();
-                    });
-                  },
-                  onTapUp: (TapUpDetails details) {
-                    setState(() {
-                      updateHistory();
+                      locked = val;
                     });
                   },
                 ),
-          SizedBox(height: 35),
-          TabbedPriceGraph(priceHistory: priceHistory),
-          SizedBox(height: 20)
-        ],
+                Text('Lock payout')
+              ],
+            ),
+            locked
+                ? TrueStaticPayoutGraph(p1, Colors.blue, lrPadding, graphHeight, true)
+                : GestureDetector(
+                    child: TrueStaticPayoutGraph(p1, Colors.blue, lrPadding, graphHeight, false),
+                    onVerticalDragStart: (DragStartDetails details) {
+                      _makeSelection(details.localPosition);
+                    },
+                    onVerticalDragUpdate: (DragUpdateDetails details) {
+                      _makeSelection(details.localPosition);
+                    },
+                    onTapDown: (TapDownDetails details) {
+                      _makeSelection(details.localPosition);
+                    },
+                    onPanUpdate: (DragUpdateDetails details) {
+                      _makeSelection(details.localPosition);
+                    },
+                    onPanEnd: (DragEndDetails details) {
+                      setState(() {
+                        updateHistory();
+                      });
+                    },
+                    onTapUp: (TapUpDetails details) {
+                      setState(() {
+                        updateHistory();
+                      });
+                    },
+                    onVerticalDragEnd: (DragEndDetails details) {
+                      setState(() {
+                        updateHistory();
+                      });
+                    },
+                  ),
+            SizedBox(height: 35),
+            TabbedPriceGraph(priceHistory: priceHistory),
+            SizedBox(height: 20),
+            Divider(thickness: 2),
+            Container(
+              height: 60,
+              child: Center(
+                child: ListTile(
+                  onTap: () {},
+                  leading: Text(
+                    'Portfolios',
+                    style: TextStyle(fontSize: 16.0),
+                  ),
+                  trailing: Icon(Icons.arrow_right, size: 28),
+                ),
+              ),
+            ),
+            Divider(thickness: 2),
+            Container(
+              height: 60,
+              child: Center(
+                child: ListTile(
+                  onTap: () {},
+                  leading: Text(
+                    'Statistics',
+                    style: TextStyle(fontSize: 16.0),
+                  ),
+                  trailing: Icon(Icons.arrow_right, size: 28),
+                ),
+              ),
+            ),
+            Divider(thickness: 2),
+            Container(
+              height: 60,
+              child: Center(
+                child: ListTile(
+                  onTap: () {},
+                  leading: Text(
+                    'Players',
+                    style: TextStyle(fontSize: 16.0),
+                  ),
+                  trailing: Icon(Icons.arrow_right, size: 28),
+                ),
+              ),
+            ),
+            Divider(thickness: 2),
+          ],
+        ),
       ),
     );
   }
 }
-
