@@ -30,17 +30,17 @@ class _ContractDetailsState extends State<ContractDetails> {
   @override
   void initState() {
     holdings = Future.wait(
-        [awaitCurrentHoldings(), awaitHistoricalHoldings(), Future.delayed(Duration(seconds: 3))]);
+        [widget.contract.updateCurrentHoldings(), widget.contract.updateHistoricalHoldings(), Future.delayed(Duration(seconds: 3))]);
     super.initState();
   }
 
-  Future awaitCurrentHoldings() async {
-    return await getcurrentHoldings(widget.contract.id);
-  }
+  // Future awaitCurrentHoldings() async {
+  //   return await getcurrentHoldings(widget.contract.id);
+  // }
 
-  Future awaitHistoricalHoldings() async {
-    return await getHistoricalHoldings(widget.contract.id);
-  }
+  // Future awaitHistoricalHoldings() async {
+  //   return await getHistoricalHoldings(widget.contract.id);
+  // }
 
   @override
   Widget build(BuildContext context) {
@@ -125,9 +125,6 @@ class _ContractDetailsState extends State<ContractDetails> {
           future: holdings,
           builder: (BuildContext context, AsyncSnapshot snapshot) {
             if (snapshot.hasData) {
-              widget.contract.setCurrentHolding(List<double>.from(snapshot.data[0]['x']), snapshot.data[0]['b']);
-              widget.contract.setHistoricalHoldings(snapshot.data[1]['xhist'], snapshot.data[1]['bhist']);
-
               return TabBarView(
                 physics: NeverScrollableScrollPhysics(),
                 children: [

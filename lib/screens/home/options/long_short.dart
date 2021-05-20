@@ -27,7 +27,6 @@ class _LongShortDetailsState extends State<LongShortDetails> with SingleTickerPr
   String selectedContract = 'BACK';
   List<double> selectedQ;
   double graphHeight = 150;
-  DateTime lastRefreshed;
 
   List<double> p1;
   List<double> p2;
@@ -46,7 +45,6 @@ class _LongShortDetailsState extends State<LongShortDetails> with SingleTickerPr
         }
       });
     });
-    lastRefreshed = DateTime.now();
     super.initState();
   }
 
@@ -79,13 +77,12 @@ class _LongShortDetailsState extends State<LongShortDetails> with SingleTickerPr
       length: 2,
       child: RefreshIndicator(
         onRefresh: () async {
-          if (DateTime.now().difference(lastRefreshed).inSeconds > 10) {
+          if (DateTime.now().difference(widget.contract.currentValueLastUpdated).inSeconds > 10) {
             Map<String, dynamic> holdings = await getcurrentHoldings(widget.contract.id);
             widget.contract.setCurrentHolding(List<double>.from(holdings['x']), holdings['b']);
             Map<String, dynamic> historicalHoldings = await getHistoricalHoldings(widget.contract.id);
             widget.contract.setHistoricalHoldings(historicalHoldings['xhist'], historicalHoldings['bhist']);
             await Future.delayed(Duration(seconds: 1));
-            lastRefreshed = DateTime.now();
             setState(() {});
           } else {
             await Future.delayed(Duration(seconds: 1));

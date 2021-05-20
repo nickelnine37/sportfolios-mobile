@@ -38,7 +38,8 @@ dependencies:
   palette_generator: ^0.2.3
   http: ^0.12.1
   shimmer: ^1.1.2
-
+  confetti: ^0.5.5
+  
 dev_dependencies:
   flutter_test:
     sdk: flutter

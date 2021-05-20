@@ -1,6 +1,7 @@
 import 'dart:collection';
 import 'dart:math' as math;
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:sportfolios_alpha/data/api/requests.dart';
 import 'package:sportfolios_alpha/data/firebase/contracts.dart';
 import 'package:sportfolios_alpha/data/models/base.dart';
 import 'package:sportfolios_alpha/utils/arrays.dart';
@@ -78,6 +79,7 @@ class Contract extends Instrument {
   String team;
   double currentBackValue;
   LinkedHashMap<int, double> dailyBackValue;
+  DateTime currentValueLastUpdated;
 
   // info to to be shown on left of summary tile
   String info1;
@@ -103,24 +105,28 @@ class Contract extends Instrument {
 
   Contract(String contractId) : super(contractId);
 
-  LinkedHashMap<int, double> sortPriceTimeMap (Map values) {
-    List times = values.keys.toList(growable : false);
+  LinkedHashMap<int, double> sortPriceTimeMap(Map values) {
+    List times = values.keys.toList(growable: false);
     LinkedHashMap<int, double> out = LinkedHashMap<int, double>();
     times.sort();
-    times.forEach((k1) { out[int.parse(k1)] = 0.0 + values[k1] ; });
+    times.forEach((k1) {
+      out[int.parse(k1)] = 0.0 + values[k1];
+    });
     return out;
   }
 
-  LinkedHashMap<int, List> sortHoldingsTimeMap (Map values) {
-    List times = values.keys.toList(growable : false);
+  LinkedHashMap<int, List> sortHoldingsTimeMap(Map values) {
+    List times = values.keys.toList(growable: false);
     LinkedHashMap<int, List> out = LinkedHashMap<int, List>();
     times.sort();
-    times.forEach((k1) { out[int.parse(k1)] = values[k1] ; });
+    times.forEach((k1) {
+      out[int.parse(k1)] = values[k1];
+    });
     return out;
   }
 
-  Contract.fromDocumentSnapshotAndPrices(DocumentSnapshot snapshot, double currentValue, Map dailyValue) : super(snapshot.id) {
-
+  Contract.fromDocumentSnapshotAndPrices(DocumentSnapshot snapshot, double currentValue, Map dailyValue)
+      : super(snapshot.id) {
     Map<String, dynamic> data = snapshot.data();
     doc = snapshot;
 
@@ -161,47 +167,83 @@ class Contract extends Instrument {
     imageURL = data['image'];
   }
 
-  @override
-  String toString() {
-    return 'Contract($id)';
+  Future<void> updateCurrentHoldings() async {
+    Map<String, dynamic> holdings = await getcurrentHoldings(id);
+    if (holdings == null) {
+      print('Error fetuing current holdings');
+    } else {
+      setCurrentHolding(List<double>.from(holdings['x']), holdings['b']);
+    }
+  }
+
+  Future<void> updateHistoricalHoldings() async {
+    Map<String, dynamic> histHoldings = await getHistoricalHoldings(id);
+
+    if (histHoldings == null) {
+      print('Error fetching historical holdings');
+    } else {
+      setHistoricalHoldings(histHoldings['xhist'], histHoldings['bhist']);
+    }
   }
 
   void setCurrentHolding(List<double> holding, dynamic b) {
     currentHolding = holding;
     currentB = b + 0.0;
     currentHoldingMax = getMax(holding);
-    currentHoldingExp = currentHolding.map((double i) => math.exp((i - currentHoldingMax) / currentB)).toList();
+    currentHoldingExp =
+        currentHolding.map((double i) => math.exp((i - currentHoldingMax) / currentB)).toList();
     currentHoldingExpSum = getSum(currentHoldingExp);
     n = holding.length;
-  }
-
-  double getCurrentValue(List<double> q) {
-      return round(dotProduct(q, currentHoldingExp) / currentHoldingExpSum, 6);
+    currentValueLastUpdated = DateTime.now();
   }
 
   void setHistoricalHoldings(Map xhist, Map bhist) {
-
     bhist.keys.forEach((th) {
       historicalB[th] = sortPriceTimeMap(bhist[th]);
     });
 
     xhist.keys.forEach((th) {
       historicalHoldings[th] = sortHoldingsTimeMap(xhist[th]);
-      historicalHoldingMax[th] = LinkedHashMap.fromIterables(historicalHoldings[th].keys, historicalHoldings[th].values.map((array) => getMax(List<double>.from(array))));
-      historicalHoldingsExp[th] = LinkedHashMap.fromIterables(historicalHoldings[th].keys, historicalHoldings[th].keys.map((t) => historicalHoldings[th][t].map((i) => math.exp((i - historicalHoldingMax[th][t]) / historicalB[th][t])).toList()));
-      historicalHoldingExpSum[th] = LinkedHashMap.fromIterables(historicalHoldings[th].keys, historicalHoldings[th].keys.map((t) => getSum(historicalHoldingsExp[th][t])));
+      historicalHoldingMax[th] = LinkedHashMap.fromIterables(historicalHoldings[th].keys,
+          historicalHoldings[th].values.map((array) => getMax(List<double>.from(array))));
+      historicalHoldingsExp[th] = LinkedHashMap.fromIterables(
+          historicalHoldings[th].keys,
+          historicalHoldings[th].keys.map((t) => historicalHoldings[th][t]
+              .map((i) => math.exp((i - historicalHoldingMax[th][t]) / historicalB[th][t]))
+              .toList()));
+      historicalHoldingExpSum[th] = LinkedHashMap.fromIterables(historicalHoldings[th].keys,
+          historicalHoldings[th].keys.map((t) => getSum(historicalHoldingsExp[th][t])));
     });
-
   }
 
-   Map<String, LinkedHashMap<int, double>> getHistoricalValue(List<double> q) {
-    Map<String, LinkedHashMap<int, double>> out =  Map<String, LinkedHashMap<int, double>>();
-    historicalHoldingsExp.keys.forEach( (th) {
-      out[th] = LinkedHashMap.fromIterables(historicalHoldingsExp[th].keys, historicalHoldingsExp[th].keys.map((t) => round(dotProduct(q, historicalHoldingsExp[th][t]) / historicalHoldingExpSum[th][t], 6)));
-    } );
+  double getCurrentValue(List<double> q) {
+    return round(dotProduct(q, currentHoldingExp) / currentHoldingExpSum, 6);
+  }
+
+  Map<String, LinkedHashMap<int, double>> getHistoricalValue(List<double> q) {
+    Map<String, LinkedHashMap<int, double>> out = Map<String, LinkedHashMap<int, double>>();
+    historicalHoldingsExp.keys.forEach((th) {
+      out[th] = LinkedHashMap.fromIterables(
+          historicalHoldingsExp[th].keys,
+          historicalHoldingsExp[th].keys.map(
+              (t) => round(dotProduct(q, historicalHoldingsExp[th][t]) / historicalHoldingExpSum[th][t], 6)));
+    });
     return out;
   }
 
+  double c(List<double> x) {
+    double xmax = getMax(x);
+    return xmax + currentB * math.log(getSum(x.map((xi) => math.exp((xi - xmax) / currentB)).toList()));
+  }
+
+  double priceTrade(List<double> q, double k) {
+    return c(range(n).map((i) => currentHolding[i] + k * q[i]).toList()) - c(currentHolding);
+  }
+
+  @override
+  String toString() {
+    return 'Contract($id)';
+  }
 }
 
 class Portfolio extends Instrument {
@@ -218,19 +260,18 @@ class Portfolio extends Instrument {
     name = data['name'];
     public = data['public'];
 
-    contracts =
-        data['contracts'].keys.map<Instrument>((String contractId) => Instrument(contractId)).toList();
+    // contracts =
+    //     data['contracts'].keys.map<Instrument>((String contractId) => Instrument(contractId)).toList();
 
-    amounts = data['contracts']
-        .keys
-        .map<double>((String contractId) => 1.0 * data['contracts'][contractId])
-        .toList();
+    // amounts = data['contracts']
+    //     .keys
+    //     .map<double>((String contractId) => 1.0 * data['contracts'][contractId])
+    //     .toList();
 
-   contractIdAmountMap = Map<String, dynamic>.from(data['contracts']);
+    // contractIdAmountMap = Map<String, dynamic>.from(data['contracts']);
   }
 
   Future<void> populateContracts() async {
-
     if (contracts == null) {
       print('Cannot get contracts - try adding portfolio from snapshot first');
       return;

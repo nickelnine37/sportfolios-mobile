@@ -3,33 +3,36 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:sportfolios_alpha/data/api/requests.dart';
 import 'package:sportfolios_alpha/data/firebase/portfolios.dart';
 import 'package:sportfolios_alpha/data/models/instruments.dart';
 import 'package:sportfolios_alpha/data/models/leagues.dart';
+import 'package:sportfolios_alpha/plots/payout_graph.dart';
 import 'package:sportfolios_alpha/providers/authenication_provider.dart';
 import 'package:sportfolios_alpha/providers/settings_provider.dart';
 import 'package:sportfolios_alpha/utils/number_format.dart';
 import 'package:intl/intl.dart';
-
-
+import 'package:confetti/confetti.dart';
+import 'package:sportfolios_alpha/utils/numbers.dart';
 
 class BuyContract extends StatefulWidget {
   final Contract contract;
-  final League league;
+  final List<double> quantity;
 
-  BuyContract(this.contract, this.league);
+  BuyContract(this.contract, this.quantity);
 
   @override
   _BuyContractState createState() => _BuyContractState();
 }
 
 class _BuyContractState extends State<BuyContract> {
-  Future<List<Portfolio>> _portfoliosFuture;
+  Future _portfoliosFuture;
 
   @override
   void initState() {
     super.initState();
-    _portfoliosFuture = _getPortfolios();
+    _portfoliosFuture = Future.wait([_getPortfolios(), widget.contract.updateCurrentHoldings()]);
   }
 
   Future<List<Portfolio>> _getPortfolios() async {
@@ -44,90 +47,91 @@ class _BuyContractState extends State<BuyContract> {
     return out;
   }
 
-  double contractPrice = 15.05;
-
   @override
   Widget build(BuildContext context) {
-    return SingleChildScrollView(
-      child: Padding(
-        padding: EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom),
+    return Padding(
+      padding: EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom),
+      child: Container(
+        height: 570,
+        decoration: BoxDecoration(
+          color: Theme.of(context).canvasColor,
+          borderRadius: BorderRadius.only(
+            topLeft: const Radius.circular(10),
+            topRight: const Radius.circular(10),
+          ),
+        ),
         child: Container(
-          decoration: BoxDecoration(
-            color: Theme.of(context).canvasColor,
-            borderRadius: BorderRadius.only(
-              topLeft: const Radius.circular(10),
-              topRight: const Radius.circular(10),
+          child: Padding(
+            padding: EdgeInsets.only(left: 35, right: 35, bottom: 10),
+            child: Column(
+              // mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Container(
+                    height: 20,
+                    width: MediaQuery.of(context).size.width * 0.35,
+                    child: CustomPaint(painter: SwipeDownTopBarPainter())),
+                SizedBox(height: 5),
+                Expanded(
+                  child: SingleChildScrollView(
+                    child: Column(
+                      children: [
+                        Text('Contract: ${widget.contract.name}',
+                            textAlign: TextAlign.center,
+                            style: TextStyle(fontSize: 24, fontWeight: FontWeight.w300)),
+                        SizedBox(height: 5),
+                        Divider(thickness: 2, height: 25),
+                        Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            crossAxisAlignment: CrossAxisAlignment.center,
+                            children: [
+                              CachedNetworkImage(
+                                imageUrl: widget.contract.imageURL,
+                                height: 50,
+                              ),
+                              Column(
+                                children: [
+                                  Text('Per contract'),
+                                  SizedBox(height: 3),
+                                  Text(
+                                    formatCurrency(widget.contract.getCurrentValue(widget.quantity), 'GBP'),
+                                    style: TextStyle(fontSize: 20, fontWeight: FontWeight.w300),
+                                  ),
+                                ],
+                              ),
+                              Column(
+                                children: [
+                                  Text('Payout date'),
+                                  SizedBox(height: 3),
+                                  Text(
+                                    'hey',
+                                    // DateFormat('d MMM yy').format(widget.league.endDate),
+                                    style: TextStyle(fontSize: 20, fontWeight: FontWeight.w300),
+                                  ),
+                                ],
+                              ),
+                            ]),
+                        Divider(thickness: 2, height: 25),
+                        TrueStaticPayoutGraph(widget.quantity, Colors.blue, 35, 150, true),
+                        SizedBox(height: 25),
+                        FutureBuilder(
+                            future: _portfoliosFuture,
+                            builder: (BuildContext context, AsyncSnapshot snapshot) {
+                              if (snapshot.hasData) {
+                                return BuyForm(snapshot.data[0], widget.contract, widget.quantity);
+                              } else if (snapshot.hasError) {
+                                print(snapshot.error);
+                                return Center(child: Text('Error'));
+                              } else {
+                                return CircularProgressIndicator();
+                              }
+                            }),
+                      ],
+                    ),
+                  ),
+                )
+              ],
             ),
           ),
-          child: Consumer(builder: (context, watch, child) {
-            String currency = watch(settingsProvider).currency;
-
-            return Container(
-              child: Padding(
-                padding: EdgeInsets.only(left: 35, right: 35, bottom: 10),
-                child: Column(
-                  // mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Container(
-                        height: 20,
-                        width: MediaQuery.of(context).size.width * 0.35,
-                        child: CustomPaint(painter: SwipeDownTopBarPainter())),
-                    SizedBox(height: 5),
-                    Text(
-                        'Buy ' +
-                            widget.contract.name +
-                            ', ${widget.contract.longOrShort}',
-                        textAlign: TextAlign.center,
-                        style: TextStyle(fontSize: 20, fontWeight: FontWeight.w400)),
-                    SizedBox(height: 5),
-                    Divider(thickness: 2, height: 25),
-                    Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        crossAxisAlignment: CrossAxisAlignment.center,
-                        children: [
-                          CachedNetworkImage(
-                            imageUrl: widget.contract.imageURL,
-                            height: 50,
-                          ),
-                          Column(
-                            children: [
-                              Text('Unit price'),
-                              SizedBox(height: 3),
-                              Text(
-                                formatCurrency(widget.contract.value, currency),
-                                style: TextStyle(fontSize: 20, fontWeight: FontWeight.w300),
-                              ),
-                            ],
-                          ),
-                          Column(
-                            children: [
-                              Text('Expirey date'),
-                              SizedBox(height: 3),
-                              Text(
-                                DateFormat('d MMM yy').format(widget.league.startDate),
-                                style: TextStyle(fontSize: 20, fontWeight: FontWeight.w300),
-                              ),
-                            ],
-                          ),
-                        ]),
-                    Divider(thickness: 2, height: 25),
-                    FutureBuilder(
-                        future: _portfoliosFuture,
-                        builder: (BuildContext context, AsyncSnapshot snapshot) {
-                          if (snapshot.hasData) {
-                            return BuyForm(snapshot.data, widget.contract, currency);
-                          } else if (snapshot.hasError) {
-                            print(snapshot.error);
-                            return Center(child: Text('Error'));
-                          } else {
-                            return CircularProgressIndicator();
-                          }
-                        })
-                  ],
-                ),
-              ),
-            );
-          }),
         ),
       ),
     );
@@ -137,9 +141,9 @@ class _BuyContractState extends State<BuyContract> {
 class BuyForm extends StatefulWidget {
   final List<Portfolio> portfolios;
   final Contract contract;
-  final String currency;
+  final List<double> quantity;
 
-  BuyForm(this.portfolios, this.contract, this.currency);
+  BuyForm(this.portfolios, this.contract, this.quantity);
 
   @override
   _BuyFormState createState() => _BuyFormState();
@@ -148,21 +152,22 @@ class BuyForm extends StatefulWidget {
 class _BuyFormState extends State<BuyForm> {
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
   final TextEditingController _unitController = TextEditingController();
-  final TextEditingController _priceController = TextEditingController();
+  double units = 0;
+  double price = 0;
+  bool loading = false;
+  bool complete = false;
+
   String _selectedPortfolioId;
-  Map<String, dynamic> _finalFormFields = {'portfolioId': null, 'contractId': null, 'units': null, 'price': null};
+  Portfolio _selectedPortfolio;
 
   @override
   void dispose() {
-    // Clean up the controller when the widget is disposed.
     _unitController.dispose();
-    _priceController.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-
     if (widget.portfolios.length == 0) {
       _selectedPortfolioId = 'new';
     } else {
@@ -211,17 +216,24 @@ class _BuyFormState extends State<BuyForm> {
                             ),
                           ],
                       onChanged: (String id) {
+                        _selectedPortfolio = widget.portfolios.firstWhere((Portfolio p) => p.id == id);
+
                         setState(() {
                           _selectedPortfolioId = id;
                         });
                       },
+                      onSaved: (String id) {
+                        _selectedPortfolio = widget.portfolios.firstWhere((Portfolio p) => p.id == id);
+                        _selectedPortfolioId = id;
+                      },
                       validator: (String value) {
                         if (widget.portfolios.map((portfolio) => portfolio.id).contains(value) ||
-                            value == 'new') return null;
-                        return 'Please select a valid portfolio';
-                      },
-                      onSaved: (String value) {
-                        _finalFormFields['portfolioId'] = value;
+                            value == 'new') {
+                          // TODO: check whether portfolio has sufficient cash
+                          return null;
+                        } else {
+                          return 'Please select a valid portfolio';
+                        }
                       },
                       isExpanded: true,
                     ),
@@ -249,20 +261,18 @@ class _BuyFormState extends State<BuyForm> {
                   child: TextFormField(
                     keyboardType: TextInputType.numberWithOptions(signed: false, decimal: true),
                     inputFormatters: <TextInputFormatter>[
-                      FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d{0,2}$')),
+                      FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d{0,2}$'))
                     ],
                     // maxLength: 5,
                     controller: _unitController,
                     decoration: InputDecoration(hintText: '0.00'),
                     onChanged: (String value) {
                       if (value == null || value == '') {
-                        // _priceController.text = null;
-                        _priceController.text = '';
                       } else {
                         try {
-                          // _unitController.text = value;
-                          _priceController.text =
-                              formatDecimal(double.parse(value) * widget.contract.value, widget.currency);
+                          units = double.parse(value);
+                          price = validatePrice(widget.contract.priceTrade(widget.quantity, units));
+                          setState(() {});
                         } catch (error) {
                           print(error.toString());
                         }
@@ -277,97 +287,414 @@ class _BuyFormState extends State<BuyForm> {
                       }
                     },
                     onSaved: (String value) {
-                      _finalFormFields['units'] = double.parse(value);
+                      units = double.parse(value);
                     },
                   ),
                 )
               ],
             ),
+            SizedBox(height: 30),
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Row(
-                  children: [
-                    Text('Price', style: TextStyle(fontSize: 17)),
-                    IconButton(
-                        icon: Icon(Icons.info_outline),
-                        onPressed: () {
-                          print('Show price info dialogue');
-                        },
-                        iconSize: 20)
-                  ],
+                Text(
+                  'Price:',
+                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.w400),
                 ),
-                Container(
-                  width: 113,
-                  height: 48,
-                  child: Row(
-                    children: [
-                      Text(getCurrencySymbol(widget.currency)),
-                      SizedBox(width: 5),
-                      Container(
-                        width: 98,
-                        height: 48,
-                        child: TextFormField(
-                          keyboardType: TextInputType.numberWithOptions(signed: false, decimal: true),
-                          controller: _priceController,
-                          decoration: InputDecoration(hintText: '0.00'),
-                          inputFormatters: <TextInputFormatter>[
-                            FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d{0,2}$')),
-                          ],
-                          onChanged: (String value) {
-                            if (value == null || value == '') {
-                              _unitController.text = '';
-                            } else {
-                              try {
-                                // _priceController.text = value;
-                                _unitController.text = formatDecimal(
-                                    double.parse(value) / widget.contract.value, widget.currency);
-                              } catch (error) {
-                                print(error.toString());
-                              }
-                            }
-                          },
-                          validator: (String value) {
-                            try {
-                              double val = double.parse(value);
-                              if (val < 0.5) {
-                                return 'Value must be more than ${formatCurrency(0.5, widget.currency)}';
-                              }
-                              Portfolio portfolio = widget.portfolios.firstWhere((portfolio) => portfolio.id == _selectedPortfolioId);
-                              if (portfolio.contractIdAmountMap['cash'] < val) {
-                                return 'Insufficient funds in this portfolio';
-                              }
-                              return null;
-                            } catch (error) {
-                              return 'Please input valid price';
-                            }
-                          },
-                          onSaved: (String value) {
-                            _finalFormFields['price'] = double.parse(value);
-                          },
-                        ),
-                      ),
-                    ],
-                  ),
-                )
-              ],
-            ),
-            SizedBox(height: 30),
-            Center(
-              child: FlatButton(
-                child: Text('OK', style: TextStyle(color: Colors.white)),
-                color: Colors.blue,
-                onPressed: () {
-                  if (_formKey.currentState.validate()) {
-                    _formKey.currentState.save();
-                  }
-                  if (!FocusScope.of(context).hasPrimaryFocus) {
-                    FocusManager.instance.primaryFocus.unfocus();
-                  }
-                  _finalFormFields['contractId'] = widget.contract.id;
+                Text(
+                  formatCurrency(price, 'GBP'),
+                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.w400),
+                ),
+                FlatButton(
+                  child: loading
+                      ? Container(
+                          height: 25,
+                          width: 25,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 3,
+                            valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                          ))
+                      : complete
+                          ? Icon(Icons.done, color: Colors.white)
+                          : Text('OK', style: TextStyle(color: Colors.white)),
+                  color: Colors.blue,
+                  onPressed: () async {
+                    if (!complete) {
+                      if (_formKey.currentState.validate()) {
+                        _formKey.currentState.save();
+                      }
+                      if (!FocusScope.of(context).hasPrimaryFocus) {
+                        FocusManager.instance.primaryFocus.unfocus();
+                      }
 
-                  buyContract(_finalFormFields);
+                      setState(() {
+                        loading = true;
+                      });
+
+                      Map<String, dynamic> purchaseRequestResult = await makePurchaseRequest(
+                          widget.contract.id,
+                          _selectedPortfolioId,
+                          widget.quantity.map((qi) => units * qi).toList(),
+                          price);
+
+                      SharedPreferences prefs = await SharedPreferences.getInstance();
+
+                      await Future.delayed(Duration(seconds: 1));
+
+                      if (purchaseRequestResult['success']) {
+                        setState(() {
+                          loading = false;
+                          complete = true;
+                        });
+
+                        showDialog(
+                            context: context,
+                            builder: (BuildContext context) {
+                              return PurchaseCompletePopup();
+                            });
+
+                        await Future.delayed(Duration(milliseconds: 800));
+                        Navigator.of(context).pop();
+
+                        bool done = prefs.getBool('firstPurchaseComplete');
+
+                        if (done == null) {
+                          await showDialog(
+                              context: context,
+                              builder: (BuildContext context) {
+                                return CongratualtionsDialogue();
+                              });
+                          prefs.setBool('firstPurchaseComplete', true);
+                        }
+
+                        await Future.delayed(Duration(milliseconds: 500));
+
+                        Navigator.pop(context);
+                      } else {
+                        setState(() {
+                          loading = false;
+                          complete = false;
+                        });
+
+                        bool confirm = await showDialog(
+                                context: context,
+                                builder: (BuildContext context) {
+                                  return ConfirmPurchase(
+                                      oldPrice: price, newPrice: purchaseRequestResult['price']);
+                                }) ??
+                            false;
+
+                        bool ok = await respondToNewPrice(
+                          confirm,
+                          purchaseRequestResult['cancelId'],
+                          widget.contract.id,
+                          _selectedPortfolioId,
+                          widget.quantity.map((qi) => units * qi).toList(),
+                          purchaseRequestResult['price'],
+                        );
+
+                        if (confirm && !ok) {
+                          showDialog(
+                              context: context,
+                              builder: (BuildContext context) {
+                                return ProblemPopup();
+                              });
+                          await Future.delayed(Duration(seconds: 1));
+                          Navigator.of(context).pop();
+                        } else if (confirm && ok) {
+                          setState(() {
+                            price = purchaseRequestResult['price'];
+                            loading = false;
+                            complete = true;
+                          });
+
+                          bool done = prefs.getBool('firstPurchaseComplete');
+
+                          if (done == null) {
+                            await showDialog(
+                                context: context,
+                                builder: (BuildContext context) {
+                                  return CongratualtionsDialogue();
+                                });
+                            prefs.setBool('firstPurchaseComplete', true);
+                          }
+                          await Future.delayed(Duration(milliseconds: 600));
+                          Navigator.of(context).pop();
+                        } else if (!confirm) {
+                          await Future.delayed(Duration(milliseconds: 600));
+                          Navigator.of(context).pop();
+                        }
+                      }
+                    }
+                  },
+                ),
+              ],
+            )
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class PurchaseCompletePopup extends StatelessWidget {
+  const PurchaseCompletePopup({Key key}) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    const double padding = 30;
+
+    return Dialog(
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(12),
+      ),
+      elevation: 0.0,
+      backgroundColor: Colors.transparent,
+      child: Container(
+          height: 90,
+          padding: EdgeInsets.only(top: padding, left: padding, right: padding, bottom: padding),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            shape: BoxShape.rectangle,
+            borderRadius: BorderRadius.circular(padding),
+            boxShadow: [BoxShadow(color: Colors.black26, blurRadius: 10.0, offset: const Offset(0.0, 10.0))],
+          ),
+          child: Center(
+            child: Text('Purchase complete',
+                style: TextStyle(fontSize: 24.0, fontWeight: FontWeight.w700), textAlign: TextAlign.center),
+          )),
+    );
+  }
+}
+
+class ProblemPopup extends StatelessWidget {
+  const ProblemPopup({Key key}) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    const double padding = 30;
+
+    return Dialog(
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(12),
+      ),
+      elevation: 0.0,
+      backgroundColor: Colors.transparent,
+      child: Container(
+          padding: EdgeInsets.only(top: padding, left: padding, right: padding, bottom: padding),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            shape: BoxShape.rectangle,
+            borderRadius: BorderRadius.circular(padding),
+            boxShadow: [BoxShadow(color: Colors.black26, blurRadius: 10.0, offset: const Offset(0.0, 10.0))],
+          ),
+          child: Center(
+            child: Text('There was a problem processing this order. Please try again. ',
+                style: TextStyle(fontSize: 24.0, fontWeight: FontWeight.w700), textAlign: TextAlign.center),
+          )),
+    );
+  }
+}
+
+class ConfirmPurchase extends StatefulWidget {
+  final double oldPrice;
+  final double newPrice;
+
+  ConfirmPurchase({@required this.oldPrice, @required this.newPrice});
+
+  @override
+  _ConfirmPurchaseState createState() => _ConfirmPurchaseState();
+}
+
+class _ConfirmPurchaseState extends State<ConfirmPurchase> {
+  Widget selectedContent;
+  int contentId = 0;
+
+  @override
+  Widget build(BuildContext context) {
+    const double padding = 30;
+
+    if (contentId == 0) {
+      selectedContent = Column(
+        mainAxisSize: MainAxisSize.min, // To make the card compact
+        children: <Widget>[
+          Text(
+            'The price has changed',
+            style: TextStyle(fontSize: 24.0, fontWeight: FontWeight.w700),
+            textAlign: TextAlign.center,
+          ),
+          SizedBox(height: 16.0),
+          Text('Since you last synchronised prices with the server, the cost of this order has changed from',
+              textAlign: TextAlign.center, style: TextStyle(fontSize: 16.0)),
+          SizedBox(height: 20),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+            children: [
+              Text(formatCurrency(widget.oldPrice, 'GBP'), style: TextStyle(fontSize: 18.0)),
+              Text('to', style: TextStyle(fontSize: 16.0)),
+              Text(formatCurrency(widget.newPrice, 'GBP'), style: TextStyle(fontSize: 18.0))
+            ],
+          ),
+          SizedBox(height: 20),
+          Text(
+              'Thats a${widget.newPrice > widget.oldPrice ? "n increase" : " decrease"} of ${formatCurrency((widget.newPrice - widget.oldPrice).abs(), 'GBP')}. Would you still like to proceed with this purchase? ',
+              style: TextStyle(fontSize: 16.0),
+              textAlign: TextAlign.center),
+          SizedBox(height: 24.0),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+            children: [
+              FlatButton(
+                color: Colors.blue[400],
+                onPressed: () async {
+                  setState(() {
+                    contentId = 1;
+                  });
+                  await Future.delayed(Duration(seconds: 1));
+                  Navigator.of(context).pop(false);
                 },
+                child: Text(
+                  'No, cancel',
+                  style: TextStyle(color: Colors.white),
+                ),
+              ),
+              FlatButton(
+                color: Colors.blue[400],
+                onPressed: () async {
+                  setState(() {
+                    contentId = 2;
+                  });
+                  await Future.delayed(Duration(seconds: 1));
+                  Navigator.of(context).pop(true);
+                },
+                child: Text(
+                  'Yes, proceed',
+                  style: TextStyle(color: Colors.white),
+                ),
+              )
+            ],
+          )
+        ],
+      );
+    } else if (contentId == 1) {
+      selectedContent = Center(
+        child: Text(
+          'Order Cancelled',
+          style: TextStyle(fontSize: 24.0, fontWeight: FontWeight.w700),
+          textAlign: TextAlign.center,
+        ),
+      );
+    } else if (contentId == 2) {
+      selectedContent = Center(
+        child: Text(
+          'Confirming Order',
+          style: TextStyle(fontSize: 24.0, fontWeight: FontWeight.w700),
+          textAlign: TextAlign.center,
+        ),
+      );
+    }
+
+    return Dialog(
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(12),
+      ),
+      elevation: 0.0,
+      backgroundColor: Colors.transparent,
+      child: AnimatedContainer(
+          duration: Duration(milliseconds: 600),
+          curve: Curves.fastOutSlowIn,
+          height: contentId == 0 ? 360 : 90,
+          padding: EdgeInsets.only(top: padding, left: padding, right: padding, bottom: padding),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            shape: BoxShape.rectangle,
+            borderRadius: BorderRadius.circular(padding),
+            boxShadow: [BoxShadow(color: Colors.black26, blurRadius: 10.0, offset: const Offset(0.0, 10.0))],
+          ),
+          child: selectedContent),
+    );
+  }
+}
+
+class CongratualtionsDialogue extends StatefulWidget {
+  @override
+  _CongratualtionsDialogueState createState() => _CongratualtionsDialogueState();
+}
+
+class _CongratualtionsDialogueState extends State<CongratualtionsDialogue> {
+  ConfettiController controllerTopCenter;
+
+  @override
+  void initState() {
+    super.initState();
+    setState(() {
+      initController();
+    });
+  }
+
+  void initController() {
+    controllerTopCenter = ConfettiController(duration: const Duration(seconds: 1));
+    controllerTopCenter.play();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    const double padding = 30;
+
+    return Dialog(
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(12),
+      ),
+      elevation: 0.0,
+      backgroundColor: Colors.transparent,
+      child: Container(
+        padding: EdgeInsets.only(top: padding, left: padding, right: padding),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          shape: BoxShape.rectangle,
+          borderRadius: BorderRadius.circular(padding),
+          boxShadow: [BoxShadow(color: Colors.black26, blurRadius: 10.0, offset: const Offset(0.0, 10.0))],
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min, // To make the card compact
+          children: <Widget>[
+            Align(
+              alignment: Alignment.topCenter,
+              child: ConfettiWidget(
+                maximumSize: Size(20, 20),
+                shouldLoop: false,
+                confettiController: controllerTopCenter,
+                blastDirection: 3.14159 / 2,
+                blastDirectionality: BlastDirectionality.directional,
+                maxBlastForce: 12, // set a lower max blast force
+                minBlastForce: 2, // set a lower min blast force
+                emissionFrequency: 1,
+                numberOfParticles: 8, // a lot of particles at once
+                gravity: 0.05,
+              ),
+            ),
+            Text(
+              'Congratulations!!',
+              style: TextStyle(fontSize: 24.0, fontWeight: FontWeight.w700),
+              textAlign: TextAlign.center,
+            ),
+            SizedBox(height: 16.0),
+            Text(
+                'Congratulations on completing your first purchase! You can now check it out by navigating back to the home screen and tapping on portfolios. ',
+                textAlign: TextAlign.center,
+                style: TextStyle(fontSize: 16.0)),
+            SizedBox(height: 24.0),
+            Align(
+              alignment: Alignment.bottomRight,
+              child: FlatButton(
+                color: Colors.blue[400],
+                onPressed: () {
+                  Navigator.of(context).pop(); // To close the dialog
+                },
+                child: Text(
+                  'OK!',
+                  style: TextStyle(color: Colors.white),
+                ),
               ),
             )
           ],

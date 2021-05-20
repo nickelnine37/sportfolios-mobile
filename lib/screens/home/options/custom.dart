@@ -31,13 +31,11 @@ class _CustomDetailsState extends State<CustomDetails> with AutomaticKeepAliveCl
   double graphWidth;
   double graphHeight = 150;
   bool locked = false;
-  DateTime lastRefreshed;
 
   @override
   void initState() {
     p1 = range(widget.contract.n).map((int i) => 10.0).toList();
     p2 = range(widget.contract.n).map((int i) => 10.0).toList();
-    lastRefreshed = DateTime.now();
     super.initState();
   }
 
@@ -89,13 +87,12 @@ class _CustomDetailsState extends State<CustomDetails> with AutomaticKeepAliveCl
 
     return RefreshIndicator(
       onRefresh: () async {
-        if (DateTime.now().difference(lastRefreshed).inSeconds > 10) {
+        if (DateTime.now().difference(widget.contract.currentValueLastUpdated).inSeconds > 10) {
           Map<String, dynamic> holdings = await getcurrentHoldings(widget.contract.id);
           widget.contract.setCurrentHolding(List<double>.from(holdings['x']), holdings['b']);
           Map<String, dynamic> historicalHoldings = await getHistoricalHoldings(widget.contract.id);
           widget.contract.setHistoricalHoldings(historicalHoldings['xhist'], historicalHoldings['bhist']);
           await Future.delayed(Duration(seconds: 1));
-          lastRefreshed = DateTime.now();
           setState(() {});
         } else {
           await Future.delayed(Duration(seconds: 1));
