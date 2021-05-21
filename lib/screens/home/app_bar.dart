@@ -28,23 +28,21 @@ class _MainViewState extends State<MainView> {
   SharedPreferences prefs;
 
   @override
-  void initState() { 
+  void initState() {
     super.initState();
     _getPrefs();
   }
 
   Future<void> _getPrefs() async {
-    prefs =  await SharedPreferences.getInstance();
+    prefs = await SharedPreferences.getInstance();
   }
 
   @override
   Widget build(BuildContext context) {
-
     if (selectedLeagueId == null) {
       if (widget.initialLeagueId == null) {
         selectedLeagueId = widget.leagues[0].leagueID;
-      }
-      else {
+      } else {
         selectedLeagueId = widget.initialLeagueId;
       }
     }
@@ -60,9 +58,17 @@ class _MainViewState extends State<MainView> {
           toolbarHeight: 145,
           bottom: TabBar(
             labelPadding: EdgeInsets.all(5),
-            tabs: <Text>[
-              Text('Teams', style: TextStyle(fontSize: 15.0, color: Colors.white)),
-              Text('Players', style: TextStyle(fontSize: 15.0, color: Colors.white))
+            tabs: <Row>[
+              Row(mainAxisAlignment: MainAxisAlignment.center, children: [
+                Text('Teams', style: TextStyle(fontSize: 15.0, color: Colors.white)),
+                SizedBox(width: 8),
+                Icon(Icons.group, size: 20, color: Colors.white)
+              ]),
+              Row(mainAxisAlignment: MainAxisAlignment.center, children: [
+                Text('Players', style: TextStyle(fontSize: 15.0, color: Colors.white)),
+                SizedBox(width: 8),
+                Icon(Icons.person, size: 20, color: Colors.white)
+              ]),
             ],
           ),
           title: Column(children: [
@@ -147,10 +153,10 @@ class _MainViewState extends State<MainView> {
   //     color: Colors.red[600],
   //   );
 
-    // return Row(mainAxisAlignment: MainAxisAlignment.spaceEvenly, children: [
-    //   Text(text, style: TextStyle(fontSize: 14.0, color: Colors.white)),
-    //   up ? upArrow : downArrow
-    // ]);
+  // return Row(mainAxisAlignment: MainAxisAlignment.spaceEvenly, children: [
+  //   Text(text, style: TextStyle(fontSize: 14.0, color: Colors.white)),
+  //   up ? upArrow : downArrow
+  // ]);
   // }
 
 }
@@ -161,7 +167,11 @@ class LeagueProgressBar extends StatelessWidget {
   final Color paintColor1;
   final Color paintColor2;
 
-  const LeagueProgressBar({this.league, this.textColor=Colors.white, this.paintColor1=Colors.blue, this.paintColor2=Colors.grey});
+  const LeagueProgressBar(
+      {this.league,
+      this.textColor = Colors.white,
+      this.paintColor1 = Colors.blue,
+      this.paintColor2 = Colors.grey});
 
   @override
   Widget build(BuildContext context) {
@@ -169,7 +179,10 @@ class LeagueProgressBar extends StatelessWidget {
       padding: EdgeInsets.symmetric(horizontal: 17),
       child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
         SizedBox(height: 18),
-        Container(width: double.infinity, child: CustomPaint(painter: LeagueProgressBarPainter(league, this.paintColor1, this.paintColor2))),
+        Container(
+            width: double.infinity,
+            child:
+                CustomPaint(painter: LeagueProgressBarPainter(league, this.paintColor1, this.paintColor2))),
         SizedBox(height: 8),
         Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
           Text(DateFormat('d MMM yy').format(league.startDate),

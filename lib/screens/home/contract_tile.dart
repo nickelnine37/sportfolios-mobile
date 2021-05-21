@@ -9,7 +9,7 @@ import 'package:flutter/material.dart';
 import 'package:sportfolios_alpha/data/models/instruments.dart';
 
 class ContractTile extends StatefulWidget {
-  final Contract contract;
+  final Merket contract;
   final League league;
   final double height;
   final double imageHeight;

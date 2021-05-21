@@ -12,7 +12,7 @@ import 'header.dart';
 import 'info_box.dart';
 
 class BinaryDetails extends StatefulWidget {
-  final Contract contract;
+  final Merket contract;
 
   BinaryDetails(this.contract);
 

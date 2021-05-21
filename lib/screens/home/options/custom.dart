@@ -11,7 +11,7 @@ import 'package:sportfolios_alpha/utils/number_format.dart';
 import 'header.dart';
 
 class CustomDetails extends StatefulWidget {
-  final Contract contract;
+  final Merket contract;
 
   CustomDetails(this.contract);
 
@@ -110,7 +110,7 @@ class _CustomDetailsState extends State<CustomDetails> with AutomaticKeepAliveCl
                 InfoBox(title: 'Binary contracts', pages: [
                   MiniInfoPage(
                       'A custom contract gives you full autonomy to design your own payout structure. Drag each bar on the payout graph up and down to create your desired payout. ',
-                      Icon(Icons.signal_cellular_alt, size: 80),
+                      Icon(Icons.bar_chart, size: 80),
                       Colors.blue[600]),
                   MiniInfoPage(
                       'Hit the lock switch to keep your selected payout structure in place. Once locked, touch each bar to view the exact payout. You can also tap the reverse icon to flip the directionality of the cut-off.',

@@ -17,7 +17,7 @@ import 'package:confetti/confetti.dart';
 import 'package:sportfolios_alpha/utils/numbers.dart';
 
 class BuyContract extends StatefulWidget {
-  final Contract contract;
+  final Merket contract;
   final List<double> quantity;
 
   BuyContract(this.contract, this.quantity);
@@ -104,6 +104,7 @@ class _BuyContractState extends State<BuyContract> {
                                   SizedBox(height: 3),
                                   Text(
                                     'hey',
+                                    // TODO: add contract expirey date
                                     // DateFormat('d MMM yy').format(widget.league.endDate),
                                     style: TextStyle(fontSize: 20, fontWeight: FontWeight.w300),
                                   ),
@@ -140,7 +141,7 @@ class _BuyContractState extends State<BuyContract> {
 
 class BuyForm extends StatefulWidget {
   final List<Portfolio> portfolios;
-  final Contract contract;
+  final Merket contract;
   final List<double> quantity;
 
   BuyForm(this.portfolios, this.contract, this.quantity);
@@ -499,6 +500,8 @@ class ProblemPopup extends StatelessWidget {
 class ConfirmPurchase extends StatefulWidget {
   final double oldPrice;
   final double newPrice;
+
+  // TODO: implement countdown timer
 
   ConfirmPurchase({@required this.oldPrice, @required this.newPrice});
 

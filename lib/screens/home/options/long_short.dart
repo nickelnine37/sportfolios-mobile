@@ -13,7 +13,7 @@ import 'header.dart';
 import 'info_box.dart';
 
 class LongShortDetails extends StatefulWidget {
-  final Contract contract;
+  final Merket contract;
   final String type;
 
   LongShortDetails(this.contract, this.type);

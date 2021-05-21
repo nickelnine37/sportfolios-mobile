@@ -71,7 +71,7 @@ class Cash extends Instrument {
   }
 }
 
-class Contract extends Instrument {
+class Merket extends Instrument {
   String teamOrPlayer;
   String longOrShort;
   List<String> searchTerms;
@@ -103,7 +103,7 @@ class Contract extends Instrument {
   Map<String, LinkedHashMap<int, double>> historicalHoldingExpSum = Map<String, LinkedHashMap<int, double>>();
   Map<String, LinkedHashMap<int, double>> historicalB = Map<String, LinkedHashMap<int, double>>();
 
-  Contract(String contractId) : super(contractId);
+  Merket(String contractId) : super(contractId);
 
   LinkedHashMap<int, double> sortPriceTimeMap(Map values) {
     List times = values.keys.toList(growable: false);
@@ -125,7 +125,7 @@ class Contract extends Instrument {
     return out;
   }
 
-  Contract.fromDocumentSnapshotAndPrices(DocumentSnapshot snapshot, double currentValue, Map dailyValue)
+  Merket.fromDocumentSnapshotAndPrices(DocumentSnapshot snapshot, double currentValue, Map dailyValue)
       : super(snapshot.id) {
     Map<String, dynamic> data = snapshot.data();
     doc = snapshot;
@@ -247,6 +247,7 @@ class Contract extends Instrument {
 }
 
 class Portfolio extends Instrument {
+
   String name;
   bool public;
   List<Instrument> contracts;
@@ -259,6 +260,8 @@ class Portfolio extends Instrument {
     Map<String, dynamic> data = snapshot.data();
     name = data['name'];
     public = data['public'];
+
+    
 
     // contracts =
     //     data['contracts'].keys.map<Instrument>((String contractId) => Instrument(contractId)).toList();

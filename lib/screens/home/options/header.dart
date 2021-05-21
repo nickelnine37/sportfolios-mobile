@@ -6,7 +6,7 @@ import 'buy_contract.dart';
 
 class PageHeader extends StatelessWidget {
   final List<double> quantity;
-  final Contract contract;
+  final Merket contract;
   final Widget infoBox;
 
   PageHeader(this.quantity, this.contract, this.infoBox);

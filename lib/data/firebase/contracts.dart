@@ -3,7 +3,7 @@ import 'package:sportfolios_alpha/data/api/requests.dart';
 import 'package:sportfolios_alpha/data/models/instruments.dart';
 
 
-Future<Contract> getContractById(String id) async {
+Future<Merket> getContractById(String id) async {
   DocumentSnapshot snapshot;
   if (id[id.length - 1] == 'T') {
     snapshot = await FirebaseFirestore.instance.collection('teams').doc(id).get();
@@ -14,7 +14,7 @@ Future<Contract> getContractById(String id) async {
    Map<String, double> prices = await getBackPrices([snapshot.id]);
    Map<String, Map> dailyPrices = await getDailyBackPrices([snapshot.id]);
 
-  return Contract.fromDocumentSnapshotAndPrices(snapshot, prices[snapshot.id], dailyPrices[snapshot.id]);
+  return Merket.fromDocumentSnapshotAndPrices(snapshot, prices[snapshot.id], dailyPrices[snapshot.id]);
 }
 
 class ContractFetcher {
@@ -22,11 +22,11 @@ class ContractFetcher {
   Query baseQuery;
   int leagueID;
   String contractType;
-  List<Contract> loadedResults = [];
+  List<Merket> loadedResults = [];
   bool finished = false;
-  List<Contract> alreadyLoaded;
+  List<Merket> alreadyLoaded;
 
-  void setData({ List<Contract> alreadyLoaded=null, String search=null}) {
+  void setData({ List<Merket> alreadyLoaded=null, String search=null}) {
     // work out whether this is a player or team contract and order by different metric accordingly
 
     if (contractType == 'players') {
@@ -38,7 +38,7 @@ class ContractFetcher {
     this.alreadyLoaded = alreadyLoaded;
 
     if (alreadyLoaded != null) {
-      loadedResults.addAll(alreadyLoaded.where((Contract contract) => contract.searchTerms.contains(search)));
+      loadedResults.addAll(alreadyLoaded.where((Merket contract) => contract.searchTerms.contains(search)));
     }
   }
 
@@ -61,7 +61,7 @@ class ContractFetcher {
         Map<String, double> prices = await getBackPrices(results.docs.map<String>((DocumentSnapshot snapshot) => snapshot.id).toList());
         Map<String, Map> dailyPrices = await getDailyBackPrices(results.docs.map<String>((DocumentSnapshot snapshot) => snapshot.id).toList());
         loadedResults.addAll(
-          results.docs.map<Contract>((DocumentSnapshot snapshot) => Contract.fromDocumentSnapshotAndPrices(snapshot, prices[snapshot.id], dailyPrices[snapshot.id])),
+          results.docs.map<Merket>((DocumentSnapshot snapshot) => Merket.fromDocumentSnapshotAndPrices(snapshot, prices[snapshot.id], dailyPrices[snapshot.id])),
         );
 
       }
@@ -87,7 +87,7 @@ class SearchQueryContractFetcher extends ContractFetcher {
   String search;
   int leagueID;
   String contractType;
-  List<Contract> alreadyLoaded;
+  List<Merket> alreadyLoaded;
 
   SearchQueryContractFetcher({this.search, this.leagueID, this.contractType, this.alreadyLoaded}) {
 

@@ -15,7 +15,7 @@ import 'options/custom.dart';
 import 'options/long_short.dart';
 
 class ContractDetails extends StatefulWidget {
-  final Contract contract;
+  final Merket contract;
   final League league;
 
   ContractDetails(this.contract, this.league);
@@ -82,7 +82,7 @@ class _ContractDetailsState extends State<ContractDetails> {
               ]),
               Row(mainAxisAlignment: MainAxisAlignment.spaceEvenly, children: [
                 Text('Custom', style: TextStyle(fontSize: 14.0, color: textColor)),
-                Icon(Icons.signal_cellular_alt, size: 20, color: Colors.blue[800])
+                Icon(Icons.bar_chart, size: 20, color: Colors.blue[800])
               ]),
             ],
           ),
@@ -145,7 +145,7 @@ class _ContractDetailsState extends State<ContractDetails> {
 }
 
 class ContractPageHeader extends ConsumerWidget {
-  final Contract contract;
+  final Merket contract;
   final League league;
   const ContractPageHeader(this.contract, this.league);
 
