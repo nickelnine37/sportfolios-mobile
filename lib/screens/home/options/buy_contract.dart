@@ -2,17 +2,13 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:sportfolios_alpha/data/api/requests.dart';
 import 'package:sportfolios_alpha/data/firebase/portfolios.dart';
 import 'package:sportfolios_alpha/data/objects/markets.dart';
-import 'package:sportfolios_alpha/data/objects/leagues.dart';
 import 'package:sportfolios_alpha/plots/payout_graph.dart';
 import 'package:sportfolios_alpha/providers/authenication_provider.dart';
-import 'package:sportfolios_alpha/providers/settings_provider.dart';
 import 'package:sportfolios_alpha/utils/number_format.dart';
-import 'package:intl/intl.dart';
 import 'package:confetti/confetti.dart';
 import 'package:sportfolios_alpha/utils/numbers.dart';
 import 'package:sportfolios_alpha/data/objects/portfolios.dart';
@@ -34,7 +30,7 @@ class _BuyMarketState extends State<BuyMarket> {
   @override
   void initState() {
     super.initState();
-    _portfoliosFuture = Future.wait([_getPortfolios(), widget.market.updateCurrentHoldings()]);
+    _portfoliosFuture = Future.wait([_getPortfolios(), widget.market.updateCurrentX()]);
   }
 
   Future<List<Portfolio>> _getPortfolios() async {

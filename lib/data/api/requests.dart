@@ -30,28 +30,28 @@ Future<Map<String, Map>> getDailyBackPrices(List<String> markets) async {
   }
 }
 
-Future<Map<String, dynamic>> getcurrentHoldings(String market) async {
-  Uri url = currentHoldingsURL(market);
+Future<Map<String, dynamic>> getcurrentX(String market) async {
+  Uri url = currentXURL(market);
 
   var response = await http.get(url, headers: {'Authorization': await AuthService().getJWTToken()});
   if (response.statusCode == 200) {
     Map<String, dynamic> jsonResponse = Map<String, dynamic>.from(convert.jsonDecode(response.body));
     return jsonResponse;
   } else {
-    print('Request getcurrentHoldings failed with status: ${response.statusCode}.');
+    print('Request getcurrentX failed with status: ${response.statusCode}.');
     return null;
   }
 }
 
-Future<Map<String, dynamic>> getHistoricalHoldings(String market) async {
-  Uri url = historicalHoldingsURL(market);
+Future<Map<String, dynamic>> getHistoricalX(String market) async {
+  Uri url = historicalXURL(market);
 
   var response = await http.get(url, headers: {'Authorization': await AuthService().getJWTToken()});
   if (response.statusCode == 200) {
     Map<String, dynamic> jsonResponse = Map<String, dynamic>.from(convert.jsonDecode(response.body));
     return jsonResponse;
   } else {
-    print('Request getcurrentHoldings failed with status: ${response.statusCode}.');
+    print('Request getcurrentX failed with status: ${response.statusCode}.');
     return null;
   }
 }
@@ -76,7 +76,7 @@ Future<Map<String, dynamic>> makePurchaseRequest(
     Map<String, dynamic> jsonResponse = Map<String, dynamic>.from(convert.jsonDecode(response.body));
     return jsonResponse;
   } else {
-    print('Request getcurrentHoldings failed with status: ${response.statusCode}.');
+    print('Request getcurrentX failed with status: ${response.statusCode}.');
     return null;
   }
 }
@@ -104,7 +104,7 @@ Future<bool> respondToNewPrice(
   if (response.statusCode == 200) {
     return true;
   } else {
-    print('Request getcurrentHoldings failed with status: ${response.statusCode}.');
+    print('Request getcurrentX failed with status: ${response.statusCode}.');
     return false;
   }
 }

@@ -1,8 +1,7 @@
 import 'package:intl/intl.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/all.dart';
-import 'package:sportfolios_alpha/data/api/requests.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:sportfolios_alpha/data/objects/markets.dart';
 import 'package:sportfolios_alpha/data/objects/leagues.dart';
 import 'package:sportfolios_alpha/providers/settings_provider.dart';
@@ -25,21 +24,21 @@ class MarketDetails extends StatefulWidget {
 }
 
 class _MarketDetailsState extends State<MarketDetails> {
-  Future holdings;
+  Future updateState;
 
   @override
   void initState() {
-    holdings = Future.wait(
-        [widget.market.updateCurrentHoldings(), widget.market.updateHistoricalHoldings(), Future.delayed(Duration(seconds: 3))]);
+    updateState = Future.wait(
+        [widget.market.updateCurrentX(), widget.market.updateHistoricalX(), Future.delayed(Duration(seconds: 3))]);
     super.initState();
   }
 
-  // Future awaitCurrentHoldings() async {
-  //   return await getcurrentHoldings(widget.market.id);
+  // Future awaitCurrentX() async {
+  //   return await getcurrentX(widget.market.id);
   // }
 
-  // Future awaitHistoricalHoldings() async {
-  //   return await getHistoricalHoldings(widget.market.id);
+  // Future awaitHistoricalX() async {
+  //   return await getHistoricalX(widget.market.id);
   // }
 
   @override
@@ -122,7 +121,7 @@ class _MarketDetailsState extends State<MarketDetails> {
           ]),
         ),
         body: FutureBuilder(
-          future: holdings,
+          future: updateState,
           builder: (BuildContext context, AsyncSnapshot snapshot) {
             if (snapshot.hasData) {
               return TabBarView(
@@ -149,16 +148,6 @@ class MarketPageHeader extends ConsumerWidget {
   final League league;
   const MarketPageHeader(this.market, this.league);
 
-  Widget _valueChangeText(String currency, double valueChange, double percentChange) {
-    String sign = valueChange > 0 ? '+' : '-';
-    return Text(
-      '$sign${formatPercentage(percentChange.abs(), currency)}  ($sign${formatCurrency(valueChange.abs(), currency)})',
-      style: TextStyle(
-        fontSize: 12,
-        color: valueChange > 0 ? Colors.green[300] : Colors.red[300],
-      ),
-    );
-  }
 
   @override
   Widget build(BuildContext context, ScopedReader watch) {

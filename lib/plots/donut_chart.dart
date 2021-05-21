@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:sportfolios_alpha/data/objects/portfolios.dart';
-import 'package:sportfolios_alpha/providers/settings_provider.dart';
 import 'package:sportfolios_alpha/utils/arrays.dart';
 import 'package:sportfolios_alpha/utils/colors.dart';
 import 'package:sportfolios_alpha/utils/number_format.dart';

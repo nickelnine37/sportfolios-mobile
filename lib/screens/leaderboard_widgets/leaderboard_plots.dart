@@ -22,7 +22,6 @@ class MyPainter extends CustomPainter {
   void paint(Canvas canvas, Size size) {
     final pointMode = ui.PointMode.polygon;
 
-    var data;
     var points = [
       for (var data = 0;
           data < LeaderboardReturnsData().data[0].values.length;

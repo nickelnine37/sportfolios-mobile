@@ -1,12 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:shimmer/shimmer.dart';
 import 'package:sportfolios_alpha/data/api/requests.dart';
 import 'package:sportfolios_alpha/data/objects/markets.dart';
 import 'package:sportfolios_alpha/plots/payout_graph.dart';
 import 'package:sportfolios_alpha/plots/price_chart.dart';
 import 'package:sportfolios_alpha/utils/arrays.dart';
-import 'package:sportfolios_alpha/utils/dialogues.dart';
-import 'package:sportfolios_alpha/utils/number_format.dart';
 import 'dart:math' as math;
 
 import 'header.dart';
@@ -77,11 +74,11 @@ class _LongShortDetailsState extends State<LongShortDetails> with SingleTickerPr
       length: 2,
       child: RefreshIndicator(
         onRefresh: () async {
-          if (DateTime.now().difference(widget.market.currentHoldingsLastUpdated).inSeconds > 10) {
-            Map<String, dynamic> holdings = await getcurrentHoldings(widget.market.id);
-            widget.market.setCurrentHolding(List<double>.from(holdings['x']), holdings['b']);
-            Map<String, dynamic> historicalHoldings = await getHistoricalHoldings(widget.market.id);
-            widget.market.setHistoricalHoldings(historicalHoldings['xhist'], historicalHoldings['bhist']);
+          if (DateTime.now().difference(widget.market.currentXLastUpdated).inSeconds > 10) {
+            Map<String, dynamic> holdings = await getcurrentX(widget.market.id);
+            widget.market.setCurrentX(List<double>.from(holdings['x']), holdings['b']);
+            Map<String, dynamic> historicalX = await getHistoricalX(widget.market.id);
+            widget.market.setHistoricalX(historicalX['xhist'], historicalX['bhist']);
             await Future.delayed(Duration(seconds: 1));
             setState(() {});
           } else {
