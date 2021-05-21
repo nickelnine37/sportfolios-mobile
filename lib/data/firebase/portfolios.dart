@@ -1,5 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:sportfolios_alpha/data/models/instruments.dart';
+import 'package:sportfolios_alpha/data/objects/portfolios.dart';
 import 'package:sportfolios_alpha/providers/authenication_provider.dart';
 
 Future<Portfolio> getPortfolioById(String portfoliloId) async {
@@ -10,7 +10,7 @@ Future<Portfolio> getPortfolioById(String portfoliloId) async {
 
 Future<Portfolio> getDeepPortfolioById(String portfolioId) async {
   Portfolio portfolio = await getPortfolioById(portfolioId);
-  portfolio.populateContracts();
+  portfolio.populateMarkets();
   return portfolio;
 }
 
@@ -41,22 +41,22 @@ Future<void> addNewPortfolio(String name, bool public) async {
   }
 }
 
-Future<String> buyContract(Map<String, dynamic> purchaseForm) async {
+Future<String> buyMarket(Map<String, dynamic> purchaseForm) async {
   DocumentReference portfolioRefernce =
       FirebaseFirestore.instance.collection('portfolios').doc(purchaseForm['portfolioId']);
   DocumentSnapshot portfolioSnapshot = await portfolioRefernce.get();
 
-  if (portfolioSnapshot.data()['contracts']['cash'] < purchaseForm['price'])
+  if (portfolioSnapshot.data()['markets']['cash'] < purchaseForm['price'])
     return 'Insufficient funds';
   else {
     try 
       {
       portfolioRefernce
-          .update({'contracts.cash': portfolioSnapshot.data()['contracts']['cash'] - purchaseForm['price']});
+          .update({'markets.cash': portfolioSnapshot.data()['markets']['cash'] - purchaseForm['price']});
       portfolioRefernce
-          .update({'contracts.${purchaseForm['contractId']}': purchaseForm['units']});
+          .update({'markets.${purchaseForm['marketId']}': purchaseForm['units']});
     } on Exception catch (e) {
-          print('Error buying contract: $e');
+          print('Error buying market: $e');
           return 'Connection error';
     }
     return 'Success';

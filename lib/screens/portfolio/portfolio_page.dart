@@ -2,11 +2,12 @@ import 'dart:ui';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:sportfolios_alpha/data/firebase/portfolios.dart';
-import 'package:sportfolios_alpha/data/models/instruments.dart';
+import 'package:sportfolios_alpha/data/objects/markets.dart';
 import 'package:sportfolios_alpha/providers/authenication_provider.dart';
 import 'package:sportfolios_alpha/plots/donut_chart.dart';
 import 'package:sportfolios_alpha/plots/price_chart.dart';
 import 'package:sportfolios_alpha/utils/arrays.dart';
+import 'package:sportfolios_alpha/data/objects/portfolios.dart';
 
 class PortfolioPage extends StatefulWidget {
   @override

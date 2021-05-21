@@ -265,7 +265,7 @@ class _StaticPayoutGraphState extends State<StaticPayoutGraph> {
     return Column(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
-        Text('Contract Payout Structure', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w400)),
+        Text('Market Payout Structure', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w400)),
         SizedBox(height: 15),
         GestureDetector(
           onTapDown: (TapDownDetails details) {

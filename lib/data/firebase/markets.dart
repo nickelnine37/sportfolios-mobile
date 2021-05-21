@@ -1,9 +1,9 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:sportfolios_alpha/data/api/requests.dart';
-import 'package:sportfolios_alpha/data/models/instruments.dart';
+import 'package:sportfolios_alpha/data/objects/markets.dart';
 
 
-Future<Merket> getContractById(String id) async {
+Future<Market> getMarketById(String id) async {
   DocumentSnapshot snapshot;
   if (id[id.length - 1] == 'T') {
     snapshot = await FirebaseFirestore.instance.collection('teams').doc(id).get();
@@ -14,22 +14,24 @@ Future<Merket> getContractById(String id) async {
    Map<String, double> prices = await getBackPrices([snapshot.id]);
    Map<String, Map> dailyPrices = await getDailyBackPrices([snapshot.id]);
 
-  return Merket.fromDocumentSnapshotAndPrices(snapshot, prices[snapshot.id], dailyPrices[snapshot.id]);
+  Market market =  Market.fromDocumentSnapshotAndPrices(snapshot);
+  market.setBackProperties( prices[snapshot.id], dailyPrices[snapshot.id]);
+  return market;
 }
 
-class ContractFetcher {
+class MarketFetcher {
   DocumentSnapshot lastDocument;
   Query baseQuery;
   int leagueID;
-  String contractType;
-  List<Merket> loadedResults = [];
+  String marketType;
+  List<Market> loadedResults = [];
   bool finished = false;
-  List<Merket> alreadyLoaded;
+  List<Market> alreadyLoaded;
 
-  void setData({ List<Merket> alreadyLoaded=null, String search=null}) {
-    // work out whether this is a player or team contract and order by different metric accordingly
+  void setData({ List<Market> alreadyLoaded=null, String search=null}) {
+    // work out whether this is a player or team market and order by different metric accordingly
 
-    if (contractType == 'players') {
+    if (marketType == 'players') {
       baseQuery = baseQuery.orderBy('rating', descending: true).limit(10);
     } else {
       baseQuery = baseQuery.orderBy('points', descending: true).limit(10);
@@ -38,7 +40,7 @@ class ContractFetcher {
     this.alreadyLoaded = alreadyLoaded;
 
     if (alreadyLoaded != null) {
-      loadedResults.addAll(alreadyLoaded.where((Merket contract) => contract.searchTerms.contains(search)));
+      loadedResults.addAll(alreadyLoaded.where((Market market) => market.searchTerms.contains(search)));
     }
   }
 
@@ -61,7 +63,7 @@ class ContractFetcher {
         Map<String, double> prices = await getBackPrices(results.docs.map<String>((DocumentSnapshot snapshot) => snapshot.id).toList());
         Map<String, Map> dailyPrices = await getDailyBackPrices(results.docs.map<String>((DocumentSnapshot snapshot) => snapshot.id).toList());
         loadedResults.addAll(
-          results.docs.map<Merket>((DocumentSnapshot snapshot) => Merket.fromDocumentSnapshotAndPrices(snapshot, prices[snapshot.id], dailyPrices[snapshot.id])),
+          results.docs.map<Market>((DocumentSnapshot snapshot) => Market.fromDocumentSnapshotAndPrices(snapshot)..setBackProperties(prices[snapshot.id], dailyPrices[snapshot.id])),
         );
 
       }
@@ -69,31 +71,31 @@ class ContractFetcher {
   }
 }
 
-/// class for fetching contracts when there is no particular serach term associated
-class DefaultContractFetcher extends ContractFetcher {
+/// class for fetching markets when there is no particular serach term associated
+class DefaultMarketFetcher extends MarketFetcher {
   int leagueID;
-  String contractType;
+  String marketType;
 
-  DefaultContractFetcher(this.leagueID, this.contractType) {
+  DefaultMarketFetcher(this.leagueID, this.marketType) {
 
     // set up basic query structure
-    baseQuery = FirebaseFirestore.instance.collection(contractType).where('league_id', isEqualTo: leagueID);
+    baseQuery = FirebaseFirestore.instance.collection(marketType).where('league_id', isEqualTo: leagueID);
     super.setData();
   }
 }
 
-/// class for fetching contracts when there is no particular serach term associated
-class SearchQueryContractFetcher extends ContractFetcher {
+/// class for fetching markets when there is no particular serach term associated
+class SearchQueryMarketFetcher extends MarketFetcher {
   String search;
   int leagueID;
-  String contractType;
-  List<Merket> alreadyLoaded;
+  String marketType;
+  List<Market> alreadyLoaded;
 
-  SearchQueryContractFetcher({this.search, this.leagueID, this.contractType, this.alreadyLoaded}) {
+  SearchQueryMarketFetcher({this.search, this.leagueID, this.marketType, this.alreadyLoaded}) {
 
     // set up basic query structure
     baseQuery = FirebaseFirestore.instance
-        .collection(contractType)
+        .collection(marketType)
         .where('league_id', isEqualTo: leagueID)
         .where('search_terms', arrayContains: search);
 

@@ -3,8 +3,8 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/all.dart';
 import 'package:sportfolios_alpha/data/api/requests.dart';
-import 'package:sportfolios_alpha/data/models/instruments.dart';
-import 'package:sportfolios_alpha/data/models/leagues.dart';
+import 'package:sportfolios_alpha/data/objects/markets.dart';
+import 'package:sportfolios_alpha/data/objects/leagues.dart';
 import 'package:sportfolios_alpha/providers/settings_provider.dart';
 import 'package:sportfolios_alpha/screens/home/app_bar.dart';
 import 'package:sportfolios_alpha/utils/colors.dart';
@@ -14,37 +14,37 @@ import 'options/binary.dart';
 import 'options/custom.dart';
 import 'options/long_short.dart';
 
-class ContractDetails extends StatefulWidget {
-  final Merket contract;
+class MarketDetails extends StatefulWidget {
+  final Market market;
   final League league;
 
-  ContractDetails(this.contract, this.league);
+  MarketDetails(this.market, this.league);
 
   @override
-  _ContractDetailsState createState() => _ContractDetailsState();
+  _MarketDetailsState createState() => _MarketDetailsState();
 }
 
-class _ContractDetailsState extends State<ContractDetails> {
+class _MarketDetailsState extends State<MarketDetails> {
   Future holdings;
 
   @override
   void initState() {
     holdings = Future.wait(
-        [widget.contract.updateCurrentHoldings(), widget.contract.updateHistoricalHoldings(), Future.delayed(Duration(seconds: 3))]);
+        [widget.market.updateCurrentHoldings(), widget.market.updateHistoricalHoldings(), Future.delayed(Duration(seconds: 3))]);
     super.initState();
   }
 
   // Future awaitCurrentHoldings() async {
-  //   return await getcurrentHoldings(widget.contract.id);
+  //   return await getcurrentHoldings(widget.market.id);
   // }
 
   // Future awaitHistoricalHoldings() async {
-  //   return await getHistoricalHoldings(widget.contract.id);
+  //   return await getHistoricalHoldings(widget.market.id);
   // }
 
   @override
   Widget build(BuildContext context) {
-    Color background = fromHex(widget.contract.colours[0]);
+    Color background = fromHex(widget.market.colours[0]);
     Color textColor = background.computeLuminance() > 0.5 ? Colors.grey[700] : Colors.white;
 
     return DefaultTabController(
@@ -100,15 +100,15 @@ class _ContractDetailsState extends State<ContractDetails> {
                     Navigator.of(context).pop();
                   },
                 ),
-                Container(child: CachedNetworkImage(imageUrl: widget.contract.imageURL, height: 50)),
+                Container(child: CachedNetworkImage(imageUrl: widget.market.imageURL, height: 50)),
                 SizedBox(width: 15),
                 Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(widget.contract.name, style: TextStyle(fontSize: 23.0, color: textColor)),
+                    Text(widget.market.name, style: TextStyle(fontSize: 23.0, color: textColor)),
                     SizedBox(height: 2),
                     Text(
-                      '${widget.contract.info1} • ${widget.contract.info2} • ${widget.contract.info3}',
+                      '${widget.market.info1} • ${widget.market.info2} • ${widget.market.info3}',
                       style: TextStyle(fontSize: 13.0, color: textColor, fontWeight: FontWeight.w400),
                     )
                   ],
@@ -128,10 +128,10 @@ class _ContractDetailsState extends State<ContractDetails> {
               return TabBarView(
                 physics: NeverScrollableScrollPhysics(),
                 children: [
-                  LongShortDetails(widget.contract, 'Long'),
-                  LongShortDetails(widget.contract, 'Short'),
-                  BinaryDetails(widget.contract),
-                  CustomDetails(widget.contract),
+                  LongShortDetails(widget.market, 'Long'),
+                  LongShortDetails(widget.market, 'Short'),
+                  BinaryDetails(widget.market),
+                  CustomDetails(widget.market),
                 ],
               );
             } else {
@@ -144,10 +144,10 @@ class _ContractDetailsState extends State<ContractDetails> {
   }
 }
 
-class ContractPageHeader extends ConsumerWidget {
-  final Merket contract;
+class MarketPageHeader extends ConsumerWidget {
+  final Market market;
   final League league;
-  const ContractPageHeader(this.contract, this.league);
+  const MarketPageHeader(this.market, this.league);
 
   Widget _valueChangeText(String currency, double valueChange, double percentChange) {
     String sign = valueChange > 0 ? '+' : '-';
@@ -171,12 +171,12 @@ class ContractPageHeader extends ConsumerWidget {
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
             CachedNetworkImage(
-              imageUrl: contract.imageURL,
+              imageUrl: market.imageURL,
               height: 65,
             ),
             SizedBox(height: 3),
             Text(
-              formatCurrency(contract.currentBackValue, currency),
+              formatCurrency(market.currentBackValue, currency),
               style: TextStyle(fontSize: 25, fontWeight: FontWeight.w300),
             ),
             Column(

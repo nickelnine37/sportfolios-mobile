@@ -1,15 +1,15 @@
 import 'package:flutter/material.dart';
-import 'package:sportfolios_alpha/data/models/instruments.dart';
+import 'package:sportfolios_alpha/data/objects/markets.dart';
 import 'package:sportfolios_alpha/utils/number_format.dart';
 
 import 'buy_contract.dart';
 
 class PageHeader extends StatelessWidget {
   final List<double> quantity;
-  final Merket contract;
+  final Market market;
   final Widget infoBox;
 
-  PageHeader(this.quantity, this.contract, this.infoBox);
+  PageHeader(this.quantity, this.market, this.infoBox);
 
   @override
   Widget build(BuildContext context) {
@@ -23,11 +23,11 @@ class PageHeader extends StatelessWidget {
               child: Column(
                 children: [
                   Text(
-                    formatCurrency(contract.getCurrentValue(quantity), 'GBP'),
+                    formatCurrency(market.getCurrentValue(quantity), 'GBP'),
                     style: TextStyle(fontSize: 25, fontWeight: FontWeight.w300),
                   ),
                   Text(
-                    'per contract',
+                    'per market',
                     style: TextStyle(fontSize: 12),
                   )
                 ],
@@ -51,7 +51,7 @@ class PageHeader extends StatelessWidget {
                         RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(25.0))),
                     context: context,
                     builder: (context) {
-                      return BuyContract(this.contract, this.quantity);
+                      return BuyMarket(this.market, this.quantity);
                     },
                   );
                 },

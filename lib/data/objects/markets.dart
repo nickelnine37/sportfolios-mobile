@@ -2,109 +2,58 @@ import 'dart:collection';
 import 'dart:math' as math;
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:sportfolios_alpha/data/api/requests.dart';
-import 'package:sportfolios_alpha/data/firebase/contracts.dart';
-import 'package:sportfolios_alpha/data/models/base.dart';
+import 'package:sportfolios_alpha/data/firebase/markets.dart';
 import 'package:sportfolios_alpha/utils/arrays.dart';
 import 'package:sportfolios_alpha/utils/numbers.dart';
 
-class Instrument extends BaseDataModel {
+
+class Market {
+  
+  // ----- basic attributes -----
+  String id;
   String name;
-  double value;
-
-  List<double> pH;
-  List<double> pD;
-  List<double> pW;
-  List<double> pM;
-  List<double> pMax;
-
-  double hourReturn;
-  double dayReturn;
-  double weekReturn;
-  double monthReturn;
-  double totalReturn;
-
-  double hourValueChange;
-  double dayValueChange;
-  double weekValueChange;
-  double monthValueChange;
-  double totalValueChange;
-
-  Instrument(String id) : super(id);
-
-  computeValueChange() {
-    value = pH.last;
-
-    hourValueChange = (value - pH.first);
-    dayValueChange = (value - pD.first);
-    weekValueChange = (value - pW.first);
-    monthValueChange = (value - pM.first);
-    totalValueChange = (value - pMax.first);
-
-    hourReturn = hourValueChange / pH.first;
-    dayReturn = dayValueChange / pD.first;
-    weekReturn = weekValueChange / pW.first;
-    monthReturn = monthValueChange / pM.first;
-    totalReturn = totalValueChange / pMax.first;
-  }
-
-  @override
-  String toString() {
-    return 'Instrument($id)';
-  }
-}
-
-class Cash extends Instrument {
-  Cash() : super('cash') {
-    name = 'Cash';
-    pH = ones(120);
-    pD = ones(120);
-    pW = ones(120);
-    pM = ones(120);
-    pMax = ones(120);
-
-    super.computeValueChange();
-  }
-
-  @override
-  String toString() {
-    return 'Cash()';
-  }
-}
-
-class Merket extends Instrument {
-  String teamOrPlayer;
-  String longOrShort;
+  DocumentSnapshot doc;
   List<String> searchTerms;
-  String imageURL;
-  String team;
-  double currentBackValue;
-  LinkedHashMap<int, double> dailyBackValue;
-  DateTime currentValueLastUpdated;
 
-  // info to to be shown on left of summary tile
+  // -----  Link attributes -----
+  String team;            // null for teams
+  List<String> players;   // null for players
+
+  // ----- Visual attributes -----
   String info1;
   String info2;
   String info3;
-
   List<String> colours;
-  DocumentSnapshot doc;
+  String imageURL;
 
-  int n;
+  // ----- LMSR attributes ------
+  // length of quantity vector
+  int n;    
 
+  // back attributes 
+  double currentBackValue;     
+  LinkedHashMap<int, double> dailyBackValue;
+
+  // current holdings
+  DateTime currentHoldingsLastUpdated;
   List<double> currentHolding;
   List<double> currentHoldingExp;
   double currentHoldingMax;
   double currentHoldingExpSum;
   double currentB;
 
+  // historical holdings
   Map<String, LinkedHashMap<int, List>> historicalHoldings = Map<String, LinkedHashMap<int, List>>();
   Map<String, LinkedHashMap<int, List>> historicalHoldingsExp = Map<String, LinkedHashMap<int, List>>();
   Map<String, LinkedHashMap<int, double>> historicalHoldingMax = Map<String, LinkedHashMap<int, double>>();
   Map<String, LinkedHashMap<int, double>> historicalHoldingExpSum = Map<String, LinkedHashMap<int, double>>();
   Map<String, LinkedHashMap<int, double>> historicalB = Map<String, LinkedHashMap<int, double>>();
 
-  Merket(String contractId) : super(contractId);
+  Market(this.id);
 
+  /// takes in a hash map between unix timestamps and values
+  /// and returns the linked hash map equiv, where the times
+  /// have been sorted
   LinkedHashMap<int, double> sortPriceTimeMap(Map values) {
     List times = values.keys.toList(growable: false);
     LinkedHashMap<int, double> out = LinkedHashMap<int, double>();
@@ -115,6 +64,7 @@ class Merket extends Instrument {
     return out;
   }
 
+  /// same but for a hash map between timestamps and arrays
   LinkedHashMap<int, List> sortHoldingsTimeMap(Map values) {
     List times = values.keys.toList(growable: false);
     LinkedHashMap<int, List> out = LinkedHashMap<int, List>();
@@ -124,18 +74,24 @@ class Merket extends Instrument {
     });
     return out;
   }
+  
+  /// helper function for setting some back properties which are required
+  /// to display the mini graph and scroll prices
+  void setBackProperties(double currentValue, Map dailyValue) {
+    currentBackValue = currentValue;
+    dailyBackValue = sortPriceTimeMap(dailyValue);
+  }
 
-  Merket.fromDocumentSnapshotAndPrices(DocumentSnapshot snapshot, double currentValue, Map dailyValue)
-      : super(snapshot.id) {
+  /// initialise a market given a firebase snapshot
+  Market.fromDocumentSnapshotAndPrices(DocumentSnapshot snapshot) {
+    id = snapshot.id;
     Map<String, dynamic> data = snapshot.data();
     doc = snapshot;
 
-    currentBackValue = currentValue;
-    dailyBackValue = sortPriceTimeMap(dailyValue);
+
     colours = List<String>.from(data['colours']);
 
     if (snapshot.id[snapshot.id.length - 1] == 'P') {
-      teamOrPlayer = 'player';
 
       if (data['name'].length > 24) {
         List names = data['name'].split(" ");
@@ -156,7 +112,6 @@ class Merket extends Instrument {
 
       team = data['team'];
     } else {
-      teamOrPlayer = 'team';
       name = data['team_name'];
       info1 = "P ${data['played']}";
       info2 = "GD ${data['goal_difference'] > 0 ? '+' : '-'}${data['goal_difference'].abs()}";
@@ -194,7 +149,7 @@ class Merket extends Instrument {
         currentHolding.map((double i) => math.exp((i - currentHoldingMax) / currentB)).toList();
     currentHoldingExpSum = getSum(currentHoldingExp);
     n = holding.length;
-    currentValueLastUpdated = DateTime.now();
+    currentHoldingsLastUpdated = DateTime.now();
   }
 
   void setHistoricalHoldings(Map xhist, Map bhist) {
@@ -242,64 +197,7 @@ class Merket extends Instrument {
 
   @override
   String toString() {
-    return 'Contract($id)';
+    return 'Market($id)';
   }
 }
 
-class Portfolio extends Instrument {
-
-  String name;
-  bool public;
-  List<Instrument> contracts;
-  List<double> amounts;
-  Map<String, dynamic> contractIdAmountMap;
-
-  Portfolio(String portfolioId) : super(portfolioId);
-
-  Portfolio.fromDocumentSnapshot(DocumentSnapshot snapshot) : super(snapshot.id) {
-    Map<String, dynamic> data = snapshot.data();
-    name = data['name'];
-    public = data['public'];
-
-    
-
-    // contracts =
-    //     data['contracts'].keys.map<Instrument>((String contractId) => Instrument(contractId)).toList();
-
-    // amounts = data['contracts']
-    //     .keys
-    //     .map<double>((String contractId) => 1.0 * data['contracts'][contractId])
-    //     .toList();
-
-    // contractIdAmountMap = Map<String, dynamic>.from(data['contracts']);
-  }
-
-  Future<void> populateContracts() async {
-    if (contracts == null) {
-      print('Cannot get contracts - try adding portfolio from snapshot first');
-      return;
-    }
-    List<Instrument> contractsNew = [];
-    for (Instrument contract in contracts) {
-      if (contract.id == 'cash') {
-        contractsNew.add(Cash());
-      } else {
-        contractsNew.add(await getContractById(contract.id));
-      }
-    }
-    contracts = contractsNew;
-
-    pH = matrixMultiply(this.contracts.map((contract) => contract.pH).toList(), this.amounts);
-    pD = matrixMultiply(this.contracts.map((contract) => contract.pD).toList(), this.amounts);
-    pW = matrixMultiply(this.contracts.map((contract) => contract.pW).toList(), this.amounts);
-    pM = matrixMultiply(this.contracts.map((contract) => contract.pM).toList(), this.amounts);
-    pMax = matrixMultiply(this.contracts.map((contract) => contract.pMax).toList(), this.amounts);
-
-    super.computeValueChange();
-  }
-
-  @override
-  String toString() {
-    return 'Portfolio(${contracts.toString()})';
-  }
-}

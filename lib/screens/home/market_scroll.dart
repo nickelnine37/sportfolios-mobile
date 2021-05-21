@@ -1,37 +1,37 @@
 import 'package:flutter/material.dart';
-import 'package:sportfolios_alpha/data/models/leagues.dart';
-import 'package:sportfolios_alpha/data/firebase/contracts.dart';
-import 'package:sportfolios_alpha/screens/home/contract_tile.dart';
+import 'package:sportfolios_alpha/data/objects/leagues.dart';
+import 'package:sportfolios_alpha/data/firebase/markets.dart';
+import 'package:sportfolios_alpha/screens/home/market_tile.dart';
 import 'package:sportfolios_alpha/utils/string_utils.dart';
 
-/// Widget for main scroll view of contracts
-class ContractScroll extends StatefulWidget {
+/// Widget for main scroll view of markets
+class MarketScroll extends StatefulWidget {
   final League league;
-  final String contractType;
-  ContractScroll(this.league, this.contractType);
+  final String marketType;
+  MarketScroll(this.league, this.marketType);
 
   @override
   State<StatefulWidget> createState() {
-    return ContractScrollState();
+    return MarketScrollState();
   }
 }
 
-class ContractScrollState extends State<ContractScroll> with AutomaticKeepAliveClientMixin {
-  /// [_contractsFuture] helps us load a spinner at the start, when the first 10 contracts are
+class MarketScrollState extends State<MarketScroll> with AutomaticKeepAliveClientMixin {
+  /// [_marketsFuture] helps us load a spinner at the start, when the first 10 markets are
   /// being fetched
-  Future<void> _contractsFuture;
+  Future<void> _marketsFuture;
 
-  /// three contractFeter-type objects:
-  /// 1. [_defaultContractFetcher]: this is responsible for getting contracts when casually scrolling
-  /// 2. [_searchQueryContractFetcher]: this is responsible for getting contracts when a search has been entered
-  /// 3. [_selectedContractFetcher]: this is a helper variable which just holds whichever of the above two we are
+  /// three marketFeter-type objects:
+  /// 1. [_defaultMarketFetcher]: this is responsible for getting markets when casually scrolling
+  /// 2. [_searchQueryMarketFetcher]: this is responsible for getting markets when a search has been entered
+  /// 3. [_selectedMarketFetcher]: this is a helper variable which just holds whichever of the above two we are
   /// currently considering.
-  DefaultContractFetcher _defaultContractFetcher;
-  SearchQueryContractFetcher _searchQueryContractFetcher;
-  ContractFetcher _selectedContractFetcher;
+  DefaultMarketFetcher _defaultMarketFetcher;
+  SearchQueryMarketFetcher _searchQueryMarketFetcher;
+  MarketFetcher _selectedMarketFetcher;
 
   /// initialise scroll controller with offset to cover search bar. We also use this when
-  /// checking if we've scrolled to the bottom, to load more contracts
+  /// checking if we've scrolled to the bottom, to load more markets
   ScrollController _scrollController = ScrollController(initialScrollOffset: 50);
 
   /// This is just so we can do some basic things with the enterered text like clear it
@@ -51,7 +51,7 @@ class ContractScrollState extends State<ContractScroll> with AutomaticKeepAliveC
 
   /// helper function: has the user just switched leagues on us?
   bool _justSwitchedLeagues() {
-    return _defaultContractFetcher != null && _defaultContractFetcher.leagueID != widget.league.leagueID;
+    return _defaultMarketFetcher != null && _defaultMarketFetcher.leagueID != widget.league.leagueID;
   }
 
   /// helper function: has the user scrolled to the bottom of the page?
@@ -62,22 +62,22 @@ class ContractScrollState extends State<ContractScroll> with AutomaticKeepAliveC
 
   /// listener for scroll controller
   void _scrollListener() async {
-    if (!_selectedContractFetcher.finished) {
+    if (!_selectedMarketFetcher.finished) {
       if (_scrolledToBottom()) {
         // await Future.delayed(Duration(seconds: 1), () => 12);
         // don't reassign the future here - it's just for the initial building
-        await _selectedContractFetcher.get10();
+        await _selectedMarketFetcher.get10();
         setState(() {});
       }
     }
   }
 
-  /// 'factory reset' our page. Get a new [DefaultContractFetcher] for the relevant league,
+  /// 'factory reset' our page. Get a new [DefaultMarketFetcher] for the relevant league,
   void _refreshState() {
-    _defaultContractFetcher = DefaultContractFetcher(widget.league.leagueID, widget.contractType);
-    _searchQueryContractFetcher = null;
-    _selectedContractFetcher = _defaultContractFetcher;
-    _contractsFuture = _selectedContractFetcher.get10();
+    _defaultMarketFetcher = DefaultMarketFetcher(widget.league.leagueID, widget.marketType);
+    _searchQueryMarketFetcher = null;
+    _selectedMarketFetcher = _defaultMarketFetcher;
+    _marketsFuture = _selectedMarketFetcher.get10();
   }
 
   @override
@@ -86,12 +86,12 @@ class ContractScrollState extends State<ContractScroll> with AutomaticKeepAliveC
     super.build(context);
 
     // runs when we first load the widget or we've just switched leagues
-    if (_selectedContractFetcher == null || _justSwitchedLeagues()) {
+    if (_selectedMarketFetcher == null || _justSwitchedLeagues()) {
       _refreshState();
     }
 
     return FutureBuilder(
-      future: _contractsFuture,
+      future: _marketsFuture,
       builder: (BuildContext context, AsyncSnapshot snapshot) {
         if (snapshot.connectionState != ConnectionState.done) {
           return Center(child: CircularProgressIndicator());
@@ -99,7 +99,7 @@ class ContractScrollState extends State<ContractScroll> with AutomaticKeepAliveC
           print(snapshot.error.toString());
           return Center(child: Text('Error'));
         } else {
-          int nTiles = _selectedContractFetcher.loadedResults.length + 2;
+          int nTiles = _selectedMarketFetcher.loadedResults.length + 2;
           // make space for the apology tile
           if (nTiles == 2) {
             nTiles += 1;
@@ -117,14 +117,14 @@ class ContractScrollState extends State<ContractScroll> with AutomaticKeepAliveC
                     controller: _textController,
                     onSubmitted: (String value) async {
                       if (value != null && value.trim() != '') {
-                        _searchQueryContractFetcher = SearchQueryContractFetcher(
+                        _searchQueryMarketFetcher = SearchQueryMarketFetcher(
                           search: value.trim().toLowerCase(),
                           leagueID: widget.league.leagueID,
-                          contractType: widget.contractType,
-                          alreadyLoaded: _defaultContractFetcher.loadedResults
+                          marketType: widget.marketType,
+                          alreadyLoaded: _defaultMarketFetcher.loadedResults
                         );
-                        await _searchQueryContractFetcher.get10();
-                        _selectedContractFetcher = _searchQueryContractFetcher;
+                        await _searchQueryMarketFetcher.get10();
+                        _selectedMarketFetcher = _searchQueryMarketFetcher;
                         setState(() {});
                       }
                     },
@@ -138,7 +138,7 @@ class ContractScrollState extends State<ContractScroll> with AutomaticKeepAliveC
                         icon: Icon(Icons.clear),
                         onPressed: () {
                           _textController.clear();
-                          _selectedContractFetcher = _defaultContractFetcher;
+                          _selectedMarketFetcher = _defaultMarketFetcher;
                           // close keyboard - not sure exactly what's going on here...
                           if (!FocusScope.of(context).hasPrimaryFocus) {
                             FocusManager.instance.primaryFocus.unfocus();
@@ -151,7 +151,7 @@ class ContractScrollState extends State<ContractScroll> with AutomaticKeepAliveC
                 );
               } else if (index == nTiles - 1) {
                 // final tile contains the loading spinner
-                if (_selectedContractFetcher.finished) {
+                if (_selectedMarketFetcher.finished) {
                   return Container(height: 0);
                 } else {
                   return Padding(
@@ -160,14 +160,14 @@ class ContractScrollState extends State<ContractScroll> with AutomaticKeepAliveC
                   );
                 }
               }
-              if (_selectedContractFetcher.loadedResults.length == 0) {
+              if (_selectedMarketFetcher.loadedResults.length == 0) {
                 // no results here
                 return Padding(
                   padding: const EdgeInsets.all(25.0),
                   child: Center(child: Text("Sorry, no results :'(")),
                 );
               } else {
-                return ContractTile(contract: _selectedContractFetcher.loadedResults[index - 1], league: widget.league);
+                return MarketTile(market: _selectedMarketFetcher.loadedResults[index - 1], league: widget.league);
               }
             },
             separatorBuilder: (context, index) => Divider(

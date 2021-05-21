@@ -1,22 +1,22 @@
 import 'package:cached_network_image/cached_network_image.dart';
-import 'package:sportfolios_alpha/data/models/leagues.dart';
+import 'package:sportfolios_alpha/data/objects/leagues.dart';
 import 'package:sportfolios_alpha/providers/settings_provider.dart';
-import 'package:sportfolios_alpha/screens/home/contract_details.dart';
+import 'package:sportfolios_alpha/screens/home/market_details.dart';
 import 'package:sportfolios_alpha/utils/number_format.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'dart:math';
 import 'package:flutter/material.dart';
-import 'package:sportfolios_alpha/data/models/instruments.dart';
+import 'package:sportfolios_alpha/data/objects/markets.dart';
 
-class ContractTile extends StatefulWidget {
-  final Merket contract;
+class MarketTile extends StatefulWidget {
+  final Market market;
   final League league;
   final double height;
   final double imageHeight;
   final EdgeInsets padding;
 
-  ContractTile({
-    @required this.contract,
+  MarketTile({
+    @required this.market,
     @required this.league,
     this.height = 115.0,
     this.imageHeight = 50.0,
@@ -25,20 +25,20 @@ class ContractTile extends StatefulWidget {
 
   @override
   State<StatefulWidget> createState() {
-    return ContractTileState();
+    return MarketTileState();
   }
 }
 
-class ContractTileState extends State<ContractTile> {
+class MarketTileState extends State<MarketTile> {
   final double upperTextSize = 16.0;
   final double lowerTextSize = 12.0;
   final double spacing = 3.0;
 
-  ContractTileState();
+  MarketTileState();
 
-  void _goToContractDetailsPage() {
+  void _goToMarketDetailsPage() {
     Navigator.of(context).push(MaterialPageRoute<void>(builder: (BuildContext context) {
-      return ContractDetails(widget.contract, widget.league);
+      return MarketDetails(widget.market, widget.league);
     }));
   }
 
@@ -52,17 +52,17 @@ class ContractTileState extends State<ContractTile> {
   @override
   Widget build(BuildContext context) {
     return InkWell(
-      onTap: _goToContractDetailsPage,
+      onTap: _goToMarketDetailsPage,
       child: Container(
         height: widget.height,
         padding: widget.padding,
         child: Row(children: [
-          widget.contract.imageURL != null
+          widget.market.imageURL != null
               ? Container(
                   height: widget.imageHeight,
                   width: widget.imageHeight,
                   child: CachedNetworkImage(
-                    imageUrl: widget.contract.imageURL,
+                    imageUrl: widget.market.imageURL,
                     height: widget.imageHeight,
                   ),
                 )
@@ -79,10 +79,10 @@ class ContractTileState extends State<ContractTile> {
                       Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text(widget.contract.name, style: TextStyle(fontSize: upperTextSize)),
+                          Text(widget.market.name, style: TextStyle(fontSize: upperTextSize)),
                           SizedBox(height: spacing),
                           Text(
-                            '${widget.contract.info1} • ${widget.contract.info2} • ${widget.contract.info3}',
+                            '${widget.market.info1} • ${widget.market.info2} • ${widget.market.info3}',
                             style: TextStyle(fontSize: lowerTextSize, color: Colors.grey[600]),
                           ),
                         ],
@@ -94,12 +94,12 @@ class ContractTileState extends State<ContractTile> {
                             crossAxisAlignment: CrossAxisAlignment.end,
                             children: [
                               Text(
-                                formatCurrency(widget.contract.currentBackValue, currency),
+                                formatCurrency(widget.market.currentBackValue, currency),
                                 style: TextStyle(fontSize: upperTextSize),
                               ),
                               SizedBox(height: spacing),
                               _valueChangeText(
-                                  currency, widget.contract.dailyBackValue.values.last - widget.contract.dailyBackValue.values.first, (widget.contract.dailyBackValue.values.last - widget.contract.dailyBackValue.values.first) / widget.contract.dailyBackValue.values.first),
+                                  currency, widget.market.dailyBackValue.values.last - widget.market.dailyBackValue.values.first, (widget.market.dailyBackValue.values.last - widget.market.dailyBackValue.values.first) / widget.market.dailyBackValue.values.first),
                             ],
                           );
                         },
@@ -110,7 +110,7 @@ class ContractTileState extends State<ContractTile> {
                     child: Container(
                         padding: EdgeInsets.only(top: 10, bottom: 5, left: 10, right: 10),
                         width: double.infinity,
-                        child: CustomPaint(painter: MiniPriceChartPainter(widget.contract.dailyBackValue.values.toList())),
+                        child: CustomPaint(painter: MiniPriceChartPainter(widget.market.dailyBackValue.values.toList())),
                         ),
                   )
                 ],

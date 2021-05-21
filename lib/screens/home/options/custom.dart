@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:sportfolios_alpha/data/api/requests.dart';
-import 'package:sportfolios_alpha/data/models/instruments.dart';
+import 'package:sportfolios_alpha/data/objects/markets.dart';
 import 'package:sportfolios_alpha/plots/payout_graph.dart';
 import 'package:sportfolios_alpha/plots/price_chart.dart';
 import 'package:sportfolios_alpha/screens/home/options/info_box.dart';
@@ -11,9 +11,9 @@ import 'package:sportfolios_alpha/utils/number_format.dart';
 import 'header.dart';
 
 class CustomDetails extends StatefulWidget {
-  final Merket contract;
+  final Market market;
 
-  CustomDetails(this.contract);
+  CustomDetails(this.market);
 
   @override
   _CustomDetailsState createState() => _CustomDetailsState();
@@ -21,7 +21,7 @@ class CustomDetails extends StatefulWidget {
 
 class _CustomDetailsState extends State<CustomDetails> with AutomaticKeepAliveClientMixin<CustomDetails> {
   String helpText =
-      'A custom contract gives you full autonomy to design your own payout structure. Drag each bar on the payout graph up and down to create your desired payout. ';
+      'A custom market gives you full autonomy to design your own payout structure. Drag each bar on the payout graph up and down to create your desired payout. ';
   double lrPadding = 25;
   List<double> p1;
   List<double> p2;
@@ -34,8 +34,8 @@ class _CustomDetailsState extends State<CustomDetails> with AutomaticKeepAliveCl
 
   @override
   void initState() {
-    p1 = range(widget.contract.n).map((int i) => 10.0).toList();
-    p2 = range(widget.contract.n).map((int i) => 10.0).toList();
+    p1 = range(widget.market.n).map((int i) => 10.0).toList();
+    p2 = range(widget.market.n).map((int i) => 10.0).toList();
     super.initState();
   }
 
@@ -48,15 +48,15 @@ class _CustomDetailsState extends State<CustomDetails> with AutomaticKeepAliveCl
   bool get wantKeepAlive => true;
 
   void updateHistory() {
-    priceHistory = widget.contract.getHistoricalValue(p1);
+    priceHistory = widget.market.getHistoricalValue(p1);
   }
 
   void _makeSelection(Offset touchLocation) {
-    int x = (widget.contract.n * touchLocation.dx / graphWidth).floor();
+    int x = (widget.market.n * touchLocation.dx / graphWidth).floor();
     if (x < 0) {
       x = 0;
-    } else if (x > widget.contract.n - 1) {
-      x = widget.contract.n;
+    } else if (x > widget.market.n - 1) {
+      x = widget.market.n;
     }
     double y = 10 * (1 - (touchLocation.dy - 20) / (graphHeight + 20));
 
@@ -66,7 +66,7 @@ class _CustomDetailsState extends State<CustomDetails> with AutomaticKeepAliveCl
     if (y > 10) {
       y = 10;
     }
-    p2 = range(widget.contract.n).map((int i) => i == x ? y : p2[i]).toList();
+    p2 = range(widget.market.n).map((int i) => i == x ? y : p2[i]).toList();
 
     if (p2 != p1) {
       setState(() {
@@ -87,11 +87,11 @@ class _CustomDetailsState extends State<CustomDetails> with AutomaticKeepAliveCl
 
     return RefreshIndicator(
       onRefresh: () async {
-        if (DateTime.now().difference(widget.contract.currentValueLastUpdated).inSeconds > 10) {
-          Map<String, dynamic> holdings = await getcurrentHoldings(widget.contract.id);
-          widget.contract.setCurrentHolding(List<double>.from(holdings['x']), holdings['b']);
-          Map<String, dynamic> historicalHoldings = await getHistoricalHoldings(widget.contract.id);
-          widget.contract.setHistoricalHoldings(historicalHoldings['xhist'], historicalHoldings['bhist']);
+        if (DateTime.now().difference(widget.market.currentHoldingsLastUpdated).inSeconds > 10) {
+          Map<String, dynamic> holdings = await getcurrentHoldings(widget.market.id);
+          widget.market.setCurrentHolding(List<double>.from(holdings['x']), holdings['b']);
+          Map<String, dynamic> historicalHoldings = await getHistoricalHoldings(widget.market.id);
+          widget.market.setHistoricalHoldings(historicalHoldings['xhist'], historicalHoldings['bhist']);
           await Future.delayed(Duration(seconds: 1));
           setState(() {});
         } else {
@@ -106,10 +106,10 @@ class _CustomDetailsState extends State<CustomDetails> with AutomaticKeepAliveCl
             SizedBox(height: 10),
             PageHeader(
                 p1,
-                widget.contract,
-                InfoBox(title: 'Binary contracts', pages: [
+                widget.market,
+                InfoBox(title: 'Binary markets', pages: [
                   MiniInfoPage(
-                      'A custom contract gives you full autonomy to design your own payout structure. Drag each bar on the payout graph up and down to create your desired payout. ',
+                      'A custom market gives you full autonomy to design your own payout structure. Drag each bar on the payout graph up and down to create your desired payout. ',
                       Icon(Icons.bar_chart, size: 80),
                       Colors.blue[600]),
                   MiniInfoPage(

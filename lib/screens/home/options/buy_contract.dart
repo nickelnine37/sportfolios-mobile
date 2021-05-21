@@ -6,8 +6,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:sportfolios_alpha/data/api/requests.dart';
 import 'package:sportfolios_alpha/data/firebase/portfolios.dart';
-import 'package:sportfolios_alpha/data/models/instruments.dart';
-import 'package:sportfolios_alpha/data/models/leagues.dart';
+import 'package:sportfolios_alpha/data/objects/markets.dart';
+import 'package:sportfolios_alpha/data/objects/leagues.dart';
 import 'package:sportfolios_alpha/plots/payout_graph.dart';
 import 'package:sportfolios_alpha/providers/authenication_provider.dart';
 import 'package:sportfolios_alpha/providers/settings_provider.dart';
@@ -15,24 +15,26 @@ import 'package:sportfolios_alpha/utils/number_format.dart';
 import 'package:intl/intl.dart';
 import 'package:confetti/confetti.dart';
 import 'package:sportfolios_alpha/utils/numbers.dart';
+import 'package:sportfolios_alpha/data/objects/portfolios.dart';
 
-class BuyContract extends StatefulWidget {
-  final Merket contract;
+
+class BuyMarket extends StatefulWidget {
+  final Market market;
   final List<double> quantity;
 
-  BuyContract(this.contract, this.quantity);
+  BuyMarket(this.market, this.quantity);
 
   @override
-  _BuyContractState createState() => _BuyContractState();
+  _BuyMarketState createState() => _BuyMarketState();
 }
 
-class _BuyContractState extends State<BuyContract> {
+class _BuyMarketState extends State<BuyMarket> {
   Future _portfoliosFuture;
 
   @override
   void initState() {
     super.initState();
-    _portfoliosFuture = Future.wait([_getPortfolios(), widget.contract.updateCurrentHoldings()]);
+    _portfoliosFuture = Future.wait([_getPortfolios(), widget.market.updateCurrentHoldings()]);
   }
 
   Future<List<Portfolio>> _getPortfolios() async {
@@ -75,7 +77,7 @@ class _BuyContractState extends State<BuyContract> {
                   child: SingleChildScrollView(
                     child: Column(
                       children: [
-                        Text('Contract: ${widget.contract.name}',
+                        Text('Market: ${widget.market.name}',
                             textAlign: TextAlign.center,
                             style: TextStyle(fontSize: 24, fontWeight: FontWeight.w300)),
                         SizedBox(height: 5),
@@ -85,15 +87,15 @@ class _BuyContractState extends State<BuyContract> {
                             crossAxisAlignment: CrossAxisAlignment.center,
                             children: [
                               CachedNetworkImage(
-                                imageUrl: widget.contract.imageURL,
+                                imageUrl: widget.market.imageURL,
                                 height: 50,
                               ),
                               Column(
                                 children: [
-                                  Text('Per contract'),
+                                  Text('Per market'),
                                   SizedBox(height: 3),
                                   Text(
-                                    formatCurrency(widget.contract.getCurrentValue(widget.quantity), 'GBP'),
+                                    formatCurrency(widget.market.getCurrentValue(widget.quantity), 'GBP'),
                                     style: TextStyle(fontSize: 20, fontWeight: FontWeight.w300),
                                   ),
                                 ],
@@ -104,7 +106,7 @@ class _BuyContractState extends State<BuyContract> {
                                   SizedBox(height: 3),
                                   Text(
                                     'hey',
-                                    // TODO: add contract expirey date
+                                    // TODO: add market expirey date
                                     // DateFormat('d MMM yy').format(widget.league.endDate),
                                     style: TextStyle(fontSize: 20, fontWeight: FontWeight.w300),
                                   ),
@@ -118,7 +120,7 @@ class _BuyContractState extends State<BuyContract> {
                             future: _portfoliosFuture,
                             builder: (BuildContext context, AsyncSnapshot snapshot) {
                               if (snapshot.hasData) {
-                                return BuyForm(snapshot.data[0], widget.contract, widget.quantity);
+                                return BuyForm(snapshot.data[0], widget.market, widget.quantity);
                               } else if (snapshot.hasError) {
                                 print(snapshot.error);
                                 return Center(child: Text('Error'));
@@ -141,10 +143,10 @@ class _BuyContractState extends State<BuyContract> {
 
 class BuyForm extends StatefulWidget {
   final List<Portfolio> portfolios;
-  final Merket contract;
+  final Market market;
   final List<double> quantity;
 
-  BuyForm(this.portfolios, this.contract, this.quantity);
+  BuyForm(this.portfolios, this.market, this.quantity);
 
   @override
   _BuyFormState createState() => _BuyFormState();
@@ -272,7 +274,7 @@ class _BuyFormState extends State<BuyForm> {
                       } else {
                         try {
                           units = double.parse(value);
-                          price = validatePrice(widget.contract.priceTrade(widget.quantity, units));
+                          price = validatePrice(widget.market.priceTrade(widget.quantity, units));
                           setState(() {});
                         } catch (error) {
                           print(error.toString());
@@ -333,7 +335,7 @@ class _BuyFormState extends State<BuyForm> {
                       });
 
                       Map<String, dynamic> purchaseRequestResult = await makePurchaseRequest(
-                          widget.contract.id,
+                          widget.market.id,
                           _selectedPortfolioId,
                           widget.quantity.map((qi) => units * qi).toList(),
                           price);
@@ -388,7 +390,7 @@ class _BuyFormState extends State<BuyForm> {
                         bool ok = await respondToNewPrice(
                           confirm,
                           purchaseRequestResult['cancelId'],
-                          widget.contract.id,
+                          widget.market.id,
                           _selectedPortfolioId,
                           widget.quantity.map((qi) => units * qi).toList(),
                           purchaseRequestResult['price'],

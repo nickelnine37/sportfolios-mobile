@@ -1,11 +1,11 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:sportfolios_alpha/data/models/base.dart';
 
-class League extends BaseDataModel {
+class League {
 
   /// class for representing a league, e.g. Premier League or Bundesliga
   /// Generally instantiated from a firebase query
-
+  
+  String id;
   String name;
   String country;
   String countryFlagEmoji;
@@ -14,10 +14,11 @@ class League extends BaseDataModel {
   String imageURL;
   int leagueID;
 
-  League(String documentId) : super(documentId);
+  League(this.id);
 
-  League.fromSnapshot(DocumentSnapshot snapshot) : super(snapshot.id) {
+  League.fromSnapshot(DocumentSnapshot snapshot){
 
+    id = snapshot.id;
     Map<String, dynamic> data = snapshot.data();
 
     name = data['name'];

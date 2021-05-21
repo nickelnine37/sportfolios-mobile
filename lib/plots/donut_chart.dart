@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/all.dart';
-import 'package:sportfolios_alpha/data/models/instruments.dart';
+import 'package:sportfolios_alpha/data/objects/portfolios.dart';
 import 'package:sportfolios_alpha/providers/settings_provider.dart';
 import 'package:sportfolios_alpha/utils/arrays.dart';
 import 'package:sportfolios_alpha/utils/colors.dart';
@@ -31,10 +30,12 @@ class _AnimatedDonutChartState extends State<AnimatedDonutChart> {
     List<double> _values = [];
     List<double> _binEdges = [0.0];
 
-    int nContracts = widget.portfolio.contracts.length;
+    int nMarkets = widget.portfolio.markets.length;
 
-    _values = range(nContracts)
-        .map((i) => widget.portfolio.contracts[i].value * widget.portfolio.amounts[i])
+    _values = range(nMarkets)
+        // .map((i) => widget.portfolio.markets[i].value * widget.portfolio.amounts[i])
+
+        .map((i) => 5.0)
         .toList();
 
     // note, bin edges are cacluated in metric angle! i.e. 0=>0, 2pi=>1
@@ -55,7 +56,7 @@ class _AnimatedDonutChartState extends State<AnimatedDonutChart> {
       builder: (_, double percentComlpete, __) {
         return PieChart(
           portfolio: widget.portfolio,
-          contractValues: _values,
+          marketValues: _values,
           binEdges: _binEdges,
           percentComplete: 1 + percentComlpete - endValue, // hacky business
         );
@@ -67,18 +68,18 @@ class _AnimatedDonutChartState extends State<AnimatedDonutChart> {
 /// Main pie chart widget: has a [percentComplete] variable that can be used for animation purposes
 /// i.e. if [percentComplete] is 0.5, the pie chart will be a half-moon, filling the right side.
 /// Some of the vairables passed technically are redundant as they could all be computed from other values
-/// (i.e. [portfolioValue], [contractValues] and [binEdges] could all be calculated from [portfolio])
+/// (i.e. [portfolioValue], [marketValues] and [binEdges] could all be calculated from [portfolio])
 /// however since the class is being called many times in the opening animation, it's more efficient to
 /// precompute these things and pass them as an argument.
 class PieChart extends StatefulWidget {
   final Portfolio portfolio;
-  final List<double> contractValues;
+  final List<double> marketValues;
   final List<double> binEdges;
   final double percentComplete;
 
   PieChart({
     @required this.portfolio,
-    @required this.contractValues,
+    @required this.marketValues,
     @required this.binEdges,
     @required this.percentComplete,
   });
@@ -92,7 +93,7 @@ class _PieChartState extends State<PieChart> {
   // the donut chart iteself.
   double width;
   double height;
-  int nContracts;
+  int nMarkets;
 
   // initialise this as zero to avoid a null error
   // it takes a bit of time for initState to work
@@ -105,7 +106,7 @@ class _PieChartState extends State<PieChart> {
   // this refers to the information on the left that needs to change
   // when a segment is selected
   // [asset] refers to the selected asset/segment. needs to be dynamic as sometimes
-  // it can be a specific Contract, sometimes it can be a Portfolio
+  // it can be a specific Market, sometimes it can be a Portfolio
   dynamic asset;
 
   // wf1 => how much of the total screen width should the pie chart container take?
@@ -117,7 +118,7 @@ class _PieChartState extends State<PieChart> {
   void initState() {
     super.initState();
     centerText = widget.portfolio.value;
-    nContracts = widget.contractValues.length;
+    nMarkets = widget.marketValues.length;
     portfolioName = widget.portfolio.name;
   }
 
@@ -136,7 +137,7 @@ class _PieChartState extends State<PieChart> {
         centerText = widget.portfolio.value;
         portfolioName = widget.portfolio.name;
         asset = widget.portfolio;
-        nContracts = widget.portfolio.amounts.length;
+        nMarkets = widget.portfolio.amounts.length;
       }
     }
 
@@ -156,20 +157,17 @@ class _PieChartState extends State<PieChart> {
 
     // Container for central text. Change opacity with percentComplete
     Center centralText = Center(
-      child: Consumer(
-        builder: (context, watch, value) {
-          String currency = watch(settingsProvider).currency;
-          return Text(
-            '${formatCurrency(centerText, currency)}',
+      child: Text(
+            '${formatCurrency(centerText, "GBP")}',
             style: TextStyle(
               fontWeight: FontWeight.w300,
               fontSize: 26,
               color: Colors.grey[800].withOpacity(widget.percentComplete),
             ),
-          );
-        },
-      ),
+          )
     );
+
+    double amount = (this.selectedSegment == null) ? 1 : widget.portfolio.amounts[this.selectedSegment];
 
     return Column(
       children: [
@@ -193,27 +191,20 @@ class _PieChartState extends State<PieChart> {
                 padding: EdgeInsets.only(top: 28, bottom: 33, left: 3, right: 3),
                 height: this.height,
                 // color: Colors.grey[400],
-                child: Consumer(
-                  builder: (context, watch, value) {
-                    String currency = watch(settingsProvider).currency;
-                    double amount =
-                        (this.selectedSegment == null) ? 1 : widget.portfolio.amounts[this.selectedSegment];
-                    return Column(
+                child: Column(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       crossAxisAlignment: CrossAxisAlignment.center,
                       children: [
                         _portfolioInfoBox('Return (1 hour)', amount * asset.hourReturn,
-                            amount * asset.hourValueChange, widget.percentComplete, currency),
+                            amount * asset.hourValueChange, widget.percentComplete, "GBP"),
                         _portfolioInfoBox('Return (24 hours)', amount * asset.dayReturn,
-                            amount * asset.dayValueChange, widget.percentComplete, currency),
+                            amount * asset.dayValueChange, widget.percentComplete, "GBP"),
                         _portfolioInfoBox('Return (7 days)', amount * asset.weekReturn,
-                            amount * asset.weekValueChange, widget.percentComplete, currency),
+                            amount * asset.weekValueChange, widget.percentComplete, "GBP"),
                         _portfolioInfoBox('Return (28 days)', amount * asset.monthReturn,
-                            amount * asset.monthValueChange, widget.percentComplete, currency),
+                            amount * asset.monthValueChange, widget.percentComplete, "GBP"),
                       ],
-                    );
-                  },
-                ),
+                    )
               ),
             ),
 
@@ -282,7 +273,7 @@ class _PieChartState extends State<PieChart> {
     // https://github.com/python/cpython/blob/master/Lib/bisect.py
     int mid;
     int lo = 0;
-    int hi = nContracts;
+    int hi = nMarkets;
 
     while (lo < hi) {
       mid = (lo + hi) ~/ 2;
@@ -298,16 +289,16 @@ class _PieChartState extends State<PieChart> {
   /// Helper function to return a painter for arc number i, with a given opacity
   DonutSegmentPainter newSegment(int i, double opacity) {
     return DonutSegmentPainter(
-        label: widget.portfolio.contracts[i].name,
+        label: widget.portfolio.markets[i].name,
         start: widget.percentComplete * widget.binEdges[i],
         end: widget.percentComplete * widget.binEdges[i + 1],
-        color: getColorCycle(i, nContracts),
+        color: getColorCycle(i, nMarkets),
         opacity: opacity);
   }
 
   /// Helper function to return a list of arc painters all with opacity 0.9
   List<DonutSegmentPainter> _getRefreshedSegnentPainers() {
-    return range(nContracts).map((i) => newSegment(i, 0.9)).toList();
+    return range(nMarkets).map((i) => newSegment(i, 0.9)).toList();
   }
 
   /// given that a tap just happened at [offset], highlight the apropriate pie segment
@@ -337,15 +328,15 @@ class _PieChartState extends State<PieChart> {
       if (this.selectedSegment == null) {
         // should dull all segments except newly selected one
         this.segmentPainters =
-            range(nContracts).map((i) => newSegment(i, i == newSelectedSegment ? 1.0 : 0.5)).toList();
+            range(nMarkets).map((i) => newSegment(i, i == newSelectedSegment ? 1.0 : 0.5)).toList();
       } else {
         // just need to dull currently selected segment and highligh new segment
         this.segmentPainters[newSelectedSegment] = newSegment(newSelectedSegment, 1.0);
         this.segmentPainters[this.selectedSegment] = newSegment(this.selectedSegment, 0.5);
       }
 
-      centerText = widget.contractValues[newSelectedSegment];
-      asset = widget.portfolio.contracts[newSelectedSegment];
+      centerText = widget.marketValues[newSelectedSegment];
+      asset = widget.portfolio.markets[newSelectedSegment];
     }
 
     this.selectedSegment = newSelectedSegment;
@@ -440,11 +431,11 @@ class DonutSegmentPainter extends CustomPainter {
 
     // lets only paint the labels on if:
     // 1. This segment is selected, or
-    // 2. the contract takes up more than 8% of the portfolio
+    // 2. the market takes up more than 8% of the portfolio
     // otherwiss will get very crowded
 
     if (this.opacity == 1 || (this.end - this.start) > 0.08) {
-      // painter for the contract labels round the arc
+      // painter for the market labels round the arc
       TextPainter textPainter = TextPainter(
         text: TextSpan(
           text: this.label,

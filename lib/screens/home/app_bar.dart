@@ -1,8 +1,8 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:sportfolios_alpha/data/models/leagues.dart';
-import 'package:sportfolios_alpha/screens/home/contract_scroll.dart';
+import 'package:sportfolios_alpha/data/objects/leagues.dart';
+import 'package:sportfolios_alpha/screens/home/market_scroll.dart';
 import 'package:sportfolios_alpha/utils/dialogues.dart';
 import 'package:intl/intl.dart';
 
@@ -131,10 +131,10 @@ class _MainViewState extends State<MainView> {
         ),
         body: TabBarView(
           children: [
-            ContractScroll(league, 'teams'),
-            // ContractScroll(league, 'teams'),
-            ContractScroll(league, 'players'),
-            // ContractScroll(league, 'players'),
+            MarketScroll(league, 'teams'),
+            // MarketScroll(league, 'teams'),
+            MarketScroll(league, 'players'),
+            // MarketScroll(league, 'players'),
           ],
         ),
       ),

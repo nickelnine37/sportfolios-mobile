@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:shimmer/shimmer.dart';
 import 'package:sportfolios_alpha/data/api/requests.dart';
-import 'package:sportfolios_alpha/data/models/instruments.dart';
+import 'package:sportfolios_alpha/data/objects/markets.dart';
 import 'package:sportfolios_alpha/plots/payout_graph.dart';
 import 'package:sportfolios_alpha/plots/price_chart.dart';
 import 'package:sportfolios_alpha/utils/arrays.dart';
@@ -13,10 +13,10 @@ import 'header.dart';
 import 'info_box.dart';
 
 class LongShortDetails extends StatefulWidget {
-  final Merket contract;
+  final Market market;
   final String type;
 
-  LongShortDetails(this.contract, this.type);
+  LongShortDetails(this.market, this.type);
 
   @override
   _LongShortDetailsState createState() => _LongShortDetailsState();
@@ -24,7 +24,7 @@ class LongShortDetails extends StatefulWidget {
 
 class _LongShortDetailsState extends State<LongShortDetails> with SingleTickerProviderStateMixin {
   TabController _tabController;
-  String selectedContract = 'BACK';
+  String selectedMarket = 'BACK';
   List<double> selectedQ;
   double graphHeight = 150;
 
@@ -37,10 +37,10 @@ class _LongShortDetailsState extends State<LongShortDetails> with SingleTickerPr
     _tabController.addListener(() {
       setState(() {
         if (_tabController.index == 0) {
-          selectedContract = 'BACK';
+          selectedMarket = 'BACK';
           selectedQ = p1;
         } else {
-          selectedContract = 'LAY';
+          selectedMarket = 'LAY';
           selectedQ = p2;
         }
       });
@@ -58,9 +58,9 @@ class _LongShortDetailsState extends State<LongShortDetails> with SingleTickerPr
   Widget build(BuildContext context) {
     if (p1 == null) {
       if (widget.type == 'Long') {
-        p1 = range(widget.contract.n).map((i) => 10 * math.exp(-i / 6)).toList();
+        p1 = range(widget.market.n).map((i) => 10 * math.exp(-i / 6)).toList();
       } else {
-        p1 = range(widget.contract.n).map((i) => 10 * math.exp(-(widget.contract.n - i - 1) / 6)).toList();
+        p1 = range(widget.market.n).map((i) => 10 * math.exp(-(widget.market.n - i - 1) / 6)).toList();
       }
       p2 = p1.map((i) => 10 - i).toList();
     }
@@ -71,17 +71,17 @@ class _LongShortDetailsState extends State<LongShortDetails> with SingleTickerPr
 
     double lrPadding = 25;
 
-    Map priceHistory = widget.contract.getHistoricalValue(selectedQ);
+    Map priceHistory = widget.market.getHistoricalValue(selectedQ);
 
     return DefaultTabController(
       length: 2,
       child: RefreshIndicator(
         onRefresh: () async {
-          if (DateTime.now().difference(widget.contract.currentValueLastUpdated).inSeconds > 10) {
-            Map<String, dynamic> holdings = await getcurrentHoldings(widget.contract.id);
-            widget.contract.setCurrentHolding(List<double>.from(holdings['x']), holdings['b']);
-            Map<String, dynamic> historicalHoldings = await getHistoricalHoldings(widget.contract.id);
-            widget.contract.setHistoricalHoldings(historicalHoldings['xhist'], historicalHoldings['bhist']);
+          if (DateTime.now().difference(widget.market.currentHoldingsLastUpdated).inSeconds > 10) {
+            Map<String, dynamic> holdings = await getcurrentHoldings(widget.market.id);
+            widget.market.setCurrentHolding(List<double>.from(holdings['x']), holdings['b']);
+            Map<String, dynamic> historicalHoldings = await getHistoricalHoldings(widget.market.id);
+            widget.market.setHistoricalHoldings(historicalHoldings['xhist'], historicalHoldings['bhist']);
             await Future.delayed(Duration(seconds: 1));
             setState(() {});
           } else {
@@ -120,7 +120,7 @@ class _LongShortDetailsState extends State<LongShortDetails> with SingleTickerPr
                   ),
                 ),
               ),
-              PageHeader(selectedQ, widget.contract, LongShortInfoBox(widget.type)),
+              PageHeader(selectedQ, widget.market, LongShortInfoBox(widget.type)),
               Container(
                 child: AnimatedBuilder(
                     animation: _tabController.animation,
@@ -203,11 +203,11 @@ class LongShortInfoBox extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return InfoBox(
-      title: '${type} contracts',
+      title: '${type} markets',
       pages: type == 'Long'
           ? [
               MiniInfoPage(
-                  'A basic long contract (also known as a long BACK) pays out more and more the higher a team places in the league, up to a maxmimum payout of £10 for 1st place.',
+                  'A basic long market (also known as a long BACK) pays out more and more the higher a team places in the league, up to a maxmimum payout of £10 for 1st place.',
                   Column(
                     crossAxisAlignment: CrossAxisAlignment.center,
                     children: [
@@ -223,11 +223,11 @@ class LongShortInfoBox extends StatelessWidget {
                   ),
                   Colors.blue[600]),
               MiniInfoPage(
-                  'This makes the BACK a great buy if you believe a team\'s potential is underestimated. The more the team outperforms expectations, the more your contract will climb in value.',
+                  'This makes the BACK a great buy if you believe a team\'s potential is underestimated. The more the team outperforms expectations, the more your market will climb in value.',
                   Icon(Icons.trending_up, size: 80),
                   Colors.green[600]),
               MiniInfoPage(
-                  'Alternatively, you can take the opposite side of the bet by buying a LAY contract. The payout structure of this contract is the inverse of the BACK, meaning its price is always £10 minus the BACK price.',
+                  'Alternatively, you can take the opposite side of the bet by buying a LAY market. The payout structure of this market is the inverse of the BACK, meaning its price is always £10 minus the BACK price.',
                   Column(
                     children: [
                       Icon(Icons.signal_cellular_alt, size: 80),
@@ -241,7 +241,7 @@ class LongShortInfoBox extends StatelessWidget {
             ]
           : [
               MiniInfoPage(
-                  'A basic short contract (also known as a short BACK) pays out more and more the lower a team places in the league, up to a maxmimum payout of £10 for last place.',
+                  'A basic short market (also known as a short BACK) pays out more and more the lower a team places in the league, up to a maxmimum payout of £10 for last place.',
                   Column(
                     children: [
                       Icon(Icons.signal_cellular_alt, size: 80),
@@ -253,11 +253,11 @@ class LongShortInfoBox extends StatelessWidget {
                   ),
                   Colors.blue[600]),
               MiniInfoPage(
-                  'This makes the short BACK a great buy if you believe a team\'s potential is overestimated. The more the team underperforms expectations, the more your contract will climb in value.',
+                  'This makes the short BACK a great buy if you believe a team\'s potential is overestimated. The more the team underperforms expectations, the more your market will climb in value.',
                   Icon(Icons.trending_down, size: 80),
                   Colors.red[600]),
               MiniInfoPage(
-                  'Alternatively, you can take the opposite side of the bet by buying a LAY contract. The payout structure of this contract is the inverse of the BACK, meaning its price is always £10 minus the BACK price.',
+                  'Alternatively, you can take the opposite side of the bet by buying a LAY market. The payout structure of this market is the inverse of the BACK, meaning its price is always £10 minus the BACK price.',
                   Column(
                     crossAxisAlignment: CrossAxisAlignment.center,
                     children: [
