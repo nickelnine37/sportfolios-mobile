@@ -1,61 +1,156 @@
+import 'dart:collection';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:sportfolios_alpha/data/firebase/markets.dart';
+import 'package:sportfolios_alpha/data/api/requests.dart';
 import 'markets.dart';
 
 class Portfolio {
+  // ----- basic attributes ------
   String id;
   String name;
-  double value;
+  DocumentSnapshot doc;
   bool public;
-  List<Market> markets;
-  List<double> amounts;
-  Map<String, dynamic> marketIdAmountMap;
+
+  // ----- current market attributes -----
+  Map<String, Market> currentMarkets; // map between market id and Market object for current constituents
+  double currentValue; // latest value of whole portfolio
+  Map<String, double> currentValues = Map<String, double>(); // latest value of individual constituents
+  Map<String, List<double>> currentQuantities =
+      Map<String, List<double>>(); // latest quantity vectors of individual constituents
+  bool setCurrentX = false; // whether current X values have been computed
+
+  bool setHistoricalX = false;
+
+  Map<String, Market> allMarkets;
+  List<Map<String, dynamic>> purchaseHistory;
+
+  DateTime lastUpdatedCurrentX;
+  DateTime lastUpdatedHistoricalX;
+
+  DateTime lastPushedValueServer;
+  DateTime lastPushedHistoricalValuesServer;
+
+  Map<String, LinkedHashMap<int, double>> historicalValue = Map<String, LinkedHashMap<int, double>>();
 
   Portfolio(this.id);
 
-  Portfolio.fromDocumentSnapshot(DocumentSnapshot snapshot){
-    id = snapshot.id;
+  Portfolio.fromDocumentSnapshot(DocumentSnapshot snapshot) {
     Map<String, dynamic> data = snapshot.data();
+
+    id = snapshot.id;
     name = data['name'];
     public = data['public'];
 
-    // markets =
-    //     data['markets'].keys.map<Instrument>((String marketId) => Instrument(marketId)).toList();
+    // ensure we have doubles!!!!!!
+    for (String market in data['current'].keys) {
+      currentQuantities[market] = List<double>.from(data['current'][market].map((i) => i + 0.0));
+    }
 
-    // amounts = data['markets']
-    //     .keys
-    //     .map<double>((String marketId) => 1.0 * data['markets'][marketId])
-    //     .toList();
+    purchaseHistory = List<Map<String, dynamic>>.from(data['history']);
 
-    // marketIdAmountMap = Map<String, dynamic>.from(data['markets']);
+    // ensure we have doubles!!!!!!
+    for (Map purchase in purchaseHistory) {
+      purchase['quantity'] = List<double>.from(purchase['quantity'].map((i) => i + 0.0));
+    }
+
+    // get all markets ever used in portfolio
+    allMarkets = Map.fromIterable(data['history'].map((item) => item['market']).toSet(),
+        key: (marketId) => marketId, value: (marketId) => Market(marketId));
+
+    // get current markets in portfolio
+    currentMarkets = Map.fromIterable(data['current'].keys,
+        key: (marketId) => marketId, value: (marketId) => Market(marketId));
+
+    lastPushedValueServer = data['lastUpdated'].toDate();
   }
 
-  Future<void> populateMarkets() async {
-    if (markets == null) {
-      print('Cannot get markets - try adding portfolio from snapshot first');
-      return;
+  Future<void> updateMarketsCurrentX() async {
+    if (!setCurrentX || (DateTime.now().difference(lastUpdatedCurrentX).inSeconds > 60)) {
+      Map<String, dynamic> currentXs = await getMultipleCurrentX(currentMarkets.keys.toList());
+      for (String marketId in currentXs.keys) {
+        currentMarkets[marketId]
+            .setCurrentX(List<double>.from(currentXs[marketId]['x']), currentXs[marketId]['b']);
+      }
+      lastUpdatedCurrentX = DateTime.now();
+      setCurrentX = true;
     }
-    List<Market> marketsNew = [];
-    for (Market market in markets) {
-      if (market.id == 'cash') {
-        // marketsNew.add(Cash());
-      } else {
-        marketsNew.add(await getMarketById(market.id));
+  }
+
+  Future<void> updateMarketsHistoricalX() async {
+    if (!setHistoricalX || (DateTime.now().difference(lastUpdatedHistoricalX).inSeconds > 60)) {
+      Map<String, dynamic> historicalXs = await getMultipleHistoricalX(allMarkets.keys.toList());
+      for (String marketId in historicalXs.keys) {
+        allMarkets[marketId].setHistoricalX(historicalXs[marketId]['xhist'], historicalXs[marketId]['bhist']);
+      }
+      lastUpdatedHistoricalX = DateTime.now();
+      setHistoricalX = true;
+    }
+  }
+
+  void computeCurrentValue() {
+    double total = 0;
+    if (setCurrentX) {
+      for (String marketId in currentQuantities.keys) {
+        currentValues[marketId] =
+            currentMarkets[marketId].getCurrentValue(List<double>.from(currentQuantities[marketId]));
+        total += currentValues[marketId];
+      }
+      currentValue = total;
+      if (DateTime.now().difference(lastPushedValueServer).inSeconds > 60) {
+        // pushCurrentValue();
+      }
+    } else {
+      print('Cannot get portfolio value: update current X first');
+    }
+  }
+
+  Future<void> pushCurrentValue() async {
+    if (currentValue != null) {
+      print('Pushing');
+      if (DateTime.now().difference(lastPushedValueServer).inSeconds > 120) {
+        await FirebaseFirestore.instance
+            .collection('portfolios')
+            .doc(id)
+            .update({'value': currentValue, 'lastUpdated': DateTime.now()});
       }
     }
-    markets = marketsNew;
+  }
 
-    // pH = matrixMultiply(this.markets.map((market) => market.pH).toList(), this.amounts);
-    // pD = matrixMultiply(this.markets.map((market) => market.pD).toList(), this.amounts);
-    // pW = matrixMultiply(this.markets.map((market) => market.pW).toList(), this.amounts);
-    // pM = matrixMultiply(this.markets.map((market) => market.pM).toList(), this.amounts);
-    // pMax = matrixMultiply(this.markets.map((market) => market.pMax).toList(), this.amounts);
+  void computeHistoricalValue() {
+    bool firstPassComplete = false;
 
-    // super.computeValueChange();
+    if (setHistoricalX) {
+      for (Map purchase in purchaseHistory) {
+        //
+        String market = purchase['market'];
+        double purchaseTime = purchase['time'] + 0.0;
+        List<double> quantity = purchase['quantity'];
+        //
+        Map<String, LinkedHashMap<int, double>> historicalMarketValue =
+            allMarkets[market].getHistoricalValue(quantity);
+
+        for (String ts in ['h', 'd', 'w', 'm', 'M']) {
+          if (!firstPassComplete) {
+            historicalValue[ts] = LinkedHashMap<int, double>();
+          }
+          for (int t in historicalMarketValue[ts].keys) {
+            if (!firstPassComplete) {
+              historicalValue[ts][t] = 0.0;
+            }
+            if (purchaseTime <= t) {
+              historicalValue[ts][t] += historicalMarketValue[ts][t];
+            }
+          }
+        }
+        firstPassComplete = true;
+      }
+    } else {
+      print('Cannot compute historical Value: have not populated historical X');
+    }
   }
 
   @override
   String toString() {
-    return 'Portfolio(${markets.toString()})';
+    return 'Portfolio(${currentMarkets.toString()})';
   }
 }

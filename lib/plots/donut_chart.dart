@@ -26,22 +26,14 @@ class _AnimatedDonutChartState extends State<AnimatedDonutChart> {
   @override
   Widget build(BuildContext context) {
     // do some pre-computation here
-    List<double> _values = [];
+    List<double> _values =  widget.portfolio.currentValues.values.toList();
     List<double> _binEdges = [0.0];
-
-    int nMarkets = widget.portfolio.markets.length;
-
-    _values = range(nMarkets)
-        // .map((i) => widget.portfolio.markets[i].value * widget.portfolio.amounts[i])
-
-        .map((i) => 5.0)
-        .toList();
 
     // note, bin edges are cacluated in metric angle! i.e. 0=>0, 2pi=>1
     double _runningTotal = 0;
-    for (double value in _values) {
+    for (double value in widget.portfolio.currentValues.values) {
       _runningTotal += value;
-      _binEdges.add(_runningTotal / widget.portfolio.value);
+      _binEdges.add(_runningTotal / widget.portfolio.currentValue);
     }
 
     // increment endValue here
@@ -116,13 +108,15 @@ class _PieChartState extends State<PieChart> {
   @override
   void initState() {
     super.initState();
-    centerText = widget.portfolio.value;
+    centerText = widget.portfolio.currentValue;
     nMarkets = widget.marketValues.length;
     portfolioName = widget.portfolio.name;
   }
 
   @override
   Widget build(BuildContext context) {
+
+    print(widget.binEdges);
     // set the widget width to be [widthFactor1] of the screen real estate
     // this must be done at build time
     if (this.width == null) {
@@ -133,10 +127,10 @@ class _PieChartState extends State<PieChart> {
     if (portfolioName != null) {
       if (portfolioName != widget.portfolio.name) {
         spinning = true;
-        centerText = widget.portfolio.value;
+        centerText = widget.portfolio.currentValue;
         portfolioName = widget.portfolio.name;
         asset = widget.portfolio;
-        nMarkets = widget.portfolio.amounts.length;
+        // nMarkets = widget.portfolio.amounts.length;
       }
     }
 
@@ -166,7 +160,7 @@ class _PieChartState extends State<PieChart> {
           )
     );
 
-    double amount = (this.selectedSegment == null) ? 1 : widget.portfolio.amounts[this.selectedSegment];
+    double amount = (this.selectedSegment == null) ? 1 : 0; // widget.portfolio.amounts[this.selectedSegment];
 
     return Column(
       children: [
@@ -182,72 +176,44 @@ class _PieChartState extends State<PieChart> {
             padding: EdgeInsets.only(top: 10),
           ),
         ),
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Expanded(
-              child: Container(
-                padding: EdgeInsets.only(top: 28, bottom: 33, left: 3, right: 3),
-                height: this.height,
-                // color: Colors.grey[400],
-                child: Column(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      crossAxisAlignment: CrossAxisAlignment.center,
-                      children: [
-                        _portfolioInfoBox('Return (1 hour)', amount * asset.hourReturn,
-                            amount * asset.hourValueChange, widget.percentComplete, "GBP"),
-                        _portfolioInfoBox('Return (24 hours)', amount * asset.dayReturn,
-                            amount * asset.dayValueChange, widget.percentComplete, "GBP"),
-                        _portfolioInfoBox('Return (7 days)', amount * asset.weekReturn,
-                            amount * asset.weekValueChange, widget.percentComplete, "GBP"),
-                        _portfolioInfoBox('Return (28 days)', amount * asset.monthReturn,
-                            amount * asset.monthValueChange, widget.percentComplete, "GBP"),
-                      ],
-                    )
-              ),
-            ),
-
-            // wrap donut container in a gestureDetector that checks which segment to highlight
-            GestureDetector(
-              onTapDown: (details) {
-                if (widget.percentComplete == 1) {
-                  setState(() {
-                    highlightSegment(details.localPosition);
-                  });
-                }
-              },
-              // our outer container takes up the full this.width (which was 70% of
-              // the entire screen space).
-              // The inner container (where we paint) takes up 60% of `this` space
-              child: Container(
-                width: this.width,
-                height: this.width,
-                child: Center(
-                  child: Stack(
-                    children: <Widget>[
-                          centralText,
-                          Center(
+        GestureDetector(
+          onTapDown: (details) {
+            if (widget.percentComplete == 1) {
+              setState(() {
+                highlightSegment(details.localPosition);
+              });
+            }
+          },
+          // our outer container takes up the full this.width (which was 70% of
+          // the entire screen space).
+          // The inner container (where we paint) takes up 60% of `this` space
+          child: Container(
+            width: this.width,
+            height: this.width,
+            child: Center(
+              child: Stack(
+                children: <Widget>[
+                      centralText,
+                      // Center(
+                      //   child: CustomPaint(
+                      //     painter: DonutShadowPainter(percentComplete: widget.percentComplete),
+                      //     size: Size(this.width * widthFactor2, this.width * widthFactor2),
+                      //   ),
+                      // )
+                    ] +
+                    segmentPainters
+                        .map(
+                          (segment) => Center(
                             child: CustomPaint(
-                              painter: DonutShadowPainter(percentComplete: widget.percentComplete),
+                              painter: segment,
                               size: Size(this.width * widthFactor2, this.width * widthFactor2),
                             ),
-                          )
-                        ] +
-                        segmentPainters
-                            .map(
-                              (segment) => Center(
-                                child: CustomPaint(
-                                  painter: segment,
-                                  size: Size(this.width * widthFactor2, this.width * widthFactor2),
-                                ),
-                              ),
-                            )
-                            .toList(),
-                  ),
-                ),
+                          ),
+                        )
+                        .toList(),
               ),
             ),
-          ],
+          ),
         ),
       ],
     );
@@ -288,7 +254,7 @@ class _PieChartState extends State<PieChart> {
   /// Helper function to return a painter for arc number i, with a given opacity
   DonutSegmentPainter newSegment(int i, double opacity) {
     return DonutSegmentPainter(
-        label: widget.portfolio.markets[i].name,
+        label: 'widget.portfolio.currentMarkets[i].name',
         start: widget.percentComplete * widget.binEdges[i],
         end: widget.percentComplete * widget.binEdges[i + 1],
         color: getColorCycle(i, nMarkets),
@@ -315,7 +281,7 @@ class _PieChartState extends State<PieChart> {
       // we just deselected everything, so highlight all
 
       this.segmentPainters = _getRefreshedSegnentPainers();
-      centerText = widget.portfolio.value;
+      centerText = widget.portfolio.currentValue;
       asset = widget.portfolio;
     }
 
@@ -335,7 +301,7 @@ class _PieChartState extends State<PieChart> {
       }
 
       centerText = widget.marketValues[newSelectedSegment];
-      asset = widget.portfolio.markets[newSelectedSegment];
+      asset = widget.portfolio.currentMarkets[newSelectedSegment];
     }
 
     this.selectedSegment = newSelectedSegment;
@@ -502,10 +468,3 @@ class DonutShadowPainter extends CustomPainter {
   }
 }
 
-// color: Colors.grey[400],
-// decoration: BoxDecoration(
-//         // color: Colors.yellow[100],
-//         border: Border.all(
-//           color: Colors.red,
-//           width: 1,
-//         )),

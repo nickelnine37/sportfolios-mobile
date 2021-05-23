@@ -42,6 +42,7 @@ class MarketScrollState extends State<MarketScroll> with AutomaticKeepAliveClien
     super.initState();
     _scrollController.addListener(_scrollListener);
   }
+
   @override
   void dispose() {
     // Clean up the controller when the widget is disposed.
@@ -96,7 +97,7 @@ class MarketScrollState extends State<MarketScroll> with AutomaticKeepAliveClien
         if (snapshot.connectionState != ConnectionState.done) {
           return Center(child: CircularProgressIndicator());
         } else if (snapshot.hasError) {
-          print(snapshot.error.toString());
+          print('MS1 ${snapshot.error.toString()}');
           return Center(child: Text('Error'));
         } else {
           int nTiles = _selectedMarketFetcher.loadedResults.length + 2;
@@ -118,11 +119,10 @@ class MarketScrollState extends State<MarketScroll> with AutomaticKeepAliveClien
                     onSubmitted: (String value) async {
                       if (value != null && value.trim() != '') {
                         _searchQueryMarketFetcher = SearchQueryMarketFetcher(
-                          search: value.trim().toLowerCase(),
-                          leagueID: widget.league.leagueID,
-                          marketType: widget.marketType,
-                          alreadyLoaded: _defaultMarketFetcher.loadedResults
-                        );
+                            search: value.trim().toLowerCase(),
+                            leagueID: widget.league.leagueID,
+                            marketType: widget.marketType,
+                            alreadyLoaded: _defaultMarketFetcher.loadedResults);
                         await _searchQueryMarketFetcher.get10();
                         _selectedMarketFetcher = _searchQueryMarketFetcher;
                         setState(() {});
@@ -131,8 +131,7 @@ class MarketScrollState extends State<MarketScroll> with AutomaticKeepAliveClien
                     decoration: InputDecoration(
                       focusedBorder: InputBorder.none,
                       enabledBorder: InputBorder.none,
-                      hintText: formatTitle(
-                          'Search'),
+                      hintText: formatTitle('Search'),
                       icon: Icon(Icons.search),
                       suffixIcon: IconButton(
                         icon: Icon(Icons.clear),
@@ -167,7 +166,8 @@ class MarketScrollState extends State<MarketScroll> with AutomaticKeepAliveClien
                   child: Center(child: Text("Sorry, no results :'(")),
                 );
               } else {
-                return MarketTile(market: _selectedMarketFetcher.loadedResults[index - 1], league: widget.league);
+                return MarketTile(
+                    market: _selectedMarketFetcher.loadedResults[index - 1], league: widget.league);
               }
             },
             separatorBuilder: (context, index) => Divider(

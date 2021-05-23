@@ -56,6 +56,42 @@ Future<Map<String, dynamic>> getHistoricalX(String market) async {
   }
 }
 
+Future<Map<String, Map>> getMultipleCurrentX(List<String> markets) async {
+  Uri url = currentMultipleXURL(markets);
+
+  if (markets.length == 0) {
+    print('getMultipleCurrentX: No markets passed!');
+    return null;
+  }
+
+  var response = await http.get(url, headers: {'Authorization': await AuthService().getJWTToken()});
+  if (response.statusCode == 200) {
+    Map<String, Map> jsonResponse = Map<String, Map>.from(convert.jsonDecode(response.body));
+    return jsonResponse;
+  } else {
+    print('Request getcurrentX failed with status: ${response.statusCode}.');
+    return null;
+  }
+}
+
+Future<Map<String, Map>> getMultipleHistoricalX(List<String> markets) async {
+  Uri url = historicalMultipleXURL(markets);
+
+  if (markets.length == 0) {
+    print('getMultipleHistoricalX: No markets passed!');
+    return null;
+  }
+
+  var response = await http.get(url, headers: {'Authorization': await AuthService().getJWTToken()});
+  if (response.statusCode == 200) {
+    Map<String, Map> jsonResponse = Map<String, Map>.from(convert.jsonDecode(response.body));
+    return jsonResponse;
+  } else {
+    print('Request getcurrentX failed with status: ${response.statusCode}.');
+    return null;
+  }
+}
+
 Future<Map<String, dynamic>> makePurchaseRequest(
   String market,
   String portfolio,

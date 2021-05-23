@@ -45,6 +45,7 @@ class MarketFetcher {
   }
 
   Future<void> get10() async {
+
     if (!finished) {
       QuerySnapshot results;
 

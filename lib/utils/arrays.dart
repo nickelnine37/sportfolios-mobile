@@ -34,7 +34,7 @@ List<double> linspace(double start, double stop, int N) {
   });
 }
 
-double dotProduct(List array1, List array2) {
+double dotProduct(List<num> array1, List<num> array2) {
 
   double total = 0;
 
@@ -45,6 +45,19 @@ double dotProduct(List array1, List array2) {
   return total;
 
 }
+
+double doubleDotProduct(List<double> array1, List<double> array2) {
+
+  double total = 0;
+
+  for (int i=0; i<array1.length; i++) {
+    total += array1[i] * array2[i];
+  }
+
+  return total;
+
+}
+
 
 List<double> matrixMultiplyDoubleDouble (List<List<double>> transposedMatrix, List<double> array) {
 
@@ -97,27 +110,45 @@ List<double> matrixMultiply(List<List<dynamic>> transposedMatrix, List array) {
   return out;
 }
 
-List<double> zeros(int N) {
+List<int> zeros(int N) {
     return List.generate(N, (int i) => 0);
 }
 
-List<double> ones(int N) {
+List<int> ones(int N) {
     return List.generate(N, (int i) => 1);
 }
 
-List<double> ns(int N, double n) {
+List<num> ns(int N, num n) {
     return List.generate(N, (int i) => n);
 }
 
 
 double getMax (List<double> y) {
+  if (y.length == 0) {
+    return null;
+  }
+  else if (y.length == 1) {
+    return y[0];
+  }
   return y.reduce(math.max);
 }
 
-int argMax (List<double> y) {
+int argMax (List<num> y) {
+    if (y.length == 0) {
+    return null;
+  }
+  else if (y.length == 1) {
+    return 0;
+  }
   return range(y.length).reduce((prev, cur) => y[prev] > y[cur] ? prev : cur);
 }
 
-dynamic getSum (List y) {
+dynamic getSum (List<num> y) {
+    if (y.length == 0) {
+    return null;
+  }
+  else if (y.length == 1) {
+    return y[0];
+  }
   return y.fold(0, (p, c) => p + c);
 }

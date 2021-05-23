@@ -2,6 +2,7 @@ import 'dart:ui';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:sportfolios_alpha/data/firebase/portfolios.dart';
+import 'package:sportfolios_alpha/plots/donut_chart.dart';
 import 'package:sportfolios_alpha/providers/authenication_provider.dart';
 import 'package:sportfolios_alpha/data/objects/portfolios.dart';
 
@@ -20,21 +21,21 @@ class _PortfolioPageState extends State<PortfolioPage> {
     super.initState();
     portfoliosFuture = _getPortfolios();
   }
+ 
 
-  /// To be called when the portfolio page is initialised. This will load
-  /// the user's portfolios from firebase. It returns a list of [Portfolio]s
   Future<List<Portfolio>> _getPortfolios() async {
-    // load the entry in the users collection for the current user
-    // this is where a list of their portfolios is located
+
     DocumentSnapshot result =
         await FirebaseFirestore.instance.collection('users').doc(AuthService().currentUid).get();
 
-    // this is what we want to return: it contains a list of <Portfoilio> objects
     List<Portfolio> userPortfolios = [];
 
-    // iterate through the array containing the list of documentIDs for their portfolios
     for (String portfolioId in result['portfolios']) {
-      Portfolio portfolio = await getDeepPortfolioById(portfolioId);
+      Portfolio portfolio = await getPortfolioById(portfolioId);
+      await portfolio.updateMarketsCurrentX();
+      await portfolio.updateMarketsHistoricalX();
+      portfolio.computeCurrentValue();
+      portfolio.computeHistoricalValue();
       userPortfolios.add(portfolio);
     }
 
@@ -110,9 +111,12 @@ class _PortfolioPageState extends State<PortfolioPage> {
                           },
                         );
 
-                        setState(() {
-                          _selectedPortfolio = newlySelectedPortfolio;
-                        });
+                        if (newlySelectedPortfolio != null) {
+                          setState(() {
+                            _selectedPortfolio = newlySelectedPortfolio;
+                          });
+                        }
+
                         // if (newlySelectedLeague != null && newlySelectedLeague != selectedLeagueId) {
                         //   prefs.setInt('selectedLeague', newlySelectedLeague);
                         //   setState(() {
@@ -213,7 +217,7 @@ class _CompositionState extends State<Composition> {
   @override
   Widget build(BuildContext context) {
     return Column(
-        // children: [AnimatedDonutChart(portfolio: widget.portfolio)],
+        children: [AnimatedDonutChart(portfolio: widget.portfolio)],
         );
   }
 }
