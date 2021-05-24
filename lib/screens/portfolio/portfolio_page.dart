@@ -5,6 +5,8 @@ import 'package:sportfolios_alpha/data/firebase/portfolios.dart';
 import 'package:sportfolios_alpha/plots/donut_chart.dart';
 import 'package:sportfolios_alpha/providers/authenication_provider.dart';
 import 'package:sportfolios_alpha/data/objects/portfolios.dart';
+import 'package:sportfolios_alpha/screens/portfolio/composition.dart';
+import 'package:sportfolios_alpha/screens/portfolio/history.dart';
 
 class PortfolioPage extends StatefulWidget {
   @override
@@ -205,38 +207,8 @@ class _PortfolioPageState extends State<PortfolioPage> {
   }
 }
 
-class Composition extends StatefulWidget {
-  final Portfolio portfolio;
-  Composition(this.portfolio);
 
-  @override
-  _CompositionState createState() => _CompositionState();
-}
 
-class _CompositionState extends State<Composition> {
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-        children: [AnimatedDonutChart(portfolio: widget.portfolio)],
-        );
-  }
-}
-
-class History extends StatefulWidget {
-  final Portfolio portfolio;
-  History(this.portfolio);
-  @override
-  _HistoryState createState() => _HistoryState();
-}
-
-class _HistoryState extends State<History> {
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      child: Text('key'),
-    );
-  }
-}
 
 class PortfolioSelectorDialogue extends StatelessWidget {
   final List<Portfolio> portfolios;

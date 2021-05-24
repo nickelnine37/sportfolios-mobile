@@ -407,7 +407,7 @@ class TouchLinePainter extends CustomPainter {
       ..shader = ui.Gradient.radial(Offset(touchX, touchY), size.height / 2.5, [
         Colors.grey[800].withOpacity(0.8),
         Colors.grey[800].withOpacity(0),
-      ]);
+      ]); 
     Paint circlePaint = Paint()
       ..color = Colors.grey
       ..style = PaintingStyle.stroke

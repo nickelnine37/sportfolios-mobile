@@ -16,7 +16,7 @@ class Portfolio {
   double currentValue; // latest value of whole portfolio
   Map<String, double> currentValues = Map<String, double>(); // latest value of individual constituents
   Map<String, List<double>> currentQuantities =
-      Map<String, List<double>>(); // latest quantity vectors of individual constituents
+  Map<String, List<double>>(); // latest quantity vectors of individual constituents
   bool setCurrentX = false; // whether current X values have been computed
 
   bool setHistoricalX = false;

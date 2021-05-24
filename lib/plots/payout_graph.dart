@@ -7,82 +7,7 @@ import 'package:sportfolios_alpha/utils/arrays.dart';
 import 'package:sportfolios_alpha/utils/number_format.dart';
 import 'package:sportfolios_alpha/utils/string_utils.dart';
 
-// class TabbedPayoutGraph extends StatefulWidget {
-//   final List<double> p1;
-//   final List<double> p2;
-//   final Color color;
-//   TabbedPayoutGraph(this.p1, this.p2, this.color);
 
-//   @override
-//   _TabbedPayoutGraphState createState() => _TabbedPayoutGraphState();
-// }
-
-// class _TabbedPayoutGraphState extends State<TabbedPayoutGraph> with SingleTickerProviderStateMixin {
-//   TabController _tabController;
-
-//   @override
-//   void initState() {
-//     _tabController = TabController(length: 2, vsync: this);
-//     _tabController.addListener(() {
-//       print('my index is' + _tabController.index.toString());
-//     });
-//     super.initState();
-//   }
-
-//   @override
-//   void dispose() {
-//     _tabController.dispose();
-//     super.dispose();
-//   }
-
-//   @override
-//   Widget build(BuildContext context) {
-//     return DefaultTabController(
-//       length: 2,
-//       child: Column(
-//         mainAxisSize: MainAxisSize.min,
-//         crossAxisAlignment: CrossAxisAlignment.start,
-//         children: <Widget>[
-//           Container(
-//             // width: MediaQuery.of(context).size.width * 0.7,
-//             child: Center(
-//               child: Container(
-//                 width: 200,
-//                 height: 30,
-//                 padding: EdgeInsets.only(bottom: 5, top: 2, left: 3, right: 3),
-//                 child: TabBar(
-//                   labelColor: Colors.grey[900],
-//                   unselectedLabelColor: Colors.grey[400],
-//                   indicatorColor: Colors.grey[600],
-//                   indicatorWeight: 1,
-//                   controller: _tabController,
-//                   labelPadding: EdgeInsets.symmetric(horizontal: 2, vertical: 2),
-//                   indicatorSize: TabBarIndicatorSize.label,
-//                   tabs: [
-//                     Tab(child: Text('BACK', style: TextStyle(fontSize: 15, fontWeight: FontWeight.w500))),
-//                     Tab(child: Text('LAY', style: TextStyle(fontSize: 15, fontWeight: FontWeight.w500))),
-//                   ],
-//                 ),
-//               ),
-//             ),
-//           ),
-//           Container(
-//             child: AnimatedBuilder(
-//                 animation: _tabController.animation,
-//                 builder: (BuildContext context, snapshot) {
-//                   return TrueStaticPayoutGraph(
-//                       matrixMultiply(
-//                         [widget.p1, widget.p2],
-//                         [1 - _tabController.animation.value, _tabController.animation.value],
-//                       ),
-//                       widget.color);
-//                 }),
-//           ),
-//         ],
-//       ),
-//     );
-//   }
-// }
 
 class TrueStaticPayoutGraph extends StatefulWidget {
   final List<double> payouts;
@@ -313,14 +238,7 @@ class _StaticPayoutGraphState extends State<StaticPayoutGraph> {
         ),
       ],
     );
-  } // decoration: BoxDecoration(
-  //   color: Colors.black.withOpacity(0.05),
-  //   borderRadius: BorderRadius.all(Radius.circular(5.0)),
-  //   border: Border.all(
-  //     color: Colors.grey[500],
-  //     width: 1,
-  //   ),
-  // ),
+  } 
 }
 
 class Bar extends CustomPainter {

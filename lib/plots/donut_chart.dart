@@ -1,3 +1,5 @@
+import 'dart:collection';
+import 'dart:ui' as ui;
 import 'package:flutter/material.dart';
 import 'package:sportfolios_alpha/data/objects/portfolios.dart';
 import 'package:sportfolios_alpha/utils/arrays.dart';
@@ -11,7 +13,7 @@ double _pi = 3.1415926535;
 /// chart here, such as the value of each asset and where the bin edges start and stop.
 class AnimatedDonutChart extends StatefulWidget {
   final Portfolio portfolio;
-  AnimatedDonutChart({this.portfolio});
+  AnimatedDonutChart(this.portfolio);
 
   @override
   _AnimatedDonutChartState createState() => _AnimatedDonutChartState();
@@ -22,20 +24,32 @@ class _AnimatedDonutChartState extends State<AnimatedDonutChart> {
   // unless I keep shifting its end value on each rebuild. So basically, its
   // incremented by one, and then the relevant amount is subtracted off endValue
   double endValue = 0;
+  List<double> binEdges;
+  LinkedHashMap<String, double> sortedValues;
+  double radius = 100;
 
   @override
   Widget build(BuildContext context) {
     // do some pre-computation here
-    List<double> _values =  widget.portfolio.currentValues.values.toList();
-    List<double> _binEdges = [0.0];
+    if (sortedValues == null) {
+      // sort the portfolios value map, ordered by asset value
 
-    // note, bin edges are cacluated in metric angle! i.e. 0=>0, 2pi=>1
-    double _runningTotal = 0;
-    for (double value in widget.portfolio.currentValues.values) {
-      _runningTotal += value;
-      _binEdges.add(_runningTotal / widget.portfolio.currentValue);
+      sortedValues = LinkedHashMap.fromIterable(
+          widget.portfolio.currentValues.keys.toList(growable: false)
+            ..sort(
+                (k1, k2) => widget.portfolio.currentValues[k1].compareTo(widget.portfolio.currentValues[k2])),
+          key: (k) => k,
+          value: (k) => widget.portfolio.currentValues[k]);
     }
 
+    if (binEdges == null) {
+      binEdges = [0];
+      double runningTotal = 0;
+      for (double value in widget.portfolio.currentValues.values) {
+        runningTotal += value;
+        binEdges.add(runningTotal / widget.portfolio.currentValue);
+      }
+    }
     // increment endValue here
     endValue += 1;
 
@@ -47,8 +61,8 @@ class _AnimatedDonutChartState extends State<AnimatedDonutChart> {
       builder: (_, double percentComlpete, __) {
         return PieChart(
           portfolio: widget.portfolio,
-          marketValues: _values,
-          binEdges: _binEdges,
+          values: sortedValues,
+          edges: binEdges,
           percentComplete: 1 + percentComlpete - endValue, // hacky business
         );
       },
@@ -64,14 +78,14 @@ class _AnimatedDonutChartState extends State<AnimatedDonutChart> {
 /// precompute these things and pass them as an argument.
 class PieChart extends StatefulWidget {
   final Portfolio portfolio;
-  final List<double> marketValues;
-  final List<double> binEdges;
+  final LinkedHashMap<String, double> values;
+  final List<double> edges;
   final double percentComplete;
 
   PieChart({
     @required this.portfolio,
-    @required this.marketValues,
-    @required this.binEdges,
+    @required this.values,
+    @required this.edges,
     @required this.percentComplete,
   });
 
@@ -83,8 +97,13 @@ class _PieChartState extends State<PieChart> {
   // these will be the width and height of the container holding
   // the donut chart iteself.
   double width;
-  double height;
+  double radius = 115;
+  double height = 1.5 * (115 * 2);
   int nMarkets;
+
+  // aimation values
+  double widthIncrese = 8;
+  int growTime = 150;
 
   // initialise this as zero to avoid a null error
   // it takes a bit of time for initState to work
@@ -94,54 +113,37 @@ class _PieChartState extends State<PieChart> {
   int selectedSegment;
   String portfolioName;
 
-  // this refers to the information on the left that needs to change
-  // when a segment is selected
-  // [asset] refers to the selected asset/segment. needs to be dynamic as sometimes
-  // it can be a specific Market, sometimes it can be a Portfolio
-  dynamic asset;
+  int previousSegment;
+  int currentSegment;
 
-  // wf1 => how much of the total screen width should the pie chart container take?
-  // wf2 => how much of the donut chart container should the actual donut take?
-  final double widthFactor1 = 0.65;
-  final double widthFactor2 = 0.6;
+  double widthFactor2;
+
+  List<Widget> segments;
 
   @override
   void initState() {
     super.initState();
     centerText = widget.portfolio.currentValue;
-    nMarkets = widget.marketValues.length;
+    nMarkets = widget.values.length;
     portfolioName = widget.portfolio.name;
   }
 
   @override
   Widget build(BuildContext context) {
+    widthFactor2 = 0.57;
 
-    print(widget.binEdges);
     // set the widget width to be [widthFactor1] of the screen real estate
     // this must be done at build time
-    if (this.width == null) {
-      this.width = MediaQuery.of(context).size.width * widthFactor1;
-      this.height = this.width;
+    if (width == null) {
+      width = MediaQuery.of(context).size.width;
     }
-
     if (portfolioName != null) {
       if (portfolioName != widget.portfolio.name) {
         spinning = true;
         centerText = widget.portfolio.currentValue;
         portfolioName = widget.portfolio.name;
-        asset = widget.portfolio;
-        // nMarkets = widget.portfolio.amounts.length;
+        nMarkets = widget.values.length;
       }
-    }
-
-    // If we're still spinning up, just paint all segments with full opacity
-    // this needs to be called on each build, as percentComplete is changing
-    if (spinning) {
-      this.segmentPainters = _getRefreshedSegnentPainers();
-    }
-
-    if (asset == null) {
-      asset = widget.portfolio;
     }
 
     if (widget.percentComplete == 1) {
@@ -150,72 +152,105 @@ class _PieChartState extends State<PieChart> {
 
     // Container for central text. Change opacity with percentComplete
     Center centralText = Center(
-      child: Text(
-            '${formatCurrency(centerText, "GBP")}',
-            style: TextStyle(
-              fontWeight: FontWeight.w300,
-              fontSize: 26,
-              color: Colors.grey[800].withOpacity(widget.percentComplete),
-            ),
-          )
-    );
+        child: Text(
+      '${currentSegment == null ? "Current value" : widget.portfolio.currentMarkets[widget.values.keys.toList()[currentSegment]].name}\n${formatCurrency(centerText, "GBP")}',
+      textAlign: TextAlign.center,
+      style: TextStyle(
+        fontWeight: FontWeight.w300,
+        fontSize: 24,
+        color: Colors.grey[800].withOpacity(widget.percentComplete),
+      ),
+    ));
 
-    double amount = (this.selectedSegment == null) ? 1 : 0; // widget.portfolio.amounts[this.selectedSegment];
 
-    return Column(
-      children: [
-        Center(
-          child: Container(
-            child: Center(
-              child: Text(
-                this.selectedSegment == null ? 'Portfolio Overview' : '${asset.name}',
-                // asset.name + "${this.selectedSegment == null ? '' : ' (${asset.longShort})'}",
-                style: TextStyle(fontSize: 20, fontWeight: FontWeight.w300),
-              ),
-            ),
-            padding: EdgeInsets.only(top: 10),
-          ),
-        ),
-        GestureDetector(
-          onTapDown: (details) {
-            if (widget.percentComplete == 1) {
-              setState(() {
-                highlightSegment(details.localPosition);
-              });
-            }
-          },
-          // our outer container takes up the full this.width (which was 70% of
-          // the entire screen space).
-          // The inner container (where we paint) takes up 60% of `this` space
-          child: Container(
-            width: this.width,
-            height: this.width,
-            child: Center(
-              child: Stack(
-                children: <Widget>[
-                      centralText,
-                      // Center(
-                      //   child: CustomPaint(
-                      //     painter: DonutShadowPainter(percentComplete: widget.percentComplete),
-                      //     size: Size(this.width * widthFactor2, this.width * widthFactor2),
-                      //   ),
-                      // )
-                    ] +
-                    segmentPainters
-                        .map(
-                          (segment) => Center(
+    return GestureDetector(
+      onTapDown: (details) {
+        if (widget.percentComplete == 1) {
+          selectSegment(details.localPosition);
+        }
+      },
+      child: Container(
+        width: width,
+        height: height,
+        child: Center(
+          child: Stack(
+              children: <Widget>[centralText] +
+                  range(nMarkets).map((int i) {
+                    if (spinning) {
+                      return Center(
+                        child: CustomPaint(
+                            size: Size(2 * radius, 2 * radius),
+                            painter: DonutSegmentPainter(
+                                start: widget.percentComplete * widget.edges[i],
+                                end: widget.percentComplete * widget.edges[i + 1],
+                                color: getColorCycle(i, nMarkets),
+                                opacity: 1,
+                                strokeWidth: 20)),
+                      );
+                    }
+
+                    if (i == currentSegment) {
+                      return TweenAnimationBuilder(
+                        curve: Curves.easeOutSine,
+                        duration: Duration(milliseconds: growTime),
+                        // insert endValue here
+                        tween: Tween<double>(begin: 0, end: 1),
+                        builder: (_, double percentComplete, __) {
+                          return Center(
                             child: CustomPaint(
-                              painter: segment,
-                              size: Size(this.width * widthFactor2, this.width * widthFactor2),
-                            ),
-                          ),
-                        )
-                        .toList(),
-              ),
-            ),
-          ),
+                                size: Size(2 * radius + widthIncrese * percentComplete,
+                                    2 * radius + widthIncrese * percentComplete),
+                                painter: DonutSegmentPainter(
+                                    start: widget.edges[i],
+                                    end: widget.edges[i + 1],
+                                    color: getColorCycle(i, nMarkets),
+                                    opacity: previousSegment == null ? 1 : 0.5 + percentComplete * 0.5,
+                                    strokeWidth: 20 + widthIncrese * percentComplete)),
+                          );
+                        },
+                      );
+                    } else if (i == previousSegment) {
+                      return TweenAnimationBuilder(
+                        curve: Curves.easeOutSine,
+                        duration: Duration(milliseconds: growTime),
+                        // insert endValue here
+                        tween: Tween<double>(begin: 1, end: 0),
+                        builder: (_, double percentComplete, __) {
+                          return Center(
+                            child: CustomPaint(
+                                size: Size(2 * radius + widthIncrese * percentComplete,
+                                    2 * radius + widthIncrese * percentComplete),
+                                painter: DonutSegmentPainter(
+                                    start: widget.edges[i],
+                                    end: widget.edges[i + 1],
+                                    color: getColorCycle(i, nMarkets),
+                                    opacity: currentSegment == null ? 1 : 0.5 + percentComplete * 0.5,
+                                    strokeWidth: 20 + widthIncrese * percentComplete)),
+                          );
+                        },
+                      );
+                    } else {
+                      return TweenAnimationBuilder(
+                        curve: Curves.easeOutSine,
+                        duration: Duration(milliseconds: growTime),
+                        tween: new Tween<double>(begin: 0, end: 1),
+                        builder: (_, double percentComplete, __) {
+                          return Center(
+                            child: CustomPaint(
+                                size: Size(2 * radius, 2 * radius),
+                                painter: DonutSegmentPainter(
+                                    start: widget.edges[i],
+                                    end: widget.edges[i + 1],
+                                    color: getColorCycle(i, nMarkets),
+                                    opacity: currentSegment == null ? 0.5 + percentComplete * 0.5 : 1 - percentComplete * 0.5,
+                                    strokeWidth: 20)),
+                          );
+                        },
+                      );
+                    }
+                  }).toList()),
         ),
-      ],
+      ),
     );
   }
 
@@ -223,11 +258,10 @@ class _PieChartState extends State<PieChart> {
   /// by the user, and then calculates which segment of the donut should be highlighted.
   int _getSegmentNumber(Offset offset) {
     // translate coordinates so that the origin is central
-    Offset coords = offset - Offset(this.width / 2, this.height / 2);
+    Offset coords = offset - Offset(width / 2, height / 2);
 
     // if outside of a given radius, deselect all
-    if (coords.distance < 0.35 * (this.width * widthFactor2) ||
-        coords.distance > 0.65 * (this.width * widthFactor2)) {
+    if (coords.distance < 0.7 * radius || coords.distance > 1.3 * radius) {
       return null;
     }
 
@@ -242,7 +276,7 @@ class _PieChartState extends State<PieChart> {
 
     while (lo < hi) {
       mid = (lo + hi) ~/ 2;
-      if (widget.binEdges[mid] < turn)
+      if (widget.edges[mid] < turn)
         lo = mid + 1;
       else
         hi = mid;
@@ -251,183 +285,58 @@ class _PieChartState extends State<PieChart> {
     return lo - 1;
   }
 
-  /// Helper function to return a painter for arc number i, with a given opacity
-  DonutSegmentPainter newSegment(int i, double opacity) {
-    return DonutSegmentPainter(
-        label: 'widget.portfolio.currentMarkets[i].name',
-        start: widget.percentComplete * widget.binEdges[i],
-        end: widget.percentComplete * widget.binEdges[i + 1],
-        color: getColorCycle(i, nMarkets),
-        opacity: opacity);
-  }
-
-  /// Helper function to return a list of arc painters all with opacity 0.9
-  List<DonutSegmentPainter> _getRefreshedSegnentPainers() {
-    return range(nMarkets).map((i) => newSegment(i, 0.9)).toList();
-  }
-
   /// given that a tap just happened at [offset], highlight the apropriate pie segment
   /// and make other changes to the UI such as changing the central value figure and
   /// information bar
-  void highlightSegment(Offset offset) {
+  void selectSegment(Offset offset) {
     int newSelectedSegment = _getSegmentNumber(offset);
 
-    if (newSelectedSegment == this.selectedSegment) {
-      // no need to do anything
+    if (newSelectedSegment == currentSegment) {
       return;
     }
 
-    if (newSelectedSegment == null) {
-      // we just deselected everything, so highlight all
-
-      this.segmentPainters = _getRefreshedSegnentPainers();
-      centerText = widget.portfolio.currentValue;
-      asset = widget.portfolio;
-    }
-
-    // handle two situations differently:
-    // 1. we curently have no selected segment
-    // 2. we have a currently selected segment
-
-    else {
-      if (this.selectedSegment == null) {
-        // should dull all segments except newly selected one
-        this.segmentPainters =
-            range(nMarkets).map((i) => newSegment(i, i == newSelectedSegment ? 1.0 : 0.5)).toList();
-      } else {
-        // just need to dull currently selected segment and highligh new segment
-        this.segmentPainters[newSelectedSegment] = newSegment(newSelectedSegment, 1.0);
-        this.segmentPainters[this.selectedSegment] = newSegment(this.selectedSegment, 0.5);
-      }
-
-      centerText = widget.marketValues[newSelectedSegment];
-      asset = widget.portfolio.currentMarkets[newSelectedSegment];
-    }
-
-    this.selectedSegment = newSelectedSegment;
+    setState(() {
+      previousSegment = currentSegment;
+      currentSegment = newSelectedSegment;
+      centerText = newSelectedSegment == null
+          ? widget.portfolio.currentValue
+          : widget.values.values.toList()[newSelectedSegment];
+    });
   }
 }
 
-/// helper function to reduce boilerplate
-/// just returns a column containing the text followed
-/// by the formated returns
-Widget _portfolioInfoBox(
-  String text,
-  double retrn,
-  double valueChange,
-  double opacity,
-  String currency,
-) {
-  return Column(
-    children: [
-      Center(
-          child: Text(
-        text,
-        style: TextStyle(fontWeight: FontWeight.w400, color: Colors.grey[800].withOpacity(opacity)),
-      )),
-      SizedBox(height: 4),
-      Center(
-        child: Text(
-          '${retrn >= 0 ? "+" : "-"}' +
-              formatPercentage(retrn.abs(), currency) +
-              '  (${retrn >= 0 ? "+" : "-"}' +
-              formatCurrency(valueChange.abs(), currency) +
-              ')',
-          style: TextStyle(
-            fontSize: 12,
-            color: retrn >= 0 ? Colors.green.withOpacity(opacity) : Colors.red.withOpacity(opacity),
-          ),
-        ),
-      ),
-    ],
-  );
-}
-
-/// Painter that draws an arc segment of a pie chart
-/// [label] sets the text to be displayes in the center of the arc
-/// [start] is a number from 0-1 that sets the position round the circle to
-/// begin drawing
-/// [end] is the same, but from the end
-/// [color] and [opacity] do what you'd expect
 class DonutSegmentPainter extends CustomPainter {
-  final String label;
   final double start;
   final double end;
   final Color color;
   final double opacity;
+  final double strokeWidth;
   // hacky - but this needs to be set in two places
   final double widthFactor2 = 0.6;
 
   DonutSegmentPainter({
-    @required this.label,
     @required this.start,
     @required this.end,
     @required this.color,
     @required this.opacity,
+    @required this.strokeWidth,
   });
 
   @override
   void paint(Canvas canvas, Size size) {
-    // paint for the arc
-    Paint arcPaint = Paint()
-      ..color = this.color.withOpacity(this.opacity)
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = 15;
+    
+    double startAngle = 2 * _pi * (start - 0.25);
+    double endAngle = 2 * _pi * (end - start);
 
-    // Paint shadowPaint = Paint()
-    //   ..color = Colors.grey[500].withOpacity(this.opacity)
-    //   ..style = PaintingStyle.stroke
-    //   ..strokeWidth = 15
-    //   ..maskFilter = MaskFilter.blur(BlurStyle.normal, 5);
+    Paint arcPaint = Paint()
+      ..color = color.withOpacity(opacity)
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = strokeWidth;
 
     Path path = Path();
-    double startAngle = 2 * _pi * (this.start - 0.25);
-    double endAngle = 2 * _pi * (this.end - this.start);
 
     path.addArc(Rect.fromLTWH(0, 0, size.width, size.height), startAngle, endAngle);
-
-    // canvas.drawPath(path.shift(Offset(2, 2)), shadowPaint);
     canvas.drawPath(path, arcPaint);
-
-    // draw an arc based on the canvas size
-    // this is that 70% of 70%!
-    // canvas.drawArc(Rect.fromLTWH(0, 0, size.width, size.height), 2 * _pi * (this.start - 0.25),
-    //     2 * _pi * (this.end - this.start), false, paint);
-
-    // lets only paint the labels on if:
-    // 1. This segment is selected, or
-    // 2. the market takes up more than 8% of the portfolio
-    // otherwiss will get very crowded
-
-    if (this.opacity == 1 || (this.end - this.start) > 0.08) {
-      // painter for the market labels round the arc
-      TextPainter textPainter = TextPainter(
-        text: TextSpan(
-          text: this.label,
-          style: TextStyle(
-            shadows: [
-              Shadow(
-                blurRadius: 2.0,
-                color: Colors.grey[100],
-                offset: Offset(1, 0),
-              )
-            ],
-            color: Colors.grey[850].withOpacity(this.opacity),
-            fontSize: 13.5,
-            fontWeight: FontWeight.w400,
-          ),
-        ),
-        textDirection: TextDirection.ltr,
-        textAlign: TextAlign.center,
-      );
-
-      textPainter.layout(minWidth: 0, maxWidth: 0.5 * size.width * (1 / widthFactor2 - 1));
-      textPainter.paint(
-          canvas,
-          Offset.fromDirection(_pi * (this.end + this.start - 0.5), size.width * widthFactor2) +
-              Offset(
-                  0.5 * size.width - (textPainter.width / 2), 0.5 * size.width - (textPainter.height / 2)));
-    }
   }
 
   @override
@@ -435,36 +344,3 @@ class DonutSegmentPainter extends CustomPainter {
     return true;
   }
 }
-
-class DonutShadowPainter extends CustomPainter {
-  final double percentComplete;
-
-  // hacky - but this needs to be set in two places
-  final double widthFactor2 = 0.6;
-
-  DonutShadowPainter({
-    @required this.percentComplete,
-  });
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    Paint shadowPaint = Paint()
-      ..color = Colors.grey[500]
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = 15
-      ..maskFilter = MaskFilter.blur(BlurStyle.normal, 5);
-
-    Path path = Path();
-    double startAngle = -_pi / 2;
-    double endAngle = 2 * _pi * (this.percentComplete);
-
-    path.addArc(Rect.fromLTWH(2.5, 2.5, size.width - 5, size.height - 5), startAngle, endAngle);
-    canvas.drawPath(path, shadowPaint);
-  }
-
-  @override
-  bool shouldRepaint(covariant CustomPainter oldDelegate) {
-    return true;
-  }
-}
-

@@ -724,3 +724,51 @@ class SwipeDownTopBarPainter extends CustomPainter {
   @override
   bool shouldRepaint(CustomPainter oldDelegate) => false;
 }
+
+// TODO: add countdown timer
+class SecondsLinearProgress extends StatefulWidget {
+  final timeout;
+  final _total;
+
+  SecondsLinearProgress(this._total, {this.timeout});
+
+  @override
+  _SecondsLinearProgressState createState() => _SecondsLinearProgressState(timeout != null ? timeout : _total, _total);
+}
+
+class _SecondsLinearProgressState extends State<SecondsLinearProgress> with SingleTickerProviderStateMixin {
+  AnimationController controller;
+  Animation<double> animation;
+  int _timeout;
+  int _total;
+
+  _SecondsLinearProgressState(this._timeout, this._total);
+
+  @override
+  void initState() {
+    super.initState();
+    controller = AnimationController(duration: Duration(seconds: _timeout), vsync: this);
+    animation = Tween(begin: _timeout.toDouble() / _total.toDouble(), end: 0.0).animate(controller)
+      ..addListener(() {
+        setState(() {});
+      });
+    controller.forward();
+  }
+
+  @override
+  void dispose() {
+    controller.stop();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return new Container(
+      child: LinearProgressIndicator(
+        value: animation.value,
+        backgroundColor: Colors.black26,
+        valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+      ),
+    );
+  }
+}
