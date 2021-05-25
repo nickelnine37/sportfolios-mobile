@@ -1,10 +1,27 @@
 import 'dart:collection';
-import 'dart:ui' as ui;
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:sportfolios_alpha/data/objects/portfolios.dart';
 import 'package:sportfolios_alpha/utils/arrays.dart';
 import 'package:sportfolios_alpha/utils/colors.dart';
 import 'package:sportfolios_alpha/utils/number_format.dart';
+
+final selectedAssetProvider = ChangeNotifierProvider<SelectedAssetChangeNotifier>((ref) {
+  return SelectedAssetChangeNotifier();
+});
+
+class SelectedAssetChangeNotifier with ChangeNotifier {
+  String _asset;
+
+  String get asset => _asset;
+
+  void setAsset(String asset) {
+    if (_asset != asset) {
+      _asset = asset;
+      notifyListeners();
+    }
+  }
+}
 
 double _pi = 3.1415926535;
 
@@ -63,7 +80,8 @@ class _AnimatedDonutChartState extends State<AnimatedDonutChart> {
           portfolio: widget.portfolio,
           values: sortedValues,
           edges: binEdges,
-          percentComplete: 1 + percentComlpete - endValue, // hacky business
+          percentComplete: 1 + percentComlpete - endValue,
+          radius: 110, // hacky business
         );
       },
     );
@@ -81,12 +99,14 @@ class PieChart extends StatefulWidget {
   final LinkedHashMap<String, double> values;
   final List<double> edges;
   final double percentComplete;
+  final double radius;
 
   PieChart({
     @required this.portfolio,
     @required this.values,
     @required this.edges,
     @required this.percentComplete,
+    @required this.radius,
   });
 
   @override
@@ -94,31 +114,24 @@ class PieChart extends StatefulWidget {
 }
 
 class _PieChartState extends State<PieChart> {
-  // these will be the width and height of the container holding
-  // the donut chart iteself.
   double width;
-  double radius = 115;
-  double height = 1.5 * (115 * 2);
+  double height;
   int nMarkets;
 
   // aimation values
-  double widthIncrese = 8;
-  int growTime = 150;
+  double lowerWidth = 20;
+  double upperWidth = 25;
+  double lowerOpacity = 0.5;
+  double upperOpacity = 0.85;
+  int animationTime = 150;
 
   // initialise this as zero to avoid a null error
   // it takes a bit of time for initState to work
   double centerText = 0;
   bool spinning = true;
-  List segmentPainters = [];
-  int selectedSegment;
+
   String portfolioName;
-
-  int previousSegment;
   int currentSegment;
-
-  double widthFactor2;
-
-  List<Widget> segments;
 
   @override
   void initState() {
@@ -130,12 +143,11 @@ class _PieChartState extends State<PieChart> {
 
   @override
   Widget build(BuildContext context) {
-    widthFactor2 = 0.57;
-
-    // set the widget width to be [widthFactor1] of the screen real estate
-    // this must be done at build time
     if (width == null) {
       width = MediaQuery.of(context).size.width;
+    }
+    if (height == null) {
+      height = 1.5 * (widget.radius * 2);
     }
     if (portfolioName != null) {
       if (portfolioName != widget.portfolio.name) {
@@ -153,7 +165,7 @@ class _PieChartState extends State<PieChart> {
     // Container for central text. Change opacity with percentComplete
     Center centralText = Center(
         child: Text(
-      '${currentSegment == null ? "Current value" : widget.portfolio.currentMarkets[widget.values.keys.toList()[currentSegment]].name}\n${formatCurrency(centerText, "GBP")}',
+      '${currentSegment == null ? "Current value" : widget.portfolio.currentMarkets[widget.values.keys.toList()[currentSegment]].name}\n${formatCurrency(currentSegment == null ? widget.portfolio.currentValue : widget.values.values.toList()[currentSegment], "GBP")}',
       textAlign: TextAlign.center,
       style: TextStyle(
         fontWeight: FontWeight.w300,
@@ -162,11 +174,20 @@ class _PieChartState extends State<PieChart> {
       ),
     ));
 
-
     return GestureDetector(
       onTapDown: (details) {
         if (widget.percentComplete == 1) {
-          selectSegment(details.localPosition);
+          int newSelectedSegment = _getSegmentNumber(details.localPosition);
+
+          if (newSelectedSegment != currentSegment) {
+            // change notifier provider!
+            context.read(selectedAssetProvider).setAsset(
+                newSelectedSegment == null ? null : widget.values.keys.toList()[newSelectedSegment]);
+
+            setState(() {
+              currentSegment = newSelectedSegment;
+            });
+          }
         }
       },
       child: Container(
@@ -179,75 +200,41 @@ class _PieChartState extends State<PieChart> {
                     if (spinning) {
                       return Center(
                         child: CustomPaint(
-                            size: Size(2 * radius, 2 * radius),
+                            size: Size(2 * widget.radius, 2 * widget.radius),
                             painter: DonutSegmentPainter(
                                 start: widget.percentComplete * widget.edges[i],
                                 end: widget.percentComplete * widget.edges[i + 1],
                                 color: getColorCycle(i, nMarkets),
-                                opacity: 1,
-                                strokeWidth: 20)),
+                                opacity: upperOpacity,
+                                strokeWidth: lowerWidth)),
                       );
                     }
-
-                    if (i == currentSegment) {
-                      return TweenAnimationBuilder(
-                        curve: Curves.easeOutSine,
-                        duration: Duration(milliseconds: growTime),
-                        // insert endValue here
-                        tween: Tween<double>(begin: 0, end: 1),
-                        builder: (_, double percentComplete, __) {
-                          return Center(
-                            child: CustomPaint(
-                                size: Size(2 * radius + widthIncrese * percentComplete,
-                                    2 * radius + widthIncrese * percentComplete),
-                                painter: DonutSegmentPainter(
-                                    start: widget.edges[i],
-                                    end: widget.edges[i + 1],
-                                    color: getColorCycle(i, nMarkets),
-                                    opacity: previousSegment == null ? 1 : 0.5 + percentComplete * 0.5,
-                                    strokeWidth: 20 + widthIncrese * percentComplete)),
-                          );
-                        },
-                      );
-                    } else if (i == previousSegment) {
-                      return TweenAnimationBuilder(
-                        curve: Curves.easeOutSine,
-                        duration: Duration(milliseconds: growTime),
-                        // insert endValue here
-                        tween: Tween<double>(begin: 1, end: 0),
-                        builder: (_, double percentComplete, __) {
-                          return Center(
-                            child: CustomPaint(
-                                size: Size(2 * radius + widthIncrese * percentComplete,
-                                    2 * radius + widthIncrese * percentComplete),
-                                painter: DonutSegmentPainter(
-                                    start: widget.edges[i],
-                                    end: widget.edges[i + 1],
-                                    color: getColorCycle(i, nMarkets),
-                                    opacity: currentSegment == null ? 1 : 0.5 + percentComplete * 0.5,
-                                    strokeWidth: 20 + widthIncrese * percentComplete)),
-                          );
-                        },
-                      );
-                    } else {
-                      return TweenAnimationBuilder(
-                        curve: Curves.easeOutSine,
-                        duration: Duration(milliseconds: growTime),
-                        tween: new Tween<double>(begin: 0, end: 1),
-                        builder: (_, double percentComplete, __) {
-                          return Center(
-                            child: CustomPaint(
-                                size: Size(2 * radius, 2 * radius),
-                                painter: DonutSegmentPainter(
-                                    start: widget.edges[i],
-                                    end: widget.edges[i + 1],
-                                    color: getColorCycle(i, nMarkets),
-                                    opacity: currentSegment == null ? 0.5 + percentComplete * 0.5 : 1 - percentComplete * 0.5,
-                                    strokeWidth: 20)),
-                          );
-                        },
-                      );
-                    }
+                    return TweenAnimationBuilder(
+                      curve: Curves.easeOutSine,
+                      duration: Duration(milliseconds: animationTime),
+                      tween: Tween<Offset>(
+                          begin: Offset(upperOpacity, lowerWidth),
+                          end: currentSegment == i
+                              ? Offset(upperOpacity, upperWidth)
+                              : (currentSegment == null
+                                  ? Offset(upperOpacity, lowerWidth)
+                                  : Offset(lowerOpacity, lowerWidth))),
+                      builder: (_, Offset offset, __) {
+                        double opacity = offset.dx;
+                        double width = offset.dy;
+                        return Center(
+                          child: CustomPaint(
+                              size: Size(2 * widget.radius + (width - lowerWidth),
+                                  2 * widget.radius + (width - lowerWidth)),
+                              painter: DonutSegmentPainter(
+                                  start: widget.edges[i],
+                                  end: widget.edges[i + 1],
+                                  color: getColorCycle(i, nMarkets),
+                                  opacity: opacity,
+                                  strokeWidth: width)),
+                        );
+                      },
+                    );
                   }).toList()),
         ),
       ),
@@ -261,7 +248,7 @@ class _PieChartState extends State<PieChart> {
     Offset coords = offset - Offset(width / 2, height / 2);
 
     // if outside of a given radius, deselect all
-    if (coords.distance < 0.7 * radius || coords.distance > 1.3 * radius) {
+    if (coords.distance < 0.7 * widget.radius || coords.distance > 1.3 * widget.radius) {
       return null;
     }
 
@@ -284,25 +271,6 @@ class _PieChartState extends State<PieChart> {
 
     return lo - 1;
   }
-
-  /// given that a tap just happened at [offset], highlight the apropriate pie segment
-  /// and make other changes to the UI such as changing the central value figure and
-  /// information bar
-  void selectSegment(Offset offset) {
-    int newSelectedSegment = _getSegmentNumber(offset);
-
-    if (newSelectedSegment == currentSegment) {
-      return;
-    }
-
-    setState(() {
-      previousSegment = currentSegment;
-      currentSegment = newSelectedSegment;
-      centerText = newSelectedSegment == null
-          ? widget.portfolio.currentValue
-          : widget.values.values.toList()[newSelectedSegment];
-    });
-  }
 }
 
 class DonutSegmentPainter extends CustomPainter {
@@ -311,8 +279,6 @@ class DonutSegmentPainter extends CustomPainter {
   final Color color;
   final double opacity;
   final double strokeWidth;
-  // hacky - but this needs to be set in two places
-  final double widthFactor2 = 0.6;
 
   DonutSegmentPainter({
     @required this.start,
@@ -324,7 +290,6 @@ class DonutSegmentPainter extends CustomPainter {
 
   @override
   void paint(Canvas canvas, Size size) {
-    
     double startAngle = 2 * _pi * (start - 0.25);
     double endAngle = 2 * _pi * (end - start);
 
