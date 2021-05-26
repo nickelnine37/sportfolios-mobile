@@ -1,12 +1,17 @@
-import 'dart:collection';
-
 import 'package:flutter/material.dart';
 import 'package:sportfolios_alpha/data/objects/portfolios.dart';
 import 'package:sportfolios_alpha/utils/arrays.dart';
 import 'package:sportfolios_alpha/utils/colors.dart';
-import './pie_data.dart';
 
 double pi = 3.1415926535;
+
+class SegmentData {
+  final double percentage;
+  final Color colour;
+
+  SegmentData({this.percentage, this.colour});
+}
+
 
 class MiniDonutChart extends StatelessWidget {
   final Portfolio portfolio;

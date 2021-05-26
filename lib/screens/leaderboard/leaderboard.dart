@@ -22,9 +22,9 @@ class Leaderboard extends StatelessWidget {
         ),
         body: TabBarView(
           children: [
-            Text('Returns over 1 week for overall leaders!'),
-            Text('Returns over 1 month for overall leaders!'),
-            Text('Returns over season for overall leaders!'),
+            LeaderboardScroll('1w'),
+            LeaderboardScroll('1m'),
+            LeaderboardScroll('Max'),
           ],
         ),
       ),
@@ -41,7 +41,7 @@ class LeaderboardScroll extends StatefulWidget {
   _LeaderboardScrollState createState() => _LeaderboardScrollState();
 }
 
-class _LeaderboardScrollState extends State<LeaderboardScroll> {
+class _LeaderboardScrollState extends State<LeaderboardScroll> with AutomaticKeepAliveClientMixin{
   Future<List<Portfolio>> portfoliosFuture;
   List<Portfolio> portfolios;
 
@@ -64,7 +64,9 @@ class _LeaderboardScrollState extends State<LeaderboardScroll> {
     } else if (widget.timeHorizon == 'M') {
       // set portfolioSnapshots
     }
-    return portfolioSnapshots.map((DocumentSnapshot doc) => Portfolio.fromDocumentSnapshot(doc));
+    // simulate delay
+    await Future.delayed(Duration(seconds: 1));
+    return portfolioSnapshots.map((DocumentSnapshot doc) => Portfolio.fromDocumentSnapshot(doc)).toList();
   }
 
   @override
@@ -75,7 +77,7 @@ class _LeaderboardScrollState extends State<LeaderboardScroll> {
         if (snapshot.hasData) {
           // loading is done
           portfolios = snapshot.data;
-          return Container(); // ListView<PortfolioTile>? SingleChildScrollView<Column(PortfolioTile)>?
+          return Center(child: Text('${widget.timeHorizon} Done')); // ListView<PortfolioTile>? SingleChildScrollView<Column(PortfolioTile)>?
         } else {
           // loading is not done
           return Center(child: CircularProgressIndicator());
@@ -83,6 +85,9 @@ class _LeaderboardScrollState extends State<LeaderboardScroll> {
       },
     );
   }
+
+  @override
+  bool get wantKeepAlive => true;
 }
 
 
