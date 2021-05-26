@@ -42,31 +42,21 @@ class _AnimatedDonutChartState extends State<AnimatedDonutChart> {
   // incremented by one, and then the relevant amount is subtracted off endValue
   double endValue = 0;
   List<double> binEdges;
-  LinkedHashMap<String, double> sortedValues;
   double radius = 100;
 
   @override
   Widget build(BuildContext context) {
     // do some pre-computation here
-    if (sortedValues == null) {
-      // sort the portfolios value map, ordered by asset value
-
-      sortedValues = LinkedHashMap.fromIterable(
-          widget.portfolio.currentValues.keys.toList(growable: false)
-            ..sort(
-                (k1, k2) => widget.portfolio.currentValues[k1].compareTo(widget.portfolio.currentValues[k2])),
-          key: (k) => k,
-          value: (k) => widget.portfolio.currentValues[k]);
-    }
 
     if (binEdges == null) {
       binEdges = [0];
       double runningTotal = 0;
-      for (double value in widget.portfolio.currentValues.values) {
+      for (double value in widget.portfolio.sortedValues.values) {
         runningTotal += value;
         binEdges.add(runningTotal / widget.portfolio.currentValue);
       }
     }
+
     // increment endValue here
     endValue += 1;
 
@@ -78,7 +68,7 @@ class _AnimatedDonutChartState extends State<AnimatedDonutChart> {
       builder: (_, double percentComlpete, __) {
         return PieChart(
           portfolio: widget.portfolio,
-          values: sortedValues,
+          values: widget.portfolio.sortedValues,
           edges: binEdges,
           percentComplete: 1 + percentComlpete - endValue,
           radius: 110, // hacky business
@@ -147,7 +137,7 @@ class _PieChartState extends State<PieChart> {
       width = MediaQuery.of(context).size.width;
     }
     if (height == null) {
-      height = 1.5 * (widget.radius * 2);
+      height = 1.3 * (widget.radius * 2);
     }
     if (portfolioName != null) {
       if (portfolioName != widget.portfolio.name) {

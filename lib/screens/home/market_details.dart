@@ -15,9 +15,8 @@ import 'options/long_short.dart';
 
 class MarketDetails extends StatefulWidget {
   final Market market;
-  final League league;
 
-  MarketDetails(this.market, this.league);
+  MarketDetails(this.market);
 
   @override
   _MarketDetailsState createState() => _MarketDetailsState();
@@ -115,7 +114,7 @@ class _MarketDetailsState extends State<MarketDetails> {
               ],
             ),
             LeagueProgressBar(
-              league: widget.league,
+              leagueOrMarket: widget.market,
               textColor: textColor,
             ),
           ]),
@@ -145,8 +144,7 @@ class _MarketDetailsState extends State<MarketDetails> {
 
 class MarketPageHeader extends ConsumerWidget {
   final Market market;
-  final League league;
-  const MarketPageHeader(this.market, this.league);
+  const MarketPageHeader(this.market);
 
 
   @override
@@ -173,7 +171,7 @@ class MarketPageHeader extends ConsumerWidget {
                 Text('Expirey date'),
                 SizedBox(height: 3),
                 Text(
-                  DateFormat('d MMM yy').format(league.startDate),
+                  DateFormat('d MMM yy').format(market.startDate),
                   style: TextStyle(fontSize: 20, fontWeight: FontWeight.w300),
                 ),
               ],

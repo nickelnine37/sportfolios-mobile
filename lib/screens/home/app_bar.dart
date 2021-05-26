@@ -126,7 +126,7 @@ class _MainViewState extends State<MainView> {
                 ),
               ],
             ),
-            LeagueProgressBar(league: league),
+            LeagueProgressBar(leagueOrMarket: league),
           ]),
         ),
         body: TabBarView(
@@ -162,13 +162,13 @@ class _MainViewState extends State<MainView> {
 }
 
 class LeagueProgressBar extends StatelessWidget {
-  final League league;
+  final dynamic leagueOrMarket;
   final Color textColor;
   final Color paintColor1;
   final Color paintColor2;
 
   const LeagueProgressBar(
-      {this.league,
+      {this.leagueOrMarket,
       this.textColor = Colors.white,
       this.paintColor1 = Colors.blue,
       this.paintColor2 = Colors.grey});
@@ -182,12 +182,12 @@ class LeagueProgressBar extends StatelessWidget {
         Container(
             width: double.infinity,
             child:
-                CustomPaint(painter: LeagueProgressBarPainter(league, this.paintColor1, this.paintColor2))),
+                CustomPaint(painter: LeagueProgressBarPainter(leagueOrMarket, this.paintColor1, this.paintColor2))),
         SizedBox(height: 8),
         Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
-          Text(DateFormat('d MMM yy').format(league.startDate),
+          Text(DateFormat('d MMM yy').format(leagueOrMarket.startDate),
               style: TextStyle(fontSize: 14.0, color: textColor)),
-          Text(DateFormat('d MMM yy').format(league.endDate),
+          Text(DateFormat('d MMM yy').format(leagueOrMarket.endDate),
               style: TextStyle(fontSize: 14.0, color: textColor))
         ]),
       ]),
@@ -196,11 +196,11 @@ class LeagueProgressBar extends StatelessWidget {
 }
 
 class LeagueProgressBarPainter extends CustomPainter {
-  final League league;
+  final dynamic leagueOrMarket;
   final Color paintColor1;
   final Color paintColor2;
 
-  LeagueProgressBarPainter(this.league, this.paintColor1, this.paintColor2);
+  LeagueProgressBarPainter(this.leagueOrMarket, this.paintColor1, this.paintColor2);
 
   @override
   void paint(Canvas canvas, Size size) {
@@ -217,8 +217,8 @@ class LeagueProgressBarPainter extends CustomPainter {
       ..strokeWidth = 5.0;
 
     double fractionComplete =
-        (DateTime.now().millisecondsSinceEpoch - league.startDate.millisecondsSinceEpoch) /
-            (league.endDate.millisecondsSinceEpoch - league.startDate.millisecondsSinceEpoch);
+        (DateTime.now().millisecondsSinceEpoch - leagueOrMarket.startDate.millisecondsSinceEpoch) /
+            (leagueOrMarket.endDate.millisecondsSinceEpoch - leagueOrMarket.startDate.millisecondsSinceEpoch);
 
     Path pathProgress = Path();
     pathProgress.moveTo(0, size.height / 2);

@@ -34,10 +34,11 @@ class _PortfolioPageState extends State<PortfolioPage> {
 
     for (String portfolioId in result['portfolios']) {
       Portfolio portfolio = await getPortfolioById(portfolioId);
+      await portfolio.addMarketSnapshotData();
       await portfolio.updateMarketsCurrentX();
-      await portfolio.updateMarketsHistoricalX();
+      // await portfolio.updateMarketsHistoricalX();
       portfolio.computeCurrentValue();
-      portfolio.computeHistoricalValue();
+      // portfolio.computeHistoricalValue();
       userPortfolios.add(portfolio);
     }
 

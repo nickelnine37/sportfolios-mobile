@@ -1,27 +1,33 @@
+import 'dart:collection';
 
 import 'package:flutter/material.dart';
+import 'package:sportfolios_alpha/data/objects/portfolios.dart';
+import 'package:sportfolios_alpha/utils/arrays.dart';
+import 'package:sportfolios_alpha/utils/colors.dart';
 import './pie_data.dart';
 
 double pi = 3.1415926535;
 
 class MiniDonutChart extends StatelessWidget {
+  final Portfolio portfolio;
 
-  final List<SegmentData> pieData;
-
-  MiniDonutChart(this.pieData);
+  MiniDonutChart(this.portfolio);
 
   @override
   Widget build(BuildContext context) {
+    List<SegmentData> pieData = range(portfolio.nCurrentMarkets).map((int i) => SegmentData(
+        percentage: portfolio.sortedValues.values.toList()[i] / portfolio.currentValue,
+        colour: getColorCycle(i, portfolio.nCurrentMarkets)));
+
     return Container(
       width: 60,
       height: 60,
-      child: CustomPaint(painter: MiniDonutChartPainter(this.pieData)),
+      child: CustomPaint(painter: MiniDonutChartPainter(pieData)),
     );
   }
 }
 
 class MiniDonutChartPainter extends CustomPainter {
-
   final List<SegmentData> pieData;
   double start = 0;
   double end = 0;
@@ -30,14 +36,13 @@ class MiniDonutChartPainter extends CustomPainter {
 
   @override
   void paint(Canvas canvas, Size size) {
-
     SegmentData data;
 
     for (data in pieData) {
       Paint arcPaint = Paint()
-      ..color = data.colour
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = 10 ;
+        ..color = data.colour
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = 10;
 
       end += data.percentage / 100;
 
@@ -48,9 +53,7 @@ class MiniDonutChartPainter extends CustomPainter {
       path.addArc(Rect.fromLTWH(0, 0, size.width, size.height), startAngle, endAngle);
 
       canvas.drawPath(path, arcPaint);
-
-    } 
-
+    }
   }
 
   @override
@@ -58,5 +61,4 @@ class MiniDonutChartPainter extends CustomPainter {
     // TODO: implement shouldRepaint
     return false;
   }
-
 }

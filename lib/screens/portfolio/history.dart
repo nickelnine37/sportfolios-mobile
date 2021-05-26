@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:sportfolios_alpha/data/objects/portfolios.dart';
+import 'package:sportfolios_alpha/plots/price_chart.dart';
 
 
 class History extends StatefulWidget {
@@ -12,8 +13,7 @@ class History extends StatefulWidget {
 class _HistoryState extends State<History> {
   @override
   Widget build(BuildContext context) {
-    return Container(
-      child: Text('key'),
-    );
+    // return Column(children: [TabbedPriceGraph(priceHistory: widget.portfolio.historicalValue)]);
+    return Container();
   }
 }

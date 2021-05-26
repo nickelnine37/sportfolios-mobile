@@ -15,8 +15,9 @@ class TrueStaticPayoutGraph extends StatefulWidget {
   final double lrPadding;
   final double height;
   final bool lock;
+  final double pmax;
 
-  TrueStaticPayoutGraph(this.payouts, this.color, this.lrPadding, this.height, this.lock);
+  TrueStaticPayoutGraph(this.payouts, this.color, this.lrPadding, [this.height=200, this.lock=false, this.pmax=10]);
 
   @override
   _TrueStaticPayoutGraphState createState() => _TrueStaticPayoutGraphState();
@@ -47,7 +48,8 @@ class _TrueStaticPayoutGraphState extends State<TrueStaticPayoutGraph> {
                   index: i,
                   opacity: 1,
                   percentComplete: percentComplete,
-                  color: widget.color),
+                  color: widget.color, 
+                  pmax: pmax),
               size: Size(width, widget.height),
             ),
           )
@@ -60,7 +62,8 @@ class _TrueStaticPayoutGraphState extends State<TrueStaticPayoutGraph> {
                   payouts: widget.payouts,
                   index: i,
                   opacity: (i == selectedBar) ? 1 : 0.5,
-                  color: widget.color),
+                  color: widget.color, 
+                  pmax: pmax),
               size: Size(width, widget.height),
             ),
           )
@@ -247,13 +250,13 @@ class Bar extends CustomPainter {
   double percentComplete;
   double opacity;
   Color color;
+  double pmax;
 
-  Bar({this.payouts, this.index, this.percentComplete = 1, this.opacity = 1, this.color = Colors.blue});
+  Bar({this.payouts, this.index, this.percentComplete = 1, this.opacity = 1, this.color = Colors.blue, this.pmax=10});
 
   @override
   void paint(Canvas canvas, Size size) {
     int n = payouts.length;
-    double pmax = 10;
     double barWidth = 0.95 * size.width / n;
     double barHeight = percentComplete * payouts[index] * size.height / pmax;
 

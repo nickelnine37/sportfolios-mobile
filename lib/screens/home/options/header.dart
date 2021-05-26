@@ -27,7 +27,7 @@ class PageHeader extends StatelessWidget {
                     style: TextStyle(fontSize: 25, fontWeight: FontWeight.w300),
                   ),
                   Text(
-                    'per market',
+                    'per contract',
                     style: TextStyle(fontSize: 12),
                   )
                 ],

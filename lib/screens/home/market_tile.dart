@@ -38,7 +38,7 @@ class MarketTileState extends State<MarketTile> {
 
   void _goToMarketDetailsPage() {
     Navigator.of(context).push(MaterialPageRoute<void>(builder: (BuildContext context) {
-      return MarketDetails(widget.market, widget.league);
+      return MarketDetails(widget.market);
     }));
   }
 

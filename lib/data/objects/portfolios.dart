@@ -2,6 +2,7 @@ import 'dart:collection';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:sportfolios_alpha/data/api/requests.dart';
+import 'package:sportfolios_alpha/data/firebase/markets.dart';
 import 'markets.dart';
 
 class Portfolio {
@@ -16,8 +17,11 @@ class Portfolio {
   double currentValue; // latest value of whole portfolio
   Map<String, double> currentValues = Map<String, double>(); // latest value of individual constituents
   Map<String, List<double>> currentQuantities =
-  Map<String, List<double>>(); // latest quantity vectors of individual constituents
+      Map<String, List<double>>(); // latest quantity vectors of individual constituents
   bool setCurrentX = false; // whether current X values have been computed
+  LinkedHashMap<String, double> sortedValues;
+  int nCurrentMarkets;
+  int nTotalMarkets;
 
   bool setHistoricalX = false;
 
@@ -60,8 +64,21 @@ class Portfolio {
     // get current markets in portfolio
     currentMarkets = Map.fromIterable(data['current'].keys,
         key: (marketId) => marketId, value: (marketId) => Market(marketId));
-
+    
+    nCurrentMarkets = currentMarkets.length;
+    nTotalMarkets = allMarkets.length;
+    
     lastPushedValueServer = data['lastUpdated'].toDate();
+  }
+
+  Future<void> addMarketSnapshotData() async {
+    for (String marketId in allMarkets.keys) {
+      if (marketId != 'cash') {
+        DocumentSnapshot marketSnapshot = await getMarketSnapshotById(marketId);
+        allMarkets[marketId].addDocumentSnapshotData(marketSnapshot);
+        currentMarkets[marketId].addDocumentSnapshotData(marketSnapshot);
+      }
+    }
   }
 
   Future<void> updateMarketsCurrentX() async {
@@ -97,8 +114,14 @@ class Portfolio {
       }
       currentValue = total;
       if (DateTime.now().difference(lastPushedValueServer).inSeconds > 60) {
-        // pushCurrentValue();
+        // TODO:  pushCurrentValue();
       }
+      // also compute list of current values sorted by size
+      sortedValues = LinkedHashMap.fromIterable(
+          currentValues.keys.toList(growable: false)
+            ..sort((k1, k2) => currentValues[k2].compareTo(currentValues[k1])),
+          key: (k) => k,
+          value: (k) => currentValues[k]);
     } else {
       print('Cannot get portfolio value: update current X first');
     }

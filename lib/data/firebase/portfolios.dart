@@ -14,9 +14,9 @@ Future<void> addNewPortfolio(String name, bool public) async {
     DocumentReference newPortfolio = await portfoliosCollection.add({
       'name': name,
       'public': public,
-      'current': {'cash': 500},
+      'current': {'cash': [500]},
       'history': [
-        {'market': 'cash', 'time': DateTime.now().millisecondsSinceEpoch / 1000, 'quantity': 500}
+        {'market': 'cash', 'time': DateTime.now().millisecondsSinceEpoch / 1000, 'quantity': [500]}
       ],
       'user': uid
     });

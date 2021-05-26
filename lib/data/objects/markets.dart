@@ -36,7 +36,7 @@ class Market {
   DocumentSnapshot doc;
   List<String> searchTerms;
   DateTime startDate;
-  DateTime payoutDate;
+  DateTime endDate;
 
   // -----  Link attributes -----
   String team; // null for teams
@@ -73,10 +73,14 @@ class Market {
   Map<String, LinkedHashMap<int, double>> historicalB = Map<String, LinkedHashMap<int, double>>();
 
   /// initialise market from id
-  Market(this.id);
+  Market(this.id) {
+    if (id == 'cash') {
+      name = 'Cash';
+    }
+  }
 
   /// initialise a market from a firebase snapshot
-  Market.fromDocumentSnapshotAndPrices(DocumentSnapshot snapshot) {
+  Market.fromDocumentSnapshot(DocumentSnapshot snapshot) {
     Map<String, dynamic> data = snapshot.data();
 
     id = snapshot.id;
@@ -86,7 +90,27 @@ class Market {
     searchTerms = List<String>.from(data['search_terms']);
     imageURL = data['image'];
     startDate = data['start_date'].toDate();
-    payoutDate = data['end_date'].toDate();
+    endDate = data['end_date'].toDate();
+
+    if (snapshot.id[snapshot.id.length - 1] == 'P') {
+      initPlayerInfo(data);
+    } else {
+      initTeamInfo(data);
+    }
+  }
+
+  void addDocumentSnapshotData(DocumentSnapshot snapshot) {
+    assert(id == snapshot.id);
+
+    Map<String, dynamic> data = snapshot.data();
+
+    doc = snapshot;
+
+    colours = List<String>.from(data['colours']);
+    searchTerms = List<String>.from(data['search_terms']);
+    imageURL = data['image'];
+    startDate = data['start_date'].toDate();
+    endDate = data['end_date'].toDate();
 
     if (snapshot.id[snapshot.id.length - 1] == 'P') {
       initPlayerInfo(data);
@@ -198,7 +222,6 @@ class Market {
   /// return the historical value of a quantity q
   /// Note, curhistoricalrent X and b must already be set
   Map<String, LinkedHashMap<int, double>> getHistoricalValue(List<double> q) {
-
     if (historicalExpX == null) {
       print('Cannot get historical value. historicalExpX is not set');
       return null;
