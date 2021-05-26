@@ -55,18 +55,18 @@ class _LeaderboardScrollState extends State<LeaderboardScroll> with AutomaticKee
   Future<List<Portfolio>> getPortfolios() async {
     // run firebase queires here
     // use await and return the portfolio objects
-    List<DocumentSnapshot> portfolioSnapshots = [];
+    QuerySnapshot results;
 
     if (widget.timeHorizon == 'd') {
-      // set portfolioSnapshots
+      // set results
     } else if (widget.timeHorizon == 'm') {
-      // set portfolioSnapshots
+      // set results
     } else if (widget.timeHorizon == 'M') {
-      // set portfolioSnapshots
+      // set results
     }
     // simulate delay
     await Future.delayed(Duration(seconds: 1));
-    return portfolioSnapshots.map((DocumentSnapshot doc) => Portfolio.fromDocumentSnapshot(doc)).toList();
+    return results.docs.map((DocumentSnapshot doc) => Portfolio.fromDocumentSnapshot(doc)).toList();
   }
 
   @override
@@ -93,8 +93,9 @@ class _LeaderboardScrollState extends State<LeaderboardScroll> with AutomaticKee
 
 class PortfolioTile extends StatelessWidget {
   final Portfolio portfolio;
+  final int position;
 
-  PortfolioTile(this.portfolio);
+  PortfolioTile(this.portfolio, this.position);
 
   @override
   Widget build(BuildContext context) {
@@ -103,7 +104,7 @@ class PortfolioTile extends StatelessWidget {
         Container(
           child: Row(
             children: [
-              Container(child: Text('1', style: TextStyle(fontSize: 20.0)), padding: EdgeInsets.all(10.0)),
+              Container(child: Text('${position}', style: TextStyle(fontSize: 20.0)), padding: EdgeInsets.all(10.0)),
               Container(
                 child: Icon(
                   Icons.favorite,
