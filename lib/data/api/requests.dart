@@ -98,6 +98,14 @@ Future<Map<String, dynamic>> makePurchaseRequest(
   List<double> q,
   double price,
 ) async {
+
+  print({
+    'market': market,
+    'portfolioId': portfolio,
+    'quantity': q.toString(),
+    'price': price.toString()
+  });
+
   Uri url = attemptPurchaseURL();
   var response = await http.post(url, headers: {
     'Authorization': await AuthService().getJWTToken()

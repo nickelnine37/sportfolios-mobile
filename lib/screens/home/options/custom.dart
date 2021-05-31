@@ -25,7 +25,6 @@ class _CustomDetailsState extends State<CustomDetails> with AutomaticKeepAliveCl
   List<double> p2;
   bool reversed = false;
   Map priceHistory;
-  int selectedBar;
   double graphWidth;
   double graphHeight = 150;
   bool locked = false;

@@ -33,6 +33,9 @@ class MarketTileState extends State<MarketTile> {
   final double upperTextSize = 16.0;
   final double lowerTextSize = 12.0;
   final double spacing = 3.0;
+  double valueChange;
+  double percentChange;
+  String sign;
 
   MarketTileState();
 
@@ -42,15 +45,14 @@ class MarketTileState extends State<MarketTile> {
     }));
   }
 
-  Widget _valueChangeText(String currency, double valueChange, double percentChange) {
-    String sign = valueChange > 0 ? '+' : '-';
-    return Text(
-        '$sign${formatPercentage(percentChange.abs(), currency)}  ($sign${formatCurrency(valueChange.abs(), currency)})',
-        style: TextStyle(fontSize: 12, color: valueChange > 0 ? Colors.green[300] : Colors.red[300]));
-  }
-
   @override
   Widget build(BuildContext context) {
+    if (valueChange == null) {
+      valueChange = widget.market.dailyBackValue.values.last - widget.market.dailyBackValue.values.first;
+      percentChange = valueChange / widget.market.dailyBackValue.values.first;
+      sign = valueChange < 0 ? '-' : '+';
+    }
+
     return InkWell(
       onTap: _goToMarketDetailsPage,
       child: Container(
@@ -98,8 +100,11 @@ class MarketTileState extends State<MarketTile> {
                                 style: TextStyle(fontSize: upperTextSize),
                               ),
                               SizedBox(height: spacing),
-                              _valueChangeText(
-                                  currency, widget.market.dailyBackValue.values.last - widget.market.dailyBackValue.values.first, (widget.market.dailyBackValue.values.last - widget.market.dailyBackValue.values.first) / widget.market.dailyBackValue.values.first),
+                              Text(
+                                  '${sign}${formatPercentage(percentChange.abs(), currency)}  (${sign}${formatCurrency(valueChange.abs(), currency)})',
+                                  style: TextStyle(
+                                      fontSize: 12,
+                                      color: valueChange >= 0 ? Colors.green[300] : Colors.red[300])),
                             ],
                           );
                         },
@@ -108,10 +113,11 @@ class MarketTileState extends State<MarketTile> {
                   ),
                   Expanded(
                     child: Container(
-                        padding: EdgeInsets.only(top: 10, bottom: 5, left: 10, right: 10),
-                        width: double.infinity,
-                        child: CustomPaint(painter: MiniPriceChartPainter(widget.market.dailyBackValue.values.toList())),
-                        ),
+                      padding: EdgeInsets.only(top: 10, bottom: 5, left: 10, right: 10),
+                      width: double.infinity,
+                      child: CustomPaint(
+                          painter: MiniPriceChartPainter(widget.market.dailyBackValue.values.toList())),
+                    ),
                   )
                 ],
               ),
@@ -127,7 +133,6 @@ class MiniPriceChartPainter extends CustomPainter {
   List<double> pathY;
   Color lineColor;
   MiniPriceChartPainter(this.pathY) {
-
     if (this.pathY[0] > this.pathY[this.pathY.length - 1])
       this.lineColor = Colors.red[300];
     else
@@ -141,20 +146,25 @@ class MiniPriceChartPainter extends CustomPainter {
       ..style = PaintingStyle.stroke
       ..strokeWidth = 2.0;
 
-    pathY.reduce((value, element) => null);
-
     int N = pathY.length;
     double pmin = pathY.reduce(min);
     double pmax = pathY.reduce(max);
-    List pathpY = pathY.map((y) => size.height * (1 - (y - pmin) / (pmax - pmin))).toList();
-    List pathpX = List.generate(N, (index) => index * size.width / (N - 1));
 
     Path path = Path();
-    path.moveTo(pathpX[0], pathpY[0]);
-    for (int i = 0; i < N; i++) {
-      if (i % 3 == 0) {
-        path.lineTo(pathpX[i], pathpY[i]);
+
+    if (pmin != pmax) {
+      List pathpY = pathY.map((y) => size.height * (1 - (y - pmin) / (pmax - pmin))).toList();
+      List pathpX = List.generate(N, (index) => index * size.width / (N - 1));
+
+      path.moveTo(pathpX[0], pathpY[0]);
+      for (int i = 0; i < N; i++) {
+        if (i % 3 == 0) {
+          path.lineTo(pathpX[i], pathpY[i]);
+        }
       }
+    } else {
+      path.moveTo(0, size.height / 2);
+      path.lineTo(size.width, size.height / 2);
     }
 
     canvas.drawPath(path, paint);

@@ -191,50 +191,66 @@ class Market {
 
   /// given a certain historical X and b, add this to the object
   void setHistoricalX(Map xhist, Map bhist) {
-    bhist.keys.forEach((th) {
-      historicalB[th] = sortPriceTimeMap(bhist[th]);
-    });
+    if (id != 'cash') {
+      bhist.keys.forEach((th) {
+        historicalB[th] = sortPriceTimeMap(bhist[th]);
+      });
+    }
 
     xhist.keys.forEach((th) {
       historicalX[th] = sortXTimeMap(xhist[th]);
-      historicalMaxX[th] = LinkedHashMap.fromIterables(
-          historicalX[th].keys, historicalX[th].values.map((array) => getMax(List<double>.from(array))));
-      historicalExpX[th] = LinkedHashMap.fromIterables(
-          historicalX[th].keys,
-          historicalX[th].keys.map((t) => historicalX[th][t]
-              .map((i) => math.exp((i - historicalMaxX[th][t]) / historicalB[th][t]))
-              .toList()));
-      historicalExpXSum[th] = LinkedHashMap.fromIterables(
-          historicalX[th].keys, historicalX[th].keys.map((t) => getSum(historicalExpX[th][t])));
+
+      if (id != 'cash') {
+        historicalMaxX[th] = LinkedHashMap.fromIterables(
+            historicalX[th].keys, historicalX[th].values.map((array) => getMax(List<double>.from(array))));
+        historicalExpX[th] = LinkedHashMap.fromIterables(
+            historicalX[th].keys,
+            historicalX[th].keys.map((t) => historicalX[th][t]
+                .map((i) => math.exp((i - historicalMaxX[th][t]) / historicalB[th][t]))
+                .toList()));
+        historicalExpXSum[th] = LinkedHashMap.fromIterables(
+            historicalX[th].keys, historicalX[th].keys.map((t) => getSum(historicalExpX[th][t])));
+      }
     });
   }
 
   /// return the current value of a quantity q
   /// Note, current X and b must already be set
   double getCurrentValue(List<double> q) {
-    if (currentExpX == null) {
+    if ((currentExpX == null) && (id != 'cash')) {
       print('Cannot get current value. currentExpX is not set');
       return null;
     }
-    return round(dotProduct(q, currentExpX) / currentExpXSum, 6);
+    if (id == 'cash') {
+      return q[0];
+    } else {
+      return round(dotProduct(q, currentExpX) / currentExpXSum, 6);
+    }
   }
 
   /// return the historical value of a quantity q
   /// Note, curhistoricalrent X and b must already be set
   Map<String, LinkedHashMap<int, double>> getHistoricalValue(List<double> q) {
-    if (historicalExpX == null) {
+    if ((historicalX == null) && (id != 'cash')) {
       print('Cannot get historical value. historicalExpX is not set');
       return null;
     }
-
     Map<String, LinkedHashMap<int, double>> out = Map<String, LinkedHashMap<int, double>>();
-    historicalExpX.keys.forEach((String th) {
-      out[th] = LinkedHashMap.fromIterables(
-          historicalExpX[th].keys,
-          historicalExpX[th]
-              .keys
-              .map((t) => round(doubleDotProduct(q, historicalExpX[th][t]) / historicalExpXSum[th][t], 6)));
-    });
+
+    if (id == 'cash') {
+      historicalX.keys.forEach((String th) {
+        out[th] =
+            LinkedHashMap.fromIterables(historicalX[th].keys, historicalX[th].keys.map((t) => q[0]));
+      });
+    } else {
+      historicalExpX.keys.forEach((String th) {
+        out[th] = LinkedHashMap.fromIterables(
+            historicalExpX[th].keys,
+            historicalExpX[th]
+                .keys
+                .map((t) => round(doubleDotProduct(q, historicalExpX[th][t]) / historicalExpXSum[th][t], 6)));
+      });
+    }
 
     return out;
   }

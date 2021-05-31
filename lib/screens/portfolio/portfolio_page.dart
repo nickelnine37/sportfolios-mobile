@@ -1,12 +1,15 @@
 import 'dart:ui';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:sportfolios_alpha/data/firebase/portfolios.dart';
 import 'package:sportfolios_alpha/plots/donut_chart.dart';
 import 'package:sportfolios_alpha/providers/authenication_provider.dart';
 import 'package:sportfolios_alpha/data/objects/portfolios.dart';
+import 'package:sportfolios_alpha/screens/leaderboard/pie_chart.dart';
 import 'package:sportfolios_alpha/screens/portfolio/composition.dart';
 import 'package:sportfolios_alpha/screens/portfolio/history.dart';
+import 'package:sportfolios_alpha/utils/number_format.dart';
 
 class PortfolioPage extends StatefulWidget {
   @override
@@ -14,36 +17,56 @@ class PortfolioPage extends StatefulWidget {
 }
 
 class _PortfolioPageState extends State<PortfolioPage> {
-  Future<List<Portfolio>> portfoliosFuture;
-  int _selectedPortfolio = 0;
+  Future<void> portfoliosFuture;
   int nPortfolios;
+  List<Portfolio> loadedPortfolios = [];
+  List<String> alreadyLoadedPortfolioIds = [];
+  Portfolio currentPortoflio;
 
   @override
   void initState() {
     super.initState();
     portfoliosFuture = _getPortfolios();
   }
- 
 
-  Future<List<Portfolio>> _getPortfolios() async {
-
+  Future<void> _getPortfolios() async {
     DocumentSnapshot result =
         await FirebaseFirestore.instance.collection('users').doc(AuthService().currentUid).get();
 
-    List<Portfolio> userPortfolios = [];
+        print('alreadyLoadedPortfolioIds: $alreadyLoadedPortfolioIds');
+        print('loadedPortfolios: $loadedPortfolios');
+        print('${result['portfolios']}');
 
     for (String portfolioId in result['portfolios']) {
-      Portfolio portfolio = await getPortfolioById(portfolioId);
-      await portfolio.addMarketSnapshotData();
-      await portfolio.updateMarketsCurrentX();
-      // await portfolio.updateMarketsHistoricalX();
-      portfolio.computeCurrentValue();
-      // portfolio.computeHistoricalValue();
-      userPortfolios.add(portfolio);
+      print(portfolioId);
+      if (!alreadyLoadedPortfolioIds.contains(portfolioId)) {
+        Portfolio portfolio = await getPortfolioById(portfolioId);
+        await portfolio.addMarketSnapshotData();
+        await portfolio.updateMarketsCurrentX();
+        portfolio.computeCurrentValue();
+        await portfolio.updateMarketsHistoricalX();
+        portfolio.computeHistoricalValue();
+        loadedPortfolios.add(portfolio);
+        alreadyLoadedPortfolioIds.add(portfolio.id);
+      }
+      print(alreadyLoadedPortfolioIds);
     }
 
-    nPortfolios = userPortfolios.length;
-    return userPortfolios;
+    nPortfolios = loadedPortfolios.length;
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    // this may be null if selectedPortfolio is not set yet
+    currentPortoflio = getLoadedPortfolioById(prefs.getString('selectedPortfolio'));
+    if (currentPortoflio == null && nPortfolios > 0) {
+      currentPortoflio = loadedPortfolios[0];
+    }
+  }
+
+  Portfolio getLoadedPortfolioById(String id) {
+    if (loadedPortfolios != null) {
+      return loadedPortfolios.firstWhere((Portfolio portf) => portf.id == id,
+          orElse: () => loadedPortfolios[0]);
+    }
+    return null;
   }
 
   @override
@@ -51,13 +74,11 @@ class _PortfolioPageState extends State<PortfolioPage> {
     return FutureBuilder(
       future: portfoliosFuture,
       builder: (BuildContext context, AsyncSnapshot snapshot) {
-        if (!snapshot.hasData) {
+        if (snapshot.connectionState != ConnectionState.done) {
           return Scaffold(body: Center(child: CircularProgressIndicator()));
         }
 
-        List<Portfolio> portfolios = snapshot.data;
-
-        if (portfolios.length == 0) {
+        if (loadedPortfolios.length == 0) {
           return Scaffold(
             body: Center(
               child: Column(
@@ -73,14 +94,13 @@ class _PortfolioPageState extends State<PortfolioPage> {
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20.0)),
                     child: Text('New portfolio   +', style: TextStyle(color: Colors.white, fontSize: 16)),
                     onPressed: () async {
-                      Map<String, dynamic> output = await showDialog(
+                      bool output = await showDialog(
                         context: context,
                         builder: (context) {
                           return NewPortfolioDialogue();
                         },
                       );
-                      if (output != null) {
-                        await addNewPortfolio(output['name'], output['public']);
+                      if (output ?? false) {
                         setState(() {
                           portfoliosFuture = _getPortfolios();
                         });
@@ -107,32 +127,25 @@ class _PortfolioPageState extends State<PortfolioPage> {
                     SizedBox(width: 5),
                     GestureDetector(
                       onTap: () async {
-                        int newlySelectedPortfolio = await showDialog(
+                        String newlySelectedPortfolioId = await showDialog(
                           context: context,
                           builder: (context) {
-                            return PortfolioSelectorDialogue(snapshot.data);
+                            return PortfolioSelectorDialogue(loadedPortfolios);
                           },
                         );
 
-                        if (newlySelectedPortfolio != null) {
+                        if (newlySelectedPortfolioId != null) {
                           setState(() {
-                            _selectedPortfolio = newlySelectedPortfolio;
+                            currentPortoflio = getLoadedPortfolioById(newlySelectedPortfolioId);
                           });
                         }
-
-                        // if (newlySelectedLeague != null && newlySelectedLeague != selectedLeagueId) {
-                        //   prefs.setInt('selectedLeague', newlySelectedLeague);
-                        //   setState(() {
-                        //     selectedLeagueId = newlySelectedLeague;
-                        //   });
-                        // }
                       },
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.start,
                         crossAxisAlignment: CrossAxisAlignment.center,
                         children: [
                           SizedBox(width: 20),
-                          Text(portfolios[_selectedPortfolio].name,
+                          Text(currentPortoflio.name,
                               style: TextStyle(fontSize: 28.0, color: Colors.white)),
                           Container(
                             padding: EdgeInsets.all(0),
@@ -152,27 +165,27 @@ class _PortfolioPageState extends State<PortfolioPage> {
                 IconButton(
                     icon: Icon(Icons.settings, color: Colors.white),
                     onPressed: () async {
-                      Map<String, dynamic> output = await showDialog(
+                      bool output = await showDialog(
                         context: context,
                         builder: (context) {
-                          return PortfolioSettingsDialogue(portfolios[_selectedPortfolio]);
+                          return PortfolioSettingsDialogue(currentPortoflio);
                         },
                       );
-                      setState(() {});
+                      if (output ?? false) {
+                        setState(() {});
+                      }
                     }),
                 IconButton(
                   icon: Icon(Icons.add, color: Colors.white, size: 25),
                   onPressed: () async {
-                    Map<String, dynamic> output = await showDialog(
+                    bool output = await showDialog(
                       context: context,
                       builder: (context) {
                         return NewPortfolioDialogue();
                       },
                     );
-                    if (output != null) {
-                      await addNewPortfolio(output['name'], output['public']);
+                    if (output ?? false) {
                       setState(() {
-                        _selectedPortfolio = nPortfolios;
                         portfoliosFuture = _getPortfolios();
                       });
                     }
@@ -197,8 +210,8 @@ class _PortfolioPageState extends State<PortfolioPage> {
             ),
             body: TabBarView(
               children: [
-                Composition(portfolios[_selectedPortfolio]),
-                History(portfolios[_selectedPortfolio])
+                Composition(currentPortoflio),
+                History(currentPortoflio)
               ],
             ),
           ),
@@ -207,9 +220,6 @@ class _PortfolioPageState extends State<PortfolioPage> {
     );
   }
 }
-
-
-
 
 class PortfolioSelectorDialogue extends StatelessWidget {
   final List<Portfolio> portfolios;
@@ -246,9 +256,13 @@ class PortfolioSelectorDialogue extends StatelessWidget {
                 },
                 itemBuilder: (context, i) {
                   return ListTile(
+                    leading: Container(height: 30, width: 30, child: MiniDonutChart(portfolios[i], strokeWidth: 8,)), 
+                    trailing: Text(formatCurrency(portfolios[i].currentValue, 'GBP')),
                     title: Text(portfolios[i].name),
-                    onTap: () {
-                      Navigator.of(context).pop(i);
+                    onTap: () async {
+                      SharedPreferences prefs = await SharedPreferences.getInstance();
+                      prefs.setString('selectedPortfolio', portfolios[i].id);
+                      Navigator.of(context).pop(portfolios[i].id);
                     },
                   );
                 },
@@ -269,7 +283,9 @@ class NewPortfolioDialogue extends StatefulWidget {
 class _NewPortfolioDialogueState extends State<NewPortfolioDialogue> {
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
 
-  Map<String, dynamic> output = {'name': null, 'public': true};
+  bool public = true;
+  String name;
+  bool loading = false;
 
   @override
   Widget build(BuildContext context) {
@@ -307,7 +323,7 @@ class _NewPortfolioDialogueState extends State<NewPortfolioDialogue> {
                           child: TextFormField(
                             decoration: InputDecoration(hintText: 'MyPortfolio'),
                             onChanged: (String value) {
-                              output['name'] = value;
+                              name = value;
                             },
                             validator: (String value) {
                               if (value == '' || value == null) {
@@ -328,10 +344,10 @@ class _NewPortfolioDialogueState extends State<NewPortfolioDialogue> {
                       children: [
                         Text('Public', style: TextStyle(fontSize: 16)),
                         Switch(
-                          value: output['public'],
+                          value: public,
                           onChanged: (value) {
                             setState(() {
-                              output['public'] = value;
+                              public = value;
                             });
                           },
                           activeTrackColor: Colors.lightBlueAccent,
@@ -352,20 +368,37 @@ class _NewPortfolioDialogueState extends State<NewPortfolioDialogue> {
               alignment: Alignment.bottomRight,
               child: FlatButton(
                 color: Colors.blue,
-                onPressed: () {
+                onPressed: () async {
                   if (_formKey.currentState.validate()) {
                     _formKey.currentState.save();
                     if (!FocusScope.of(context).hasPrimaryFocus) {
                       FocusManager.instance.primaryFocus.unfocus();
                     }
-                    Navigator.of(context).pop();
+
+                    setState(() {
+                      loading = true;
+                    });
+
+                    await Future.delayed(Duration(seconds: 1));
+                    await addNewPortfolio(name, public);
+
+                    // pop true to indicate portfolio has been added
+                    Navigator.of(context).pop(true);
                   }
                 },
                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20.0)),
-                child: Text(
-                  'OK',
-                  style: TextStyle(color: Colors.white),
-                ),
+                child: loading
+                    ? Container(
+                        height: 25,
+                        width: 25,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 3,
+                          valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                        ))
+                    : Text(
+                        'OK',
+                        style: TextStyle(color: Colors.white),
+                      ),
               ),
             )
           ],
@@ -389,6 +422,7 @@ class _PortfolioSettingsDialogueState extends State<PortfolioSettingsDialogue> {
 
   Map<String, dynamic> init_values;
   Map<String, dynamic> output;
+  bool loading = false;
 
   @override
   void initState() {
@@ -480,7 +514,7 @@ class _PortfolioSettingsDialogueState extends State<PortfolioSettingsDialogue> {
               alignment: Alignment.bottomRight,
               child: FlatButton(
                 color: Colors.blue,
-                onPressed: () {
+                onPressed: () async {
                   if (_formKey.currentState.validate()) {
                     _formKey.currentState.save();
 
@@ -491,18 +525,41 @@ class _PortfolioSettingsDialogueState extends State<PortfolioSettingsDialogue> {
                     if ((output['name'] == init_values['name']) &&
                         (output['public'] == init_values['public'])) {
                       print('Nothing Changed');
+                      // pop bool indicating whether changes were made
+                      Navigator.of(context).pop(false);
                     } else {
                       print('Something Changed');
-                    }
+                      setState(() {
+                        loading = true;
+                      });
+                      await Future.delayed(Duration(seconds: 1));
+                      await FirebaseFirestore.instance
+                          .collection('portfolios')
+                          .doc(widget.portfolio.id)
+                          .update(output)
+                          .then((value) => print("User Updated"))
+                          .catchError((error) => print("Failed to update user portfolio: $error"));
 
-                    Navigator.of(context).pop(output);
+                      widget.portfolio.name = output['name'];
+                      widget.portfolio.public = output['public'];
+                      // pop bool indicating whether changes were made
+                      Navigator.of(context).pop(true);
+                    }
                   }
                 },
                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20.0)),
-                child: Text(
-                  'OK',
-                  style: TextStyle(color: Colors.white),
-                ),
+                child: loading
+                    ? Container(
+                        height: 25,
+                        width: 25,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 3,
+                          valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                        ))
+                    : Text(
+                        'OK',
+                        style: TextStyle(color: Colors.white),
+                      ),
               ),
             )
           ],

@@ -46,15 +46,11 @@ class _AnimatedDonutChartState extends State<AnimatedDonutChart> {
 
   @override
   Widget build(BuildContext context) {
-    // do some pre-computation here
-
-    if (binEdges == null) {
-      binEdges = [0];
-      double runningTotal = 0;
-      for (double value in widget.portfolio.sortedValues.values) {
-        runningTotal += value;
-        binEdges.add(runningTotal / widget.portfolio.currentValue);
-      }
+    binEdges = [0];
+    double runningTotal = 0;
+    for (double value in widget.portfolio.sortedValues.values) {
+      runningTotal += value;
+      binEdges.add(runningTotal / widget.portfolio.currentValue);
     }
 
     // increment endValue here
@@ -68,7 +64,6 @@ class _AnimatedDonutChartState extends State<AnimatedDonutChart> {
       builder: (_, double percentComlpete, __) {
         return PieChart(
           portfolio: widget.portfolio,
-          values: widget.portfolio.sortedValues,
           edges: binEdges,
           percentComplete: 1 + percentComlpete - endValue,
           radius: 110, // hacky business
@@ -86,14 +81,12 @@ class _AnimatedDonutChartState extends State<AnimatedDonutChart> {
 /// precompute these things and pass them as an argument.
 class PieChart extends StatefulWidget {
   final Portfolio portfolio;
-  final LinkedHashMap<String, double> values;
   final List<double> edges;
   final double percentComplete;
   final double radius;
 
   PieChart({
     @required this.portfolio,
-    @required this.values,
     @required this.edges,
     @required this.percentComplete,
     @required this.radius,
@@ -127,7 +120,7 @@ class _PieChartState extends State<PieChart> {
   void initState() {
     super.initState();
     centerText = widget.portfolio.currentValue;
-    nMarkets = widget.values.length;
+    nMarkets = widget.portfolio.sortedValues.length;
     portfolioName = widget.portfolio.name;
   }
 
@@ -144,7 +137,7 @@ class _PieChartState extends State<PieChart> {
         spinning = true;
         centerText = widget.portfolio.currentValue;
         portfolioName = widget.portfolio.name;
-        nMarkets = widget.values.length;
+        nMarkets = widget.portfolio.sortedValues.length;
       }
     }
 
@@ -153,16 +146,25 @@ class _PieChartState extends State<PieChart> {
     }
 
     // Container for central text. Change opacity with percentComplete
-    Center centralText = Center(
-        child: Text(
-      '${currentSegment == null ? "Current value" : widget.portfolio.currentMarkets[widget.values.keys.toList()[currentSegment]].name}\n${formatCurrency(currentSegment == null ? widget.portfolio.currentValue : widget.values.values.toList()[currentSegment], "GBP")}',
-      textAlign: TextAlign.center,
-      style: TextStyle(
-        fontWeight: FontWeight.w300,
-        fontSize: 24,
-        color: Colors.grey[800].withOpacity(widget.percentComplete),
-      ),
-    ));
+    Center centralText = currentSegment == null
+        ? Center(
+          child: Text(formatCurrency(widget.portfolio.currentValue, 'GBP'),
+              style: TextStyle(
+                fontWeight: FontWeight.w300,
+                fontSize: 28,
+                color: Colors.grey[800].withOpacity(widget.percentComplete),
+              )),
+        )
+        : Center(
+            child: Text(
+            '${widget.portfolio.markets[widget.portfolio.sortedValues.keys.toList()[currentSegment]].name}\n${formatCurrency(widget.portfolio.sortedValues.values.toList()[currentSegment], "GBP")}',
+            textAlign: TextAlign.center,
+            style: TextStyle(
+              fontWeight: FontWeight.w300,
+              fontSize: 20,
+              color: Colors.grey[800].withOpacity(widget.percentComplete),
+            ),
+          ));
 
     return GestureDetector(
       onTapDown: (details) {
@@ -171,8 +173,9 @@ class _PieChartState extends State<PieChart> {
 
           if (newSelectedSegment != currentSegment) {
             // change notifier provider!
-            context.read(selectedAssetProvider).setAsset(
-                newSelectedSegment == null ? null : widget.values.keys.toList()[newSelectedSegment]);
+            context.read(selectedAssetProvider).setAsset(newSelectedSegment == null
+                ? null
+                : widget.portfolio.sortedValues.keys.toList()[newSelectedSegment]);
 
             setState(() {
               currentSegment = newSelectedSegment;
@@ -187,6 +190,12 @@ class _PieChartState extends State<PieChart> {
           child: Stack(
               children: <Widget>[centralText] +
                   range(nMarkets).map((int i) {
+                    String market = widget.portfolio.sortedValues.keys.toList()[i];
+
+                    Color color = market == 'cash'
+                        ? Colors.green[500]
+                        : fromHex(widget.portfolio.markets[market].colours[0]);
+
                     if (spinning) {
                       return Center(
                         child: CustomPaint(
@@ -194,7 +203,7 @@ class _PieChartState extends State<PieChart> {
                             painter: DonutSegmentPainter(
                                 start: widget.percentComplete * widget.edges[i],
                                 end: widget.percentComplete * widget.edges[i + 1],
-                                color: getColorCycle(i, nMarkets),
+                                color: color,
                                 opacity: upperOpacity,
                                 strokeWidth: lowerWidth)),
                       );
@@ -219,7 +228,7 @@ class _PieChartState extends State<PieChart> {
                               painter: DonutSegmentPainter(
                                   start: widget.edges[i],
                                   end: widget.edges[i + 1],
-                                  color: getColorCycle(i, nMarkets),
+                                  color: color,
                                   opacity: opacity,
                                   strokeWidth: width)),
                         );

@@ -17,7 +17,7 @@ class TrueStaticPayoutGraph extends StatefulWidget {
   final bool lock;
   final double pmax;
 
-  TrueStaticPayoutGraph(this.payouts, this.color, this.lrPadding, [this.height=200, this.lock=false, this.pmax=10]);
+  TrueStaticPayoutGraph(this.payouts, this.color, this.lrPadding, [this.height=200, this.lock=false, this.pmax]);
 
   @override
   _TrueStaticPayoutGraphState createState() => _TrueStaticPayoutGraphState();
@@ -73,9 +73,24 @@ class _TrueStaticPayoutGraphState extends State<TrueStaticPayoutGraph> {
 
   @override
   Widget build(BuildContext context) {
+
+    if (width == null) {
     width = MediaQuery.of(context).size.width - 2 * widget.lrPadding;
+
+    }
+
+    if (widget.pmax == null) {
     pmax = widget.payouts.reduce(max);
+
+    }
+    else {
+      pmax = widget.pmax;
+    }
+
+    if (n == null) {
     n = widget.payouts.length;
+
+    }
 
     return Column(
       children: [

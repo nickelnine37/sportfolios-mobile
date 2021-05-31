@@ -8,50 +8,86 @@ import 'package:sportfolios_alpha/data/firebase/portfolios.dart';
 import 'package:sportfolios_alpha/data/objects/markets.dart';
 import 'package:sportfolios_alpha/plots/payout_graph.dart';
 import 'package:sportfolios_alpha/providers/authenication_provider.dart';
+import 'package:sportfolios_alpha/utils/arrays.dart';
 import 'package:sportfolios_alpha/utils/number_format.dart';
 import 'package:confetti/confetti.dart';
 import 'package:sportfolios_alpha/utils/numbers.dart';
 import 'package:sportfolios_alpha/data/objects/portfolios.dart';
 import 'package:intl/intl.dart' as intl;
 
-
-class BuyMarket extends StatefulWidget {
+class SellMarket extends StatefulWidget {
   final Market market;
-  final List<double> quantity;
+  final List<double> quantityHeld;
+  final Portfolio portfolio;
 
-  BuyMarket(this.market, this.quantity);
+  SellMarket(this.portfolio, this.market, this.quantityHeld);
 
   @override
-  _BuyMarketState createState() => _BuyMarketState();
+  _SellMarketState createState() => _SellMarketState();
 }
 
-class _BuyMarketState extends State<BuyMarket> {
-  Future _portfoliosFuture;
+class _SellMarketState extends State<SellMarket> {
+  Future<void> _marketFuture;
+  List<double> qHeldNew;
+  bool locked = false;
+  double lrPadding = 25;
+  double graphWidth;
+  double graphHeight = 150;
+  double pmax;
 
   @override
   void initState() {
     super.initState();
-    _portfoliosFuture = Future.wait([_getPortfolios(), widget.market.updateCurrentX()]);
+    _marketFuture = widget.market.updateCurrentX();
   }
 
-  Future<List<Portfolio>> _getPortfolios() async {
-    AuthService _authService = AuthService();
-    List<Portfolio> out = [];
-    DocumentSnapshot userSnapshot =
-        await FirebaseFirestore.instance.collection('users').doc(_authService.currentUid).get();
-    List<String> portfolioIds = List<String>.from(userSnapshot.data()['portfolios']);
-    for (String portfolioId in portfolioIds) {
-      out.add(await getPortfolioById(portfolioId));
+  void updateHistory() {
+    // print(widget.market
+    // .priceTrade(range(widget.market.n).map((int i) => qHeldNew[i] - widget.quantityHeld[i]).toList(), 1));
+  }
+
+  void _makeSelection(Offset touchLocation) {
+    int x = (widget.market.n * touchLocation.dx / graphWidth).floor();
+    if (x < 0) {
+      x = 0;
+    } else if (x > widget.market.n - 1) {
+      x = widget.market.n - 1;
     }
-    return out;
+    double y = pmax * (1 - (touchLocation.dy - 20) / (graphHeight + 20));
+
+    if (y < 0) {
+      y = 0;
+    }
+    if (y > widget.quantityHeld[x]) {
+      y = widget.quantityHeld[x];
+    }
+    List<double> qHeldNew_ = range(widget.market.n).map((int i) => i == x ? y : qHeldNew[i]).toList();
+
+    if (qHeldNew != qHeldNew_) {
+      setState(() {
+        qHeldNew = qHeldNew_;
+      });
+    }
   }
 
   @override
   Widget build(BuildContext context) {
+    if (graphWidth == null) {
+      graphWidth = MediaQuery.of(context).size.width - 2 * lrPadding;
+    }
+
+    if (pmax == null) {
+      pmax = getMax(widget.quantityHeld);
+    }
+
+    if (qHeldNew == null) {
+      qHeldNew = widget.quantityHeld;
+    }
+
     return Padding(
       padding: EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom),
       child: Container(
-        height: 570,
+        height: 520,
         decoration: BoxDecoration(
           color: Theme.of(context).canvasColor,
           borderRadius: BorderRadius.only(
@@ -74,7 +110,7 @@ class _BuyMarketState extends State<BuyMarket> {
                   child: SingleChildScrollView(
                     child: Column(
                       children: [
-                        Text('Buy: ${widget.market.name}',
+                        Text('Sell: ${widget.market.name}',
                             textAlign: TextAlign.center,
                             style: TextStyle(fontSize: 24, fontWeight: FontWeight.w300)),
                         SizedBox(height: 5),
@@ -89,10 +125,10 @@ class _BuyMarketState extends State<BuyMarket> {
                               ),
                               Column(
                                 children: [
-                                  Text('Per contract'),
+                                  Text('Total value'),
                                   SizedBox(height: 3),
                                   Text(
-                                    formatCurrency(widget.market.getCurrentValue(widget.quantity), 'GBP'),
+                                    formatCurrency(-widget.market.priceTrade(widget.quantityHeld, -1), 'GBP'),
                                     style: TextStyle(fontSize: 18, fontWeight: FontWeight.w300),
                                   ),
                                 ],
@@ -111,20 +147,71 @@ class _BuyMarketState extends State<BuyMarket> {
                               ),
                             ]),
                         Divider(thickness: 2, height: 25),
-                        TrueStaticPayoutGraph(widget.quantity, Colors.blue, 35, 150, true),
+                        Row(
+                          children: [
+                            Switch(
+                              value: locked,
+                              onChanged: (bool val) {
+                                setState(() {
+                                  locked = val;
+                                });
+                              },
+                            ),
+                            Text('Lock payout')
+                          ],
+                        ),
+                        locked
+                            ? TrueStaticPayoutGraph(qHeldNew, Colors.blue, lrPadding, graphHeight, true, pmax)
+                            : GestureDetector(
+                                child: TrueStaticPayoutGraph(
+                                    qHeldNew, Colors.blue, lrPadding, graphHeight, false, pmax),
+                                onVerticalDragStart: (DragStartDetails details) {
+                                  _makeSelection(details.localPosition);
+                                },
+                                onVerticalDragUpdate: (DragUpdateDetails details) {
+                                  _makeSelection(details.localPosition);
+                                },
+                                onTapDown: (TapDownDetails details) {
+                                  _makeSelection(details.localPosition);
+                                },
+                                onPanUpdate: (DragUpdateDetails details) {
+                                  _makeSelection(details.localPosition);
+                                },
+                                onPanEnd: (DragEndDetails details) {
+                                  setState(() {
+                                    updateHistory();
+                                  });
+                                },
+                                onTapUp: (TapUpDetails details) {
+                                  setState(() {
+                                    updateHistory();
+                                  });
+                                },
+                                onVerticalDragEnd: (DragEndDetails details) {
+                                  setState(() {
+                                    updateHistory();
+                                  });
+                                },
+                              ),
                         SizedBox(height: 25),
                         FutureBuilder(
-                            future: _portfoliosFuture,
-                            builder: (BuildContext context, AsyncSnapshot snapshot) {
-                              if (snapshot.hasData) {
-                                return BuyForm(snapshot.data[0], widget.market, widget.quantity);
-                              } else if (snapshot.hasError) {
-                                print(snapshot.error);
-                                return Center(child: Text('Error'));
-                              } else {
-                                return CircularProgressIndicator();
-                              }
-                            }),
+                          future: _marketFuture,
+                          builder: (BuildContext context, AsyncSnapshot snapshot) {
+                            if (snapshot.connectionState == ConnectionState.done) {
+                              return SellForm(
+                                  widget.portfolio,
+                                  widget.market,
+                                  range(widget.market.n)
+                                      .map((int i) => qHeldNew[i] - widget.quantityHeld[i])
+                                      .toList());
+                            } else if (snapshot.hasError) {
+                              print(snapshot.error);
+                              return Center(child: Text('Error'));
+                            } else {
+                              return CircularProgressIndicator();
+                            }
+                          },
+                        ),
                       ],
                     ),
                   ),
@@ -138,300 +225,141 @@ class _BuyMarketState extends State<BuyMarket> {
   }
 }
 
-class BuyForm extends StatefulWidget {
-  final List<Portfolio> portfolios;
+class SellForm extends StatefulWidget {
+  final Portfolio portfolio;
   final Market market;
   final List<double> quantity;
 
-  BuyForm(this.portfolios, this.market, this.quantity);
+  SellForm(this.portfolio, this.market, this.quantity);
 
   @override
-  _BuyFormState createState() => _BuyFormState();
+  _SellFormState createState() => _SellFormState();
 }
 
-class _BuyFormState extends State<BuyForm> {
-  final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
-  final TextEditingController _unitController = TextEditingController();
-  double units = 0;
-  double price = 0;
+class _SellFormState extends State<SellForm> {
+  double payout;
   bool loading = false;
   bool complete = false;
 
-  String _selectedPortfolioId;
-  Portfolio _selectedPortfolio;
-
   @override
   void dispose() {
-    _unitController.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-    if (widget.portfolios.length == 0) {
-      _selectedPortfolioId = 'new';
-    } else {
-      _selectedPortfolioId = widget.portfolios[0].id;
-    }
-    return Form(
-      key: _formKey,
-      child: Padding(
-        padding: EdgeInsets.symmetric(horizontal: 5),
-        child: Column(
-          children: [
-            SizedBox(height: 10),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Row(
-                  children: [
-                    Text('Portfolio', style: TextStyle(fontSize: 17)),
-                    IconButton(icon: Icon(Icons.info_outline), onPressed: () {}, iconSize: 20)
-                  ],
-                ),
-                Container(
-                  width: 100,
-                  height: 50,
-                  child: Center(
-                    child: DropdownButtonFormField(
-                      value: _selectedPortfolioId,
-                      items: List<DropdownMenuItem<String>>.from(widget.portfolios.map((portfolio) =>
-                              DropdownMenuItem(
-                                  onTap: () {}, value: portfolio.id, child: Text(portfolio.name)))) +
-                          <DropdownMenuItem<String>>[
-                            DropdownMenuItem(
-                              value: 'new',
-                              child: Row(
-                                children: [
-                                  Text('New'),
-                                  Icon(
-                                    Icons.add,
-                                    size: 20,
-                                  )
-                                ],
-                              ),
-                              onTap: () {
-                                print('Create new portfolo dialogue');
-                              },
-                            ),
-                          ],
-                      onChanged: (String id) {
-                        _selectedPortfolio = widget.portfolios.firstWhere((Portfolio p) => p.id == id);
+    payout = widget.market.priceTrade(widget.quantity, 1);
 
-                        setState(() {
-                          _selectedPortfolioId = id;
-                        });
-                      },
-                      onSaved: (String id) {
-                        _selectedPortfolio = widget.portfolios.firstWhere((Portfolio p) => p.id == id);
-                        _selectedPortfolioId = id;
-                      },
-                      validator: (String value) {
-                        if (widget.portfolios.map((portfolio) => portfolio.id).contains(value) ||
-                            value == 'new') {
-                          // TODO: check whether portfolio has sufficient cash
-                          return null;
-                        } else {
-                          return 'Please select a valid portfolio';
-                        }
-                      },
-                      isExpanded: true,
-                    ),
-                  ),
-                )
-              ],
-            ),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Row(
-                  children: [
-                    Text('Units', style: TextStyle(fontSize: 17)),
-                    IconButton(
-                        icon: Icon(Icons.info_outline),
-                        onPressed: () {
-                          print('Show units info dialogue');
-                        },
-                        iconSize: 20)
-                  ],
-                ),
-                Container(
-                  width: 100,
-                  height: 50,
-                  child: TextFormField(
-                    keyboardType: TextInputType.numberWithOptions(signed: false, decimal: true),
-                    inputFormatters: <TextInputFormatter>[
-                      FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d{0,2}$'))
-                    ],
-                    // maxLength: 5,
-                    controller: _unitController,
-                    decoration: InputDecoration(hintText: '0.00'),
-                    onChanged: (String value) {
-                      if (value == null || value == '') {
-                      } else {
-                        try {
-                          units = double.parse(value);
-                          price = validatePrice(widget.market.priceTrade(widget.quantity, units));
-                          setState(() {});
-                        } catch (error) {
-                          print(error.toString());
-                        }
-                      }
-                    },
-                    validator: (String value) {
-                      try {
-                        double.parse(value);
-                        return null;
-                      } catch (error) {
-                        return 'Please input valid units';
-                      }
-                    },
-                    onSaved: (String value) {
-                      units = double.parse(value);
-                    },
-                  ),
-                )
-              ],
-            ),
-            SizedBox(height: 30),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text(
-                  'Price:',
-                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.w400),
-                ),
-                Text(
-                  formatCurrency(price, 'GBP'),
-                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.w400),
-                ),
-                FlatButton(
-                  child: loading
-                      ? Container(
-                          height: 25,
-                          width: 25,
-                          child: CircularProgressIndicator(
-                            strokeWidth: 3,
-                            valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
-                          ))
-                      : complete
-                          ? Icon(Icons.done, color: Colors.white)
-                          : Text('OK', style: TextStyle(color: Colors.white)),
-                  color: Colors.blue,
-                  onPressed: () async {
-                    if (!complete) {
-                      if (_formKey.currentState.validate()) {
-                        _formKey.currentState.save();
-                      }
-                      if (!FocusScope.of(context).hasPrimaryFocus) {
-                        FocusManager.instance.primaryFocus.unfocus();
-                      }
+    return Padding(
+      padding: EdgeInsets.symmetric(horizontal: 5),
+      child: Column(
+        children: [
+          SizedBox(height: 30),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                'Payout:',
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.w400),
+              ),
+              Text(
+                formatCurrency(payout.abs(), 'GBP'),
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.w400),
+              ),
+              FlatButton(
+                child: loading
+                    ? Container(
+                        height: 25,
+                        width: 25,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 3,
+                          valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                        ))
+                    : complete
+                        ? Icon(Icons.done, color: Colors.white)
+                        : Text('OK', style: TextStyle(color: Colors.white)),
+                color: Colors.blue,
+                onPressed: () async {
+                  if (!complete) {
+                    setState(() {
+                      loading = true;
+                    });
 
+                    Map<String, dynamic> purchaseRequestResult = await makePurchaseRequest(
+                        widget.market.id, widget.portfolio.id, widget.quantity, payout + 1);
+
+                    await Future.delayed(Duration(seconds: 1));
+
+                    if (purchaseRequestResult['success']) {
                       setState(() {
-                        loading = true;
+                        loading = false;
+                        complete = true;
                       });
 
-                      Map<String, dynamic> purchaseRequestResult = await makePurchaseRequest(
-                          widget.market.id,
-                          _selectedPortfolioId,
-                          widget.quantity.map((qi) => units * qi).toList(),
-                          price);
+                      showDialog(
+                          context: context,
+                          builder: (BuildContext context) {
+                            return PurchaseCompletePopup();
+                          });
 
-                      SharedPreferences prefs = await SharedPreferences.getInstance();
+                      await Future.delayed(Duration(milliseconds: 800));
+                      Navigator.of(context).pop();
 
-                      await Future.delayed(Duration(seconds: 1));
+                      await Future.delayed(Duration(milliseconds: 500));
 
-                      if (purchaseRequestResult['success']) {
+                      Navigator.of(context).pop(true);
+
+                    } else {
+                      setState(() {
+                        loading = false;
+                        complete = false;
+                      });
+
+                      bool confirm = await showDialog(
+                              context: context,
+                              builder: (BuildContext context) {
+                                return ConfirmPurchase(
+                                    oldPrice: payout, newPrice: purchaseRequestResult['price']);
+                              }) ??
+                          false;
+
+                      bool ok = await respondToNewPrice(
+                        confirm,
+                        purchaseRequestResult['cancelId'],
+                        widget.market.id,
+                        widget.portfolio.id,
+                        widget.quantity,
+                        purchaseRequestResult['price'],
+                      );
+
+                      if (confirm && !ok) {
+                        showDialog(
+                            context: context,
+                            builder: (BuildContext context) {
+                              return ProblemPopup();
+                            });
+                        await Future.delayed(Duration(seconds: 1));
+                        Navigator.of(context).pop(false);
+                      } else if (confirm && ok) {
                         setState(() {
+                          payout = purchaseRequestResult['price'];
                           loading = false;
                           complete = true;
                         });
 
-                        showDialog(
-                            context: context,
-                            builder: (BuildContext context) {
-                              return PurchaseCompletePopup();
-                            });
-
-                        await Future.delayed(Duration(milliseconds: 800));
-                        Navigator.of(context).pop();
-
-                        bool done = prefs.getBool('firstPurchaseComplete');
-
-                        if (done == null) {
-                          await showDialog(
-                              context: context,
-                              builder: (BuildContext context) {
-                                return CongratualtionsDialogue();
-                              });
-                          prefs.setBool('firstPurchaseComplete', true);
-                        }
-
-                        await Future.delayed(Duration(milliseconds: 500));
-
-                        Navigator.pop(context);
-                      } else {
-                        setState(() {
-                          loading = false;
-                          complete = false;
-                        });
-
-                        bool confirm = await showDialog(
-                                context: context,
-                                builder: (BuildContext context) {
-                                  return ConfirmPurchase(
-                                      oldPrice: price, newPrice: purchaseRequestResult['price']);
-                                }) ??
-                            false;
-
-                        bool ok = await respondToNewPrice(
-                          confirm,
-                          purchaseRequestResult['cancelId'],
-                          widget.market.id,
-                          _selectedPortfolioId,
-                          widget.quantity.map((qi) => units * qi).toList(),
-                          purchaseRequestResult['price'],
-                        );
-
-                        if (confirm && !ok) {
-                          showDialog(
-                              context: context,
-                              builder: (BuildContext context) {
-                                return ProblemPopup();
-                              });
-                          await Future.delayed(Duration(seconds: 1));
-                          Navigator.of(context).pop();
-                        } else if (confirm && ok) {
-                          setState(() {
-                            price = purchaseRequestResult['price'];
-                            loading = false;
-                            complete = true;
-                          });
-
-                          bool done = prefs.getBool('firstPurchaseComplete');
-
-                          if (done == null) {
-                            await showDialog(
-                                context: context,
-                                builder: (BuildContext context) {
-                                  return CongratualtionsDialogue();
-                                });
-                            prefs.setBool('firstPurchaseComplete', true);
-                          }
-                          await Future.delayed(Duration(milliseconds: 600));
-                          Navigator.of(context).pop();
-                        } else if (!confirm) {
-                          await Future.delayed(Duration(milliseconds: 600));
-                          Navigator.of(context).pop();
-                        }
+                        await Future.delayed(Duration(milliseconds: 600));
+                        Navigator.of(context).pop(true);
+                      } else if (!confirm) {
+                        await Future.delayed(Duration(milliseconds: 600));
+                        Navigator.of(context).pop(false);
                       }
                     }
-                  },
-                ),
-              ],
-            )
-          ],
-        ),
+                  }
+                },
+              ),
+            ],
+          )
+        ],
       ),
     );
   }
@@ -526,23 +454,44 @@ class _ConfirmPurchaseState extends State<ConfirmPurchase> {
             textAlign: TextAlign.center,
           ),
           SizedBox(height: 16.0),
-          Text('Since you last synchronised prices with the server, the cost of this order has changed from',
-              textAlign: TextAlign.center, style: TextStyle(fontSize: 16.0)),
+          Text(
+              'Since you last synchronised prices with the server, the payout for this sale has changed from',
+              textAlign: TextAlign.center,
+              style: TextStyle(fontSize: 16.0)),
           SizedBox(height: 20),
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
             children: [
-              Text(formatCurrency(widget.oldPrice, 'GBP'), style: TextStyle(fontSize: 18.0)),
+              Text(formatCurrency(-widget.oldPrice, 'GBP'), style: TextStyle(fontSize: 18.0)),
               Text('to', style: TextStyle(fontSize: 16.0)),
-              Text(formatCurrency(widget.newPrice, 'GBP'), style: TextStyle(fontSize: 18.0))
+              Text(formatCurrency(-widget.newPrice, 'GBP'), style: TextStyle(fontSize: 18.0))
             ],
           ),
           SizedBox(height: 20),
           Text(
-              'Thats a${widget.newPrice > widget.oldPrice ? "n increase" : " decrease"} of ${formatCurrency((widget.newPrice - widget.oldPrice).abs(), 'GBP')}. Would you still like to proceed with this purchase? ',
+              'Thats a${widget.oldPrice > widget.newPrice ? "n increase" : " decrease"} of ${formatCurrency((widget.newPrice - widget.oldPrice).abs(), 'GBP')}. Would you still like to proceed with this sale? ',
               style: TextStyle(fontSize: 16.0),
               textAlign: TextAlign.center),
           SizedBox(height: 24.0),
+          TweenAnimationBuilder(
+            duration: Duration(seconds: 30),
+            tween: Tween<double>(begin: 1, end: 0),
+            curve: Curves.linear,
+            builder: (BuildContext context, double value, Widget child) {
+              return LinearProgressIndicator(
+                backgroundColor: Colors.grey,
+                value: value,
+              );
+            },
+            onEnd: () async {
+              setState(() {
+                contentId = 1;
+              });
+              await Future.delayed(Duration(seconds: 1));
+              Navigator.of(context).pop(false);
+            },
+          ),
+          SizedBox(height: 20),
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
             children: [
@@ -581,7 +530,7 @@ class _ConfirmPurchaseState extends State<ConfirmPurchase> {
     } else if (contentId == 1) {
       selectedContent = Center(
         child: Text(
-          'Order Cancelled',
+          'Cancelling order',
           style: TextStyle(fontSize: 24.0, fontWeight: FontWeight.w700),
           textAlign: TextAlign.center,
         ),
@@ -605,7 +554,7 @@ class _ConfirmPurchaseState extends State<ConfirmPurchase> {
       child: AnimatedContainer(
           duration: Duration(milliseconds: 600),
           curve: Curves.fastOutSlowIn,
-          height: contentId == 0 ? 360 : 90,
+          height: contentId == 0 ? 377 : 90,
           padding: EdgeInsets.only(top: padding, left: padding, right: padding, bottom: padding),
           decoration: BoxDecoration(
             color: Colors.white,
@@ -734,7 +683,8 @@ class SecondsLinearProgress extends StatefulWidget {
   SecondsLinearProgress(this._total, {this.timeout});
 
   @override
-  _SecondsLinearProgressState createState() => _SecondsLinearProgressState(timeout != null ? timeout : _total, _total);
+  _SecondsLinearProgressState createState() =>
+      _SecondsLinearProgressState(timeout != null ? timeout : _total, _total);
 }
 
 class _SecondsLinearProgressState extends State<SecondsLinearProgress> with SingleTickerProviderStateMixin {

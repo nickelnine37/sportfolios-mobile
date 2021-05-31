@@ -45,7 +45,7 @@ class _HomeBodyState extends State<HomeBody> {
     _lastLoadedSport = sport;
     if (sport == 'Football') {
       SharedPreferences prefs = await SharedPreferences.getInstance();
-      initialLeagueId = prefs.getInt('selectedLeague');
+      initialLeagueId = prefs.getInt('selectedLeague') ?? 8;
       QuerySnapshot result = await FirebaseFirestore.instance.collection('leagues').get();
       return result.docs
           .map((DocumentSnapshot leagueSnapshot) => League.fromSnapshot(leagueSnapshot))
