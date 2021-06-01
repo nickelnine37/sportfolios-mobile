@@ -1,26 +1,23 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:sportfolios_alpha/data/objects/markets.dart';
 import 'package:sportfolios_alpha/data/objects/portfolios.dart';
 import 'package:sportfolios_alpha/plots/donut_chart.dart';
 import 'package:sportfolios_alpha/plots/payout_graph.dart';
 import 'package:sportfolios_alpha/screens/home/market_details.dart';
-import 'package:sportfolios_alpha/screens/home/market_tile.dart';
 import 'package:sportfolios_alpha/screens/portfolio/sell.dart';
 import 'package:sportfolios_alpha/utils/arrays.dart';
 import 'package:sportfolios_alpha/utils/number_format.dart';
 
-class Composition extends StatefulWidget {
+class Holdings extends StatefulWidget {
   final Portfolio portfolio;
-  Composition(this.portfolio);
+  Holdings(this.portfolio);
 
   @override
-  _CompositionState createState() => _CompositionState();
+  _HoldingsState createState() => _HoldingsState();
 }
 
-class _CompositionState extends State<Composition> {
-  // Future<void> _portfolioFuture;
+class _HoldingsState extends State<Holdings> {
   String currentPortfolioId;
   double op = 0;
   String selectedAsset;
@@ -50,10 +47,14 @@ class _CompositionState extends State<Composition> {
                 SizedBox(height: 15),
                 // PortfolioItems(widget.portfolio),
                 ExpansionPanelList(
-                  expansionCallback: (int index, bool itemIsExpanded) {
-                    setState(() {
-                      isExpanded[index] = !itemIsExpanded;
-                    });
+                  elevation: 2,
+                  animationDuration: Duration(milliseconds: 600),
+                  expansionCallback: (int i, bool itemIsExpanded) {
+                    if (widget.portfolio.sortedValues.keys.toList()[i] != 'cash') {
+                      setState(() {
+                        isExpanded[i] = !itemIsExpanded;
+                      });
+                    }
                   },
                   children: range(widget.portfolio.nCurrentMarkets).map<ExpansionPanel>((int i) {
                     //
@@ -207,29 +208,3 @@ class _CompositionState extends State<Composition> {
         });
   }
 }
-
-// /// This is the stateful widget that the main application instantiates.
-// class PortfolioItems extends StatefulWidget {
-//   final Portfolio portfolio;
-
-//   PortfolioItems(this.portfolio);
-
-//   @override
-//   State<PortfolioItems> createState() => _PortfolioItemsState();
-// }
-
-// /// This is the private State class that goes with MyStatefulWidget.
-// class _PortfolioItemsState extends State<PortfolioItems> {
-//   // final List<Item> _data = generateItems(8);
-//   List<bool> isExpanded;
-//   final double imageHeight = 50;
-
-//   @override
-//   Widget build(BuildContext context) {
-//     if (isExpanded == null) {
-//       isExpanded = range(widget.portfolio.nCurrentMarkets).map((int i) => false).toList();
-//     }
-
-//     return ;
-//   }
-// }

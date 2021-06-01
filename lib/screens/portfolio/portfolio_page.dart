@@ -3,12 +3,11 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:sportfolios_alpha/data/firebase/portfolios.dart';
-import 'package:sportfolios_alpha/plots/donut_chart.dart';
 import 'package:sportfolios_alpha/providers/authenication_provider.dart';
 import 'package:sportfolios_alpha/data/objects/portfolios.dart';
 import 'package:sportfolios_alpha/screens/leaderboard/pie_chart.dart';
-import 'package:sportfolios_alpha/screens/portfolio/composition.dart';
-import 'package:sportfolios_alpha/screens/portfolio/history.dart';
+import 'package:sportfolios_alpha/screens/portfolio/holdings.dart';
+import 'package:sportfolios_alpha/screens/portfolio/performance.dart';
 import 'package:sportfolios_alpha/utils/number_format.dart';
 
 class PortfolioPage extends StatefulWidget {
@@ -33,12 +32,7 @@ class _PortfolioPageState extends State<PortfolioPage> {
     DocumentSnapshot result =
         await FirebaseFirestore.instance.collection('users').doc(AuthService().currentUid).get();
 
-        print('alreadyLoadedPortfolioIds: $alreadyLoadedPortfolioIds');
-        print('loadedPortfolios: $loadedPortfolios');
-        print('${result['portfolios']}');
-
     for (String portfolioId in result['portfolios']) {
-      print(portfolioId);
       if (!alreadyLoadedPortfolioIds.contains(portfolioId)) {
         Portfolio portfolio = await getPortfolioById(portfolioId);
         await portfolio.addMarketSnapshotData();
@@ -49,7 +43,6 @@ class _PortfolioPageState extends State<PortfolioPage> {
         loadedPortfolios.add(portfolio);
         alreadyLoadedPortfolioIds.add(portfolio.id);
       }
-      print(alreadyLoadedPortfolioIds);
     }
 
     nPortfolios = loadedPortfolios.length;
@@ -144,9 +137,11 @@ class _PortfolioPageState extends State<PortfolioPage> {
                         mainAxisAlignment: MainAxisAlignment.start,
                         crossAxisAlignment: CrossAxisAlignment.center,
                         children: [
-                          SizedBox(width: 20),
+                          SizedBox(width: 10),
+                          Container(height: 25, width: 25, child: MiniDonutChart(currentPortoflio, strokeWidth: 8,)), 
+                          SizedBox(width: 15), 
                           Text(currentPortoflio.name,
-                              style: TextStyle(fontSize: 28.0, color: Colors.white)),
+                              style: TextStyle(fontSize: 25.0, color: Colors.white)),
                           Container(
                             padding: EdgeInsets.all(0),
                             width: 30,
@@ -196,12 +191,12 @@ class _PortfolioPageState extends State<PortfolioPage> {
                 labelPadding: EdgeInsets.all(5),
                 tabs: <Row>[
                   Row(mainAxisAlignment: MainAxisAlignment.center, children: [
-                    Text('Composition', style: TextStyle(fontSize: 16.0, color: Colors.white)),
+                    Text('Holdings', style: TextStyle(fontSize: 16.0, color: Colors.white)),
                     SizedBox(width: 8),
                     Icon(Icons.donut_large, color: Colors.white, size: 17)
                   ]),
                   Row(mainAxisAlignment: MainAxisAlignment.center, children: [
-                    Text('History', style: TextStyle(fontSize: 16.0, color: Colors.white)),
+                    Text('Performance', style: TextStyle(fontSize: 16.0, color: Colors.white)),
                     SizedBox(width: 8),
                     Icon(Icons.show_chart, color: Colors.white, size: 17)
                   ]),
@@ -209,9 +204,10 @@ class _PortfolioPageState extends State<PortfolioPage> {
               ),
             ),
             body: TabBarView(
+              physics: NeverScrollableScrollPhysics(),
               children: [
-                Composition(currentPortoflio),
-                History(currentPortoflio)
+                Holdings(currentPortoflio),
+                Performance(currentPortoflio)
               ],
             ),
           ),

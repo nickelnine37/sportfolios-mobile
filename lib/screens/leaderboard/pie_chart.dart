@@ -30,7 +30,9 @@ class MiniDonutChart extends StatelessWidget {
     List<SegmentData> pieData = range(portfolio.nCurrentMarkets)
         .map((int i) => SegmentData(
             percentage: portfolio.sortedValues.values.toList()[i] / portfolio.currentValue,
-            colour: getColorCycle(i, portfolio.nCurrentMarkets)))
+            colour: portfolio.sortedValues.keys.toList()[i] == 'cash'
+                        ? Colors.green[500]
+                        : fromHex(portfolio.markets[portfolio.sortedValues.keys.toList()[i]].colours[0])))
         .toList();
 
     return CustomPaint(painter: MiniDonutChartPainter(pieData, strokeWidth));
