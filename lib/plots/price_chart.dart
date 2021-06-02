@@ -9,7 +9,7 @@ import 'package:sportfolios_alpha/utils/number_format.dart';
 import 'package:intl/intl.dart' as intl;
 
 class TabbedPriceGraph extends StatefulWidget {
-  final Map<String, LinkedHashMap<int, double>> priceHistory;
+  final Map<String, SplayTreeMap<int, double>> priceHistory;
   final Color color1;
   final Color color2;
   final double height;
@@ -262,6 +262,7 @@ class _PriceGraphState extends State<PriceGraph> {
 
   void setDateFormat(int dt) {
     dt_t = 0;
+    print(dt);
     if (dt < 2 * 3600) {
       dateFormat = intl.DateFormat('d MMM yy HH:mm');
       if (dt < 15 * 60) {
@@ -286,6 +287,7 @@ class _PriceGraphState extends State<PriceGraph> {
     // check if all values in the price array are the same
 
     if (dt_t == null) {
+      print(widget.times);
       setDateFormat(widget.times[1] - widget.times[0]);
     }
 

@@ -18,7 +18,7 @@ class Portfolio {
   Map<String, double> currentValues = Map<String, double>(); // latest value of individual constituents
   Map<String, List<double>> currentQuantities = Map<String, List<double>>(); // latest quantity vectors
   bool setCurrentX = false; // whether current X values have been computed
-  LinkedHashMap<String, double> sortedValues;
+  SplayTreeMap<String, double> sortedValues;
   int nCurrentMarkets;
   int nTotalMarkets;
   List<String> currentMarketIds;
@@ -34,7 +34,7 @@ class Portfolio {
   DateTime lastPushedValueServer;
   DateTime lastPushedHistoricalValuesServer;
 
-  Map<String, LinkedHashMap<int, double>> historicalValue = Map<String, LinkedHashMap<int, double>>();
+  Map<String, SplayTreeMap<int, double>> historicalValue = Map<String, SplayTreeMap<int, double>>();
 
   Portfolio(this.id);
 
@@ -146,11 +146,7 @@ class Portfolio {
         // TODO:  pushCurrentValue();
       }
       // also compute list of current values sorted by size
-      sortedValues = LinkedHashMap.fromIterable(
-          currentValues.keys.toList(growable: false)
-            ..sort((k1, k2) => currentValues[k2].compareTo(currentValues[k1])),
-          key: (k) => k,
-          value: (k) => currentValues[k]);
+      sortedValues = SplayTreeMap.from(currentValues, (String t1, String t2) => currentValues[t2].compareTo(currentValues[t1]));
     } else {
       print('Cannot get portfolio value: update current X first');
     }
@@ -181,12 +177,12 @@ class Portfolio {
         double purchaseTime = purchase['time'] + 0.0;
         List<double> quantity = purchase['quantity'];
         //
-        Map<String, LinkedHashMap<int, double>> historicalMarketValue =
+        Map<String, SplayTreeMap<int, double>> historicalMarketValue =
             markets[market].getHistoricalValue(quantity);
 
         for (String ts in ['h', 'd', 'w', 'm', 'M']) {
           if (!firstPassComplete) {
-            historicalValue[ts] = LinkedHashMap<int, double>();
+            historicalValue[ts] = SplayTreeMap<int, double>( (int t1, int t2) => t1.compareTo(t2));
           }
           for (int t in historicalMarketValue[ts].keys.toList().reversed) {
             if (!firstPassComplete) {

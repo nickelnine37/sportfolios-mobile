@@ -8,26 +8,26 @@ import 'package:sportfolios_alpha/utils/numbers.dart';
 /// takes in a hash map between unix timestamps and values
 /// and returns the linked hash map equiv, where the times
 /// have been sorted
-LinkedHashMap<int, double> sortPriceTimeMap(Map values) {
-  List times = values.keys.toList(growable: false);
-  LinkedHashMap<int, double> out = LinkedHashMap<int, double>();
-  times.sort();
-  times.forEach((k1) {
-    out[int.parse(k1)] = 0.0 + values[k1];
-  });
-  return out;
-}
+// LinkedHashMap<int, double> sortPriceTimeMap(Map values) {
+//   List times = values.keys.toList(growable: false);
+//   LinkedHashMap<int, double> out = LinkedHashMap<int, double>();
+//   times.sort();
+//   times.forEach((k1) {
+//     out[int.parse(k1)] = 0.0 + values[k1];
+//   });
+//   return out;
+// }
 
 /// same but for a hash map between timestamps and arrays
-LinkedHashMap<int, List> sortXTimeMap(Map values) {
-  List times = values.keys.toList(growable: false);
-  LinkedHashMap<int, List> out = LinkedHashMap<int, List>();
-  times.sort();
-  times.forEach((k1) {
-    out[int.parse(k1)] = values[k1];
-  });
-  return out;
-}
+// SplayTreeMap<int, List> sortXTimeMap(Map values) {
+//   List times = values.keys.toList(growable: false);
+//   LinkedHashMap<int, List> out = LinkedHashMap<int, List>();
+//   times.sort();
+//   times.forEach((k1) {
+//     out[int.parse(k1)] = values[k1];
+//   });
+//   return out;
+// }
 
 class Market {
   // ----- basic attributes -----
@@ -55,7 +55,7 @@ class Market {
 
   // back attributes
   double currentBackValue;
-  LinkedHashMap<int, double> dailyBackValue;
+  SplayTreeMap<int, double> dailyBackValue;
 
   // current holdings
   DateTime currentXLastUpdated;
@@ -66,11 +66,11 @@ class Market {
   double currentB;
 
   // historical holdings
-  Map<String, LinkedHashMap<int, List>> historicalX = Map<String, LinkedHashMap<int, List>>();
-  Map<String, LinkedHashMap<int, List>> historicalExpX = Map<String, LinkedHashMap<int, List>>();
-  Map<String, LinkedHashMap<int, double>> historicalMaxX = Map<String, LinkedHashMap<int, double>>();
-  Map<String, LinkedHashMap<int, double>> historicalExpXSum = Map<String, LinkedHashMap<int, double>>();
-  Map<String, LinkedHashMap<int, double>> historicalB = Map<String, LinkedHashMap<int, double>>();
+  Map<String, SplayTreeMap<int, List>> historicalX = Map<String, SplayTreeMap<int, List>>();
+  Map<String, SplayTreeMap<int, List>> historicalExpX = Map<String, SplayTreeMap<int, List>>();
+  Map<String, SplayTreeMap<int, double>> historicalMaxX = Map<String, SplayTreeMap<int, double>>();
+  Map<String, SplayTreeMap<int, double>> historicalExpXSum = Map<String, SplayTreeMap<int, double>>();
+  Map<String, SplayTreeMap<int, double>> historicalB = Map<String, SplayTreeMap<int, double>>();
 
   /// initialise market from id
   Market(this.id) {
@@ -123,7 +123,11 @@ class Market {
   /// to display the mini graph and scroll prices
   void setBackProperties(double currentBValue, Map dailyBValue) {
     currentBackValue = currentBValue;
-    dailyBackValue = sortPriceTimeMap(dailyBValue);
+    dailyBackValue = SplayTreeMap.fromIterables(
+      dailyBValue.keys.map((t) => int.parse(t)),
+      dailyBValue.values.map((v) => v + 0.0),
+      (int t1, int t2) => t1.compareTo(t2),
+    );
   }
 
   /// initialise player info from firebase data
@@ -190,26 +194,41 @@ class Market {
   }
 
   /// given a certain historical X and b, add this to the object
-  void setHistoricalX(Map xhist, Map bhist) {
+  void setHistoricalX(Map xhist, Map<String, dynamic> bhist) {
     if (id != 'cash') {
       bhist.keys.forEach((th) {
-        historicalB[th] = sortPriceTimeMap(bhist[th]);
+        historicalB[th] = SplayTreeMap.fromIterables(
+          List<int>.from(bhist[th].keys.map((t) => int.parse(t))),
+          List<double>.from(bhist[th].values.map((v) => v + 0.0)),
+          (int t1, int t2) => t1.compareTo(t2),
+        );
       });
     }
 
     xhist.keys.forEach((th) {
-      historicalX[th] = sortXTimeMap(xhist[th]);
+      historicalX[th] = SplayTreeMap.fromIterables(
+        List<int>.from(xhist[th].keys.map((t) => int.parse(t))),
+        List<List<double>>.from(xhist[th].values.map((qs) => List<double>.from(qs.map((qi) => qi + 0.0)))),
+        (int t1, int t2) => t1.compareTo(t2),
+      );
 
       if (id != 'cash') {
-        historicalMaxX[th] = LinkedHashMap.fromIterables(
-            historicalX[th].keys, historicalX[th].values.map((array) => getMax(List<double>.from(array))));
-        historicalExpX[th] = LinkedHashMap.fromIterables(
+        historicalMaxX[th] = SplayTreeMap.fromIterables(
+          historicalX[th].keys,
+          historicalX[th].values.map((array) => getMax(List<double>.from(array))),
+          (int t1, int t2) => t1.compareTo(t2),
+        );
+        historicalExpX[th] = SplayTreeMap.fromIterables(
             historicalX[th].keys,
             historicalX[th].keys.map((t) => historicalX[th][t]
                 .map((i) => math.exp((i - historicalMaxX[th][t]) / historicalB[th][t]))
-                .toList()));
-        historicalExpXSum[th] = LinkedHashMap.fromIterables(
-            historicalX[th].keys, historicalX[th].keys.map((t) => getSum(historicalExpX[th][t])));
+                .toList()),
+            (int t1, int t2) => t1.compareTo(t2));
+        historicalExpXSum[th] = SplayTreeMap.fromIterables(
+          historicalX[th].keys,
+          historicalX[th].keys.map((t) => getSum(historicalExpX[th][t])),
+          (int t1, int t2) => t1.compareTo(t2),
+        );
       }
     });
   }
@@ -230,25 +249,30 @@ class Market {
 
   /// return the historical value of a quantity q
   /// Note, curhistoricalrent X and b must already be set
-  Map<String, LinkedHashMap<int, double>> getHistoricalValue(List<double> q) {
+  Map<String, SplayTreeMap<int, double>> getHistoricalValue(List<double> q) {
     if ((historicalX == null) && (id != 'cash')) {
       print('Cannot get historical value. historicalExpX is not set');
       return null;
     }
-    Map<String, LinkedHashMap<int, double>> out = Map<String, LinkedHashMap<int, double>>();
+    Map<String, SplayTreeMap<int, double>> out = Map<String, SplayTreeMap<int, double>>();
 
     if (id == 'cash') {
       historicalX.keys.forEach((String th) {
-        out[th] =
-            LinkedHashMap.fromIterables(historicalX[th].keys, historicalX[th].keys.map((t) => q[0]));
+        out[th] = SplayTreeMap.fromIterables(
+          historicalX[th].keys,
+          historicalX[th].keys.map((t) => q[0]),
+          (int t1, int t2) => t1.compareTo(t2),
+        );
       });
     } else {
       historicalExpX.keys.forEach((String th) {
-        out[th] = LinkedHashMap.fromIterables(
-            historicalExpX[th].keys,
-            historicalExpX[th]
-                .keys
-                .map((t) => round(doubleDotProduct(q, historicalExpX[th][t]) / historicalExpXSum[th][t], 6)));
+        out[th] = SplayTreeMap.fromIterables(
+          historicalExpX[th].keys,
+          historicalExpX[th]
+              .keys
+              .map((t) => round(doubleDotProduct(q, historicalExpX[th][t]) / historicalExpXSum[th][t], 6)),
+          (int t1, int t2) => t1.compareTo(t2),
+        );
       });
     }
 
