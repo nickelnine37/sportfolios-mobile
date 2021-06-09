@@ -38,6 +38,9 @@ class Market {
   DateTime startDate;
   DateTime endDate;
 
+  // stats
+  Map<String, dynamic> stats;
+
   // -----  Link attributes -----
   String team; // null for teams
   List<String> players; // null for players
@@ -98,6 +101,18 @@ class Market {
       initTeamInfo(data);
     }
   }
+
+  Future<void> getStats() async {
+    String idStats = id.split(':')[0] + id[id.length - 1];
+    DocumentSnapshot snapshot = await FirebaseFirestore.instance
+      .collection('stats')
+      .doc(idStats)
+      .get();
+    print(snapshot);
+    stats = snapshot.data();
+    print(stats);
+  }
+
 
   void addDocumentSnapshotData(DocumentSnapshot snapshot) {
     assert(id == snapshot.id);

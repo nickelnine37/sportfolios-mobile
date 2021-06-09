@@ -1,3 +1,5 @@
+import 'dart:ffi';
+
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:sportfolios_alpha/data/objects/leagues.dart';
@@ -101,6 +103,59 @@ class LeagueSelectorDialogue extends StatelessWidget {
                     trailing: Text(leagues[i].countryFlagEmoji),
                     onTap: () {
                       Navigator.of(context).pop(leagues[i].leagueID);
+                    },
+                  );
+                },
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+
+// need to further adjust this
+class SeasonSelectorDialogue extends StatelessWidget {
+  final List<String> seasons;
+
+  const SeasonSelectorDialogue(this.seasons);
+
+  @override
+  Widget build(BuildContext context) {
+
+    return Dialog(
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      elevation: 0.0,
+      backgroundColor: Colors.transparent,
+      child: Container(
+        height: 400,
+        padding: EdgeInsets.only(top: 16, left: 16, right: 16),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          shape: BoxShape.rectangle,
+          borderRadius: BorderRadius.circular(16),
+          boxShadow: [BoxShadow(color: Colors.black26, blurRadius: 10.0, offset: const Offset(0.0, 10.0))],
+        ),
+        child: Column(
+          children: [
+            Container(
+                padding: EdgeInsets.only(bottom: 16),
+                child:
+                    Text('Select a season', style: TextStyle(fontSize: 20.0, fontWeight: FontWeight.w600))),
+            Container(
+              height: 340,
+              child: ListView.separated(
+                itemCount: seasons.length,
+                separatorBuilder: (context, index) {
+                  return Divider();
+                },
+                itemBuilder: (context, i) {
+                  return ListTile(
+                    title: Text(seasons[i]),
+                    onTap: () {
+                      Navigator.of(context).pop(seasons[i]);
                     },
                   );
                 },

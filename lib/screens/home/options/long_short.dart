@@ -6,6 +6,7 @@ import 'package:sportfolios_alpha/plots/price_chart.dart';
 import 'package:sportfolios_alpha/utils/arrays.dart';
 import 'dart:math' as math;
 
+import '../market_details.dart';
 import 'header.dart';
 import 'info_box.dart';
 
@@ -142,48 +143,7 @@ class _LongShortDetailsState extends State<LongShortDetails> with SingleTickerPr
               TabbedPriceGraph(priceHistory: priceHistory),
               SizedBox(height: 20),
               Divider(thickness: 2),
-              Container(
-                height: 60,
-                child: Center(
-                  child: ListTile(
-                    onTap: () {},
-                    leading: Text(
-                      'Portfolios',
-                      style: TextStyle(fontSize: 16.0),
-                    ),
-                    trailing: Icon(Icons.arrow_right, size: 28),
-                  ),
-                ),
-              ),
-              Divider(thickness: 2),
-              Container(
-                height: 60,
-                child: Center(
-                  child: ListTile(
-                    onTap: () {},
-                    leading: Text(
-                      'Statistics',
-                      style: TextStyle(fontSize: 16.0),
-                    ),
-                    trailing: Icon(Icons.arrow_right, size: 28),
-                  ),
-                ),
-              ),
-              Divider(thickness: 2),
-              Container(
-                height: 60,
-                child: Center(
-                  child: ListTile(
-                    onTap: () {},
-                    leading: Text(
-                      'Players',
-                      style: TextStyle(fontSize: 16.0),
-                    ),
-                    trailing: Icon(Icons.arrow_right, size: 28),
-                  ),
-                ),
-              ),
-              Divider(thickness: 2),
+              PageFooter(widget.market),
             ],
           ),
         ),

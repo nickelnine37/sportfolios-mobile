@@ -3,6 +3,7 @@ import 'package:sportfolios_alpha/data/api/requests.dart';
 import 'package:sportfolios_alpha/data/objects/markets.dart';
 import 'package:sportfolios_alpha/plots/payout_graph.dart';
 import 'package:sportfolios_alpha/plots/price_chart.dart';
+import 'package:sportfolios_alpha/screens/home/market_details.dart';
 import 'package:sportfolios_alpha/utils/arrays.dart';
 
 import 'header.dart';
@@ -159,48 +160,7 @@ class _BinaryDetailsState extends State<BinaryDetails> with AutomaticKeepAliveCl
             TabbedPriceGraph(priceHistory: priceHistory),
             SizedBox(height: 20),
             Divider(thickness: 2),
-            Container(
-              height: 60,
-              child: Center(
-                child: ListTile(
-                  onTap: () {},
-                  leading: Text(
-                    'Portfolios',
-                    style: TextStyle(fontSize: 16.0),
-                  ),
-                  trailing: Icon(Icons.arrow_right, size: 28),
-                ),
-              ),
-            ),
-            Divider(thickness: 2),
-            Container(
-              height: 60,
-              child: Center(
-                child: ListTile(
-                  onTap: () {},
-                  leading: Text(
-                    'Statistics',
-                    style: TextStyle(fontSize: 16.0),
-                  ),
-                  trailing: Icon(Icons.arrow_right, size: 28),
-                ),
-              ),
-            ),
-            Divider(thickness: 2),
-            Container(
-              height: 60,
-              child: Center(
-                child: ListTile(
-                  onTap: () {},
-                  leading: Text(
-                    'Players',
-                    style: TextStyle(fontSize: 16.0),
-                  ),
-                  trailing: Icon(Icons.arrow_right, size: 28),
-                ),
-              ),
-            ),
-            Divider(thickness: 2),
+            PageFooter(widget.market)
           ],
         ),
       ),
