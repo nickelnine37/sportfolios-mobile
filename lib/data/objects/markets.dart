@@ -2,32 +2,9 @@ import 'dart:collection';
 import 'dart:math' as math;
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:sportfolios_alpha/data/api/requests.dart';
-import 'package:sportfolios_alpha/utils/arrays.dart';
-import 'package:sportfolios_alpha/utils/numbers.dart';
+import 'package:sportfolios_alpha/utils/numerical/array_operations.dart';
+import 'package:sportfolios_alpha/utils/numerical/numbers.dart';
 
-/// takes in a hash map between unix timestamps and values
-/// and returns the linked hash map equiv, where the times
-/// have been sorted
-// LinkedHashMap<int, double> sortPriceTimeMap(Map values) {
-//   List times = values.keys.toList(growable: false);
-//   LinkedHashMap<int, double> out = LinkedHashMap<int, double>();
-//   times.sort();
-//   times.forEach((k1) {
-//     out[int.parse(k1)] = 0.0 + values[k1];
-//   });
-//   return out;
-// }
-
-/// same but for a hash map between timestamps and arrays
-// SplayTreeMap<int, List> sortXTimeMap(Map values) {
-//   List times = values.keys.toList(growable: false);
-//   LinkedHashMap<int, List> out = LinkedHashMap<int, List>();
-//   times.sort();
-//   times.forEach((k1) {
-//     out[int.parse(k1)] = values[k1];
-//   });
-//   return out;
-// }
 
 class Market {
   // ----- basic attributes -----
@@ -58,7 +35,7 @@ class Market {
 
   // back attributes
   double currentBackValue;
-  SplayTreeMap<int, double> dailyBackValue;
+  List<double> dailyBackValue;
 
   // current holdings
   DateTime currentXLastUpdated;
@@ -136,13 +113,9 @@ class Market {
 
   /// helper function for setting some back properties which are required
   /// to display the mini graph and scroll prices
-  void setBackProperties(double currentBValue, Map dailyBValue) {
+  void setBackProperties(double currentBValue, List<double> dailyBValue) {
     currentBackValue = currentBValue;
-    dailyBackValue = SplayTreeMap.fromIterables(
-      dailyBValue.keys.map((t) => int.parse(t)),
-      dailyBValue.values.map((v) => v + 0.0),
-      (int t1, int t2) => t1.compareTo(t2),
-    );
+    dailyBackValue = dailyBValue;
   }
 
   /// initialise player info from firebase data

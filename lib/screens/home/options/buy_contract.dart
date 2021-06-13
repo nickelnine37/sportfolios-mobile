@@ -8,9 +8,9 @@ import 'package:sportfolios_alpha/data/firebase/portfolios.dart';
 import 'package:sportfolios_alpha/data/objects/markets.dart';
 import 'package:sportfolios_alpha/plots/payout_graph.dart';
 import 'package:sportfolios_alpha/providers/authenication_provider.dart';
-import 'package:sportfolios_alpha/utils/number_format.dart';
+import 'package:sportfolios_alpha/utils/strings/number_format.dart';
 import 'package:confetti/confetti.dart';
-import 'package:sportfolios_alpha/utils/numbers.dart';
+import 'package:sportfolios_alpha/utils/numerical/numbers.dart';
 import 'package:sportfolios_alpha/data/objects/portfolios.dart';
 import 'package:intl/intl.dart' as intl;
 

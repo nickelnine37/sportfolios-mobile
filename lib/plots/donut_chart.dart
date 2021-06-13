@@ -2,9 +2,9 @@ import 'dart:collection';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:sportfolios_alpha/data/objects/portfolios.dart';
-import 'package:sportfolios_alpha/utils/arrays.dart';
-import 'package:sportfolios_alpha/utils/colors.dart';
-import 'package:sportfolios_alpha/utils/number_format.dart';
+import 'package:sportfolios_alpha/utils/numerical/array_operations.dart';
+import 'package:sportfolios_alpha/utils/design/colors.dart';
+import 'package:sportfolios_alpha/utils/strings/number_format.dart';
 
 final selectedAssetProvider = ChangeNotifierProvider<SelectedAssetChangeNotifier>((ref) {
   return SelectedAssetChangeNotifier();

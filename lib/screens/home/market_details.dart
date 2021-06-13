@@ -7,8 +7,8 @@ import 'package:sportfolios_alpha/data/objects/leagues.dart';
 import 'package:sportfolios_alpha/providers/settings_provider.dart';
 import 'package:sportfolios_alpha/screens/home/app_bar.dart';
 import 'package:sportfolios_alpha/screens/home/footers/stats.dart';
-import 'package:sportfolios_alpha/utils/colors.dart';
-import 'package:sportfolios_alpha/utils/number_format.dart';
+import 'package:sportfolios_alpha/utils/design/colors.dart';
+import 'package:sportfolios_alpha/utils/strings/number_format.dart';
 
 import 'options/binary.dart';
 import 'options/custom.dart';

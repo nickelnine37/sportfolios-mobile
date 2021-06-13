@@ -17,12 +17,12 @@ Future<Map<String, double>> getBackPrices(List<String> markets) async {
   }
 }
 
-Future<Map<String, Map>> getDailyBackPrices(List<String> markets) async {
+Future<Map<String, List>> getDailyBackPrices(List<String> markets) async {
   Uri url = dailyBackPricesURL(markets);
 
   var response = await http.get(url, headers: {'Authorization': await AuthService().getJWTToken()});
   if (response.statusCode == 200) {
-    Map<String, Map> jsonResponse = Map<String, Map>.from(convert.jsonDecode(response.body));
+    Map<String, List> jsonResponse = Map<String, List>.from(convert.jsonDecode(response.body));
     return jsonResponse;
   } else {
     print('Request getDailyBackPrices failed with status: ${response.statusCode}.');

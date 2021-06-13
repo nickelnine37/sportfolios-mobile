@@ -3,7 +3,7 @@ import 'package:sportfolios_alpha/data/api/requests.dart';
 import 'package:sportfolios_alpha/data/objects/markets.dart';
 import 'package:sportfolios_alpha/plots/payout_graph.dart';
 import 'package:sportfolios_alpha/plots/price_chart.dart';
-import 'package:sportfolios_alpha/utils/arrays.dart';
+import 'package:sportfolios_alpha/utils/numerical/array_operations.dart';
 import 'dart:math' as math;
 
 import '../market_details.dart';

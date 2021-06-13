@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:sportfolios_alpha/data/objects/markets.dart';
-import 'package:sportfolios_alpha/utils/dialogues.dart';
+import 'package:sportfolios_alpha/utils/widgets/dialogues.dart';
 
 class StatsShow extends StatefulWidget {
   final Market market;

@@ -3,9 +3,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shimmer/shimmer.dart';
 import 'package:sportfolios_alpha/providers/settings_provider.dart';
-import 'package:sportfolios_alpha/utils/arrays.dart';
-import 'package:sportfolios_alpha/utils/number_format.dart';
-import 'package:sportfolios_alpha/utils/string_utils.dart';
+import 'package:sportfolios_alpha/utils/numerical/array_operations.dart';
+import 'package:sportfolios_alpha/utils/strings/number_format.dart';
+import 'package:sportfolios_alpha/utils/strings/string_utils.dart';
 
 
 

@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:sportfolios_alpha/data/objects/portfolios.dart';
-import 'package:sportfolios_alpha/utils/arrays.dart';
-import 'package:sportfolios_alpha/utils/colors.dart';
+import 'package:sportfolios_alpha/utils/numerical/array_operations.dart';
+import 'package:sportfolios_alpha/utils/design/colors.dart';
 
 double pi = 3.1415926535;
 

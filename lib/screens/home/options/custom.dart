@@ -5,7 +5,7 @@ import 'package:sportfolios_alpha/plots/payout_graph.dart';
 import 'package:sportfolios_alpha/plots/price_chart.dart';
 import 'package:sportfolios_alpha/screens/home/market_details.dart';
 import 'package:sportfolios_alpha/screens/home/options/info_box.dart';
-import 'package:sportfolios_alpha/utils/arrays.dart';
+import 'package:sportfolios_alpha/utils/numerical/array_operations.dart';
 
 import 'header.dart';
 

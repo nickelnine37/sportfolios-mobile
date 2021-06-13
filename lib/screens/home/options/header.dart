@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:sportfolios_alpha/data/objects/markets.dart';
-import 'package:sportfolios_alpha/utils/number_format.dart';
+import 'package:sportfolios_alpha/utils/strings/number_format.dart';
 
 import 'buy_contract.dart';
 

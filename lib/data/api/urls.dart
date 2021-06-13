@@ -1,9 +1,9 @@
 Uri currentBackPricesURL(List markets) {
-  return Uri.https('engine.sportfolios.co.uk', 'current_back_prices', {'markets': markets.join(',')});
+  return Uri.https('engine.sportfolios.co.uk', '_current_back_prices', {'markets': markets.join(',')});
 }
 
 Uri dailyBackPricesURL(List markets) {
-  return Uri.https('engine.sportfolios.co.uk', 'daily_back_prices', {'markets': markets.join(',')});
+  return Uri.https('engine.sportfolios.co.uk', '_daily_back_prices', {'markets': markets.join(',')});
 }
 
 Uri currentXURL(String market) {
