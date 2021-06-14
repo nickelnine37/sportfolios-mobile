@@ -100,7 +100,7 @@ class _TrueStaticPayoutGraphState extends State<TrueStaticPayoutGraph> {
             height: 20,
             child: Text(
               selectedBar != null
-                  ? '${selectedBar + 1}${formatOrdinal(selectedBar + 1)} place payout: ${formatCurrency(widget.payouts[selectedBar], 'GBP')}'
+                  ? '${widget.payouts.length - selectedBar}${formatOrdinal(widget.payouts.length - selectedBar)} place payout: ${formatCurrency(widget.payouts[selectedBar], 'GBP')}'
                   : 'Payout Structure',
               style: TextStyle(fontSize: 15),
             ),
@@ -232,7 +232,7 @@ class _StaticPayoutGraphState extends State<StaticPayoutGraph> {
                         : Column(
                             children: [
                               Text(
-                                '${selectedBar + 1}${formatOrdinal(selectedBar + 1)} place payout:',
+                                '${widget.payouts.length - selectedBar}${formatOrdinal(widget.payouts.length - selectedBar)} place payout:',
                                 style: TextStyle(fontSize: 15),
                               ),
                               Text(formatCurrency(widget.payouts[selectedBar], currency),
@@ -278,7 +278,7 @@ class Bar extends CustomPainter {
     Paint paint = Paint()..color = color.withOpacity(opacity * (0.4 + 0.6 * payouts[index] / pmax));
 
     TextSpan positionText = TextSpan(
-        text: (index + 1).toString(),
+        text: (payouts.length - index).toString(),
         style: TextStyle(
             color: Colors.grey[850].withOpacity(opacity), fontSize: 11, fontWeight: FontWeight.w400));
 

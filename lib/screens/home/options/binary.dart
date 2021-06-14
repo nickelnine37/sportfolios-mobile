@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:sportfolios_alpha/data/api/requests.dart';
 import 'package:sportfolios_alpha/data/objects/markets.dart';
 import 'package:sportfolios_alpha/plots/payout_graph.dart';
 import 'package:sportfolios_alpha/plots/price_chart.dart';
@@ -31,7 +30,7 @@ class _BinaryDetailsState extends State<BinaryDetails> with AutomaticKeepAliveCl
 
   @override
   void initState() {
-    p1 = range(widget.market.n).map((int i) => i < widget.market.n / 2 ? 10.0 : 0.0).toList();
+    p1 = range(widget.market.lmsr.n).map((int i) => i < widget.market.lmsr.n / 2 ? 10.0 : 0.0).toList();
     super.initState();
   }
 
@@ -41,12 +40,12 @@ class _BinaryDetailsState extends State<BinaryDetails> with AutomaticKeepAliveCl
   }
 
   void _updateBars(Offset position) {
-    double ii = widget.market.n * position.dx / graphWidth;
-    p2 = range(widget.market.n)
+    double ii = widget.market.lmsr.n * position.dx / graphWidth;
+    p2 = range(widget.market.lmsr.n)
         .map((int i) => i > ii ? (reversed ? 10.0 : 0.0) : (reversed ? 0.0 : 10.0))
         .toList();
     if (reversed) {
-      p2[widget.market.n - 1] = 10;
+      p2[widget.market.lmsr.n - 1] = 10;
     } else {
       p2[0] = 10;
     }
@@ -64,21 +63,13 @@ class _BinaryDetailsState extends State<BinaryDetails> with AutomaticKeepAliveCl
     if (graphWidth == null) {
       graphWidth = MediaQuery.of(context).size.width - 2 * lrPadding;
     }
-    Map priceHistory = widget.market.getHistoricalValue(p1);
+    Map<String, List<double>> priceHistory = widget.market.lmsr.getHistoricalValue(p1);
 
     return RefreshIndicator(
       onRefresh: () async {
-        if (DateTime.now().difference(widget.market.currentXLastUpdated).inSeconds > 10) {
-          Map<String, dynamic> holdings = await getcurrentX(widget.market.id);
-          widget.market.setCurrentX(List<double>.from(holdings['x']), holdings['b']);
-          Map<String, dynamic> historicalX = await getHistoricalX(widget.market.id);
-          widget.market.setHistoricalX(historicalX['xhist'], historicalX['bhist']);
-          await Future.delayed(Duration(seconds: 1));
-          setState(() {});
-        } else {
-          await Future.delayed(Duration(seconds: 1));
-          print('Refreshed too fast!!');
-        }
+        await widget.market.lmsr.updateCurrentX();
+        await widget.market.lmsr.updateHistoricalX();
+        await Future.delayed(Duration(seconds: 1));
       },
       child: SingleChildScrollView(
         physics: AlwaysScrollableScrollPhysics(),
@@ -157,7 +148,7 @@ class _BinaryDetailsState extends State<BinaryDetails> with AutomaticKeepAliveCl
                     },
                   ),
             SizedBox(height: 35),
-            TabbedPriceGraph(priceHistory: priceHistory),
+            TabbedPriceGraph(priceHistory: priceHistory, times: widget.market.lmsr.times),
             SizedBox(height: 20),
             Divider(thickness: 2),
             PageFooter(widget.market)

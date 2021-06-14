@@ -1,7 +1,4 @@
-import 'dart:collection';
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:sportfolios_alpha/providers/settings_provider.dart';
 import 'package:sportfolios_alpha/utils/numerical/array_operations.dart';
 import 'dart:math';
 import 'dart:ui' as ui;
@@ -9,17 +6,20 @@ import 'package:sportfolios_alpha/utils/strings/number_format.dart';
 import 'package:intl/intl.dart' as intl;
 
 class TabbedPriceGraph extends StatefulWidget {
-  final Map<String, SplayTreeMap<int, double>> priceHistory;
+  final Map<String, List<double>> priceHistory;
+  final Map<String, List<int>> times;
   final Color color1;
   final Color color2;
   final double height;
 
   const TabbedPriceGraph({
     @required this.priceHistory,
+    @required this.times,
     this.color1 = Colors.green,
     this.color2 = Colors.green,
     this.height = 300,
   });
+
 
   @override
   _TabbedPriceGraphState createState() => _TabbedPriceGraphState();
@@ -44,6 +44,8 @@ class _TabbedPriceGraphState extends State<TabbedPriceGraph> with SingleTickerPr
 
   @override
   Widget build(BuildContext context) {
+
+
     return DefaultTabController(
       length: 5,
       child: Column(
@@ -61,19 +63,19 @@ class _TabbedPriceGraphState extends State<TabbedPriceGraph> with SingleTickerPr
                 double pcComplete = (g1 == g2) ? 0 : (_tabController.animation.value - g1) / (g2 - g1);
 
                 List<List<double>> ps = [
-                  widget.priceHistory['M'].values.toList(),
-                  widget.priceHistory['m'].values.toList(),
-                  widget.priceHistory['w'].values.toList(),
-                  widget.priceHistory['d'].values.toList(),
-                  widget.priceHistory['h'].values.toList(),
+                  widget.priceHistory['M'],
+                  widget.priceHistory['m'],
+                  widget.priceHistory['w'],
+                  widget.priceHistory['d'],
+                  widget.priceHistory['h'],
                 ];
 
                 List<List<int>> ts = [
-                  widget.priceHistory['M'].keys.toList(),
-                  widget.priceHistory['m'].keys.toList(),
-                  widget.priceHistory['w'].keys.toList(),
-                  widget.priceHistory['d'].keys.toList(),
-                  widget.priceHistory['h'].keys.toList(),
+                  widget.times['M'],
+                  widget.times['m'],
+                  widget.times['w'],
+                  widget.times['d'],
+                  widget.times['h'],
                 ];
 
                 return PriceGraph(
@@ -163,6 +165,7 @@ class _PriceGraphState extends State<PriceGraph> {
   // the min and max prices given
   double pmin;
   double pmax;
+  double lastp;
 
   // represents whether the prices are constant (in which case extra logic is needed for plotting)
   bool isConstant;
@@ -214,6 +217,7 @@ class _PriceGraphState extends State<PriceGraph> {
 
   /// given an x-coordinate in pixels, return an interpolated y-coordinate in pixels
   double _pxToPy(double px) {
+
     if (isConstant) {
       return graphHeight * ((1 - widget.tPad - widget.bPad) * 0.5 + widget.tPad);
     } else {
@@ -262,7 +266,7 @@ class _PriceGraphState extends State<PriceGraph> {
 
   void setDateFormat(int dt) {
     dt_t = 0;
-    print(dt);
+
     if (dt < 2 * 3600) {
       dateFormat = intl.DateFormat('d MMM yy HH:mm');
       if (dt < 15 * 60) {
@@ -287,7 +291,6 @@ class _PriceGraphState extends State<PriceGraph> {
     // check if all values in the price array are the same
 
     if (dt_t == null) {
-      print(widget.times);
       setDateFormat(widget.times[1] - widget.times[0]);
     }
 
@@ -308,9 +311,11 @@ class _PriceGraphState extends State<PriceGraph> {
       isConstant = widget.prices.every((element) => element == widget.prices[0]);
     }
 
-    if (pmin == null) {
+    if (pmin == null || widget.prices.last != lastp) {
+
       pmin = widget.prices.reduce(min);
       pmax = widget.prices.reduce(max);
+      lastp = widget.prices.last;
     }
 
     if (dateX == null) {

@@ -63,7 +63,7 @@ class _HoldingsState extends State<Holdings> {
                     List<double> quantity = widget.portfolio.currentQuantities[marketId];
                     double value = widget.portfolio.currentValues[marketId];
                     double pmax = getMax(quantity);
-                    List<double> dailyPriceChart = market.getHistoricalValue(quantity)['d'].values.toList();
+                    List<double> dailyPriceChart = market.lmsr.getHistoricalValue(quantity)['d'];
                     double valueChange = dailyPriceChart.last - dailyPriceChart.first;
                     double percentChange = valueChange / dailyPriceChart.first;
                     String sign = valueChange < 0 ? '-' : '+';

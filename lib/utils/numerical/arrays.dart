@@ -163,6 +163,10 @@ class Array {
       throw ('both arrays need have the same dimension');
     }
   }
+  
+  List<double> toList() {
+    return List<double>.from(a);
+  }
 
   @override
   String toString() {
@@ -433,6 +437,10 @@ class Matrix {
     if (shape[0] != n.shape[0] || shape[1] != n.shape[1]) {
       throw ('both matrices need have the same shape');
     }
+  }
+
+  List<List<double>> toList() {
+    return m.map((Array a) => a.toList()).toList();
   }
 
   @override

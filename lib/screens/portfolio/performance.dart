@@ -13,7 +13,7 @@ class Performance extends StatefulWidget {
 class _PerformanceState extends State<Performance> {
   @override
   Widget build(BuildContext context) {
-    return Column(children: [TabbedPriceGraph(priceHistory: widget.portfolio.historicalValue)]);
+    return Column(children: [TabbedPriceGraph(priceHistory: widget.portfolio.historicalValue, times: widget.portfolio.times)]);
     // return Container();
   }
 }

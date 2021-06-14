@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:sportfolios_alpha/data/api/requests.dart';
 import 'package:sportfolios_alpha/data/objects/markets.dart';
 import 'package:sportfolios_alpha/plots/payout_graph.dart';
 import 'package:sportfolios_alpha/plots/price_chart.dart';
@@ -32,8 +31,8 @@ class _CustomDetailsState extends State<CustomDetails> with AutomaticKeepAliveCl
 
   @override
   void initState() {
-    p1 = range(widget.market.n).map((int i) => 10.0).toList();
-    p2 = range(widget.market.n).map((int i) => 10.0).toList();
+    p1 = range(widget.market.lmsr.n).map((int i) => 10.0).toList();
+    p2 = range(widget.market.lmsr.n).map((int i) => 10.0).toList();
     super.initState();
   }
 
@@ -46,15 +45,15 @@ class _CustomDetailsState extends State<CustomDetails> with AutomaticKeepAliveCl
   bool get wantKeepAlive => true;
 
   void updateHistory() {
-    priceHistory = widget.market.getHistoricalValue(p1);
+    priceHistory = widget.market.lmsr.getHistoricalValue(p1);
   }
 
   void _makeSelection(Offset touchLocation) {
-    int x = (widget.market.n * touchLocation.dx / graphWidth).floor();
+    int x = (widget.market.lmsr.n * touchLocation.dx / graphWidth).floor();
     if (x < 0) {
       x = 0;
-    } else if (x > widget.market.n - 1) {
-      x = widget.market.n;
+    } else if (x > widget.market.lmsr.n - 1) {
+      x = widget.market.lmsr.n;
     }
     double y = 10 * (1 - (touchLocation.dy - 20) / (graphHeight + 20));
 
@@ -64,7 +63,7 @@ class _CustomDetailsState extends State<CustomDetails> with AutomaticKeepAliveCl
     if (y > 10) {
       y = 10;
     }
-    p2 = range(widget.market.n).map((int i) => i == x ? y : p2[i]).toList();
+    p2 = range(widget.market.lmsr.n).map((int i) => i == x ? y : p2[i]).toList();
 
     if (p2 != p1) {
       setState(() {
@@ -75,9 +74,8 @@ class _CustomDetailsState extends State<CustomDetails> with AutomaticKeepAliveCl
 
   @override
   Widget build(BuildContext context) {
-
     super.build(context);
-    
+
     if (graphWidth == null) {
       graphWidth = MediaQuery.of(context).size.width - 2 * lrPadding;
     }
@@ -88,17 +86,9 @@ class _CustomDetailsState extends State<CustomDetails> with AutomaticKeepAliveCl
 
     return RefreshIndicator(
       onRefresh: () async {
-        if (DateTime.now().difference(widget.market.currentXLastUpdated).inSeconds > 10) {
-          Map<String, dynamic> holdings = await getcurrentX(widget.market.id);
-          widget.market.setCurrentX(List<double>.from(holdings['x']), holdings['b']);
-          Map<String, dynamic> historicalX = await getHistoricalX(widget.market.id);
-          widget.market.setHistoricalX(historicalX['xhist'], historicalX['bhist']);
-          await Future.delayed(Duration(seconds: 1));
-          setState(() {});
-        } else {
-          await Future.delayed(Duration(seconds: 1));
-          print('Refreshed too fast!!');
-        }
+        await widget.market.lmsr.updateCurrentX();
+        await widget.market.lmsr.updateHistoricalX();
+        await Future.delayed(Duration(seconds: 1));
       },
       child: SingleChildScrollView(
         child: Column(
@@ -115,12 +105,15 @@ class _CustomDetailsState extends State<CustomDetails> with AutomaticKeepAliveCl
                       Colors.blue[600]),
                   MiniInfoPage(
                       'Hit the lock switch to keep your selected payout structure in place. Once locked, touch each bar to view the exact payout. You can also tap the reverse icon to flip the directionality of the cut-off.',
-                      Transform.scale(scale: 1.8, child: Switch(value: false, onChanged: (value) {},)),
+                      Transform.scale(
+                          scale: 1.8,
+                          child: Switch(
+                            value: false,
+                            onChanged: (value) {},
+                          )),
                       Colors.grey[600]),
-                  MiniInfoPage(
-                      'You can also tap the reverse icon to flip the directionality of the cut-off.',
-                      Icon(Icons.loop, size: 80),
-                      Colors.grey[700]),
+                  MiniInfoPage('You can also tap the reverse icon to flip the directionality of the cut-off.',
+                      Icon(Icons.loop, size: 80), Colors.grey[700]),
                 ])),
             Row(
               children: [
@@ -136,9 +129,9 @@ class _CustomDetailsState extends State<CustomDetails> with AutomaticKeepAliveCl
               ],
             ),
             locked
-                ? TrueStaticPayoutGraph(p1, Colors.blue, lrPadding, graphHeight, true)
+                ? TrueStaticPayoutGraph(p1, Colors.blue, lrPadding, graphHeight, true, 10)
                 : GestureDetector(
-                    child: TrueStaticPayoutGraph(p1, Colors.blue, lrPadding, graphHeight, false),
+                    child: TrueStaticPayoutGraph(p1, Colors.blue, lrPadding, graphHeight, false, 10),
                     onVerticalDragStart: (DragStartDetails details) {
                       _makeSelection(details.localPosition);
                     },
@@ -168,7 +161,7 @@ class _CustomDetailsState extends State<CustomDetails> with AutomaticKeepAliveCl
                     },
                   ),
             SizedBox(height: 35),
-            TabbedPriceGraph(priceHistory: priceHistory),
+            TabbedPriceGraph(priceHistory: priceHistory, times: widget.market.lmsr.times),
             SizedBox(height: 20),
             Divider(thickness: 2),
             PageFooter(widget.market)

@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:sportfolios_alpha/data/api/requests.dart';
 import 'package:sportfolios_alpha/data/objects/markets.dart';
 import 'package:sportfolios_alpha/plots/payout_graph.dart';
 import 'package:sportfolios_alpha/plots/price_chart.dart';
@@ -54,11 +53,12 @@ class _LongShortDetailsState extends State<LongShortDetails> with SingleTickerPr
 
   @override
   Widget build(BuildContext context) {
+
     if (p1 == null) {
-      if (widget.type == 'Long') {
-        p1 = range(widget.market.n).map((i) => 10 * math.exp(-i / 6)).toList();
+      if (widget.type == 'Short') {
+        p1 = range(widget.market.lmsr.n).map((i) => 10 * math.exp(-i / (widget.market.type == 'team' ? 6 : 3))).toList();
       } else {
-        p1 = range(widget.market.n).map((i) => 10 * math.exp(-(widget.market.n - i - 1) / 6)).toList();
+        p1 = range(widget.market.lmsr.n).map((i) => 10 * math.exp(-(widget.market.lmsr.n - i - 1) / (widget.market.type == 'team' ? 6 : 3))).toList();
       }
       p2 = p1.map((i) => 10 - i).toList();
     }
@@ -69,23 +69,15 @@ class _LongShortDetailsState extends State<LongShortDetails> with SingleTickerPr
 
     double lrPadding = 25;
 
-    Map priceHistory = widget.market.getHistoricalValue(selectedQ);
+    Map<String, List<double>>  priceHistory = widget.market.lmsr.getHistoricalValue(selectedQ);
 
     return DefaultTabController(
       length: 2,
       child: RefreshIndicator(
         onRefresh: () async {
-          if (DateTime.now().difference(widget.market.currentXLastUpdated).inSeconds > 10) {
-            Map<String, dynamic> holdings = await getcurrentX(widget.market.id);
-            widget.market.setCurrentX(List<double>.from(holdings['x']), holdings['b']);
-            Map<String, dynamic> historicalX = await getHistoricalX(widget.market.id);
-            widget.market.setHistoricalX(historicalX['xhist'], historicalX['bhist']);
+            await widget.market.lmsr.updateCurrentX();
+            await widget.market.lmsr.updateHistoricalX();
             await Future.delayed(Duration(seconds: 1));
-            setState(() {});
-          } else {
-            await Future.delayed(Duration(seconds: 1));
-            print('Refreshed too fast!!');
-          }
         },
         child: SingleChildScrollView(
           physics: AlwaysScrollableScrollPhysics(),
@@ -140,7 +132,7 @@ class _LongShortDetailsState extends State<LongShortDetails> with SingleTickerPr
               SizedBox(
                 height: 25,
               ),
-              TabbedPriceGraph(priceHistory: priceHistory),
+              // TabbedPriceGraph(priceHistory: priceHistory, times: widget.market.lmsr.times),
               SizedBox(height: 20),
               Divider(thickness: 2),
               PageFooter(widget.market),

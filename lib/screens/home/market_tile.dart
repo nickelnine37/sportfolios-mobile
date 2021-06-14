@@ -113,11 +113,15 @@ class MarketTileState extends State<MarketTile> {
                   ),
                   Expanded(
                     child: Container(
-                      padding: EdgeInsets.only(top: 10, bottom: 5, left: 10, right: 10),
+                      padding: EdgeInsets.only(top: 10, bottom: 0, left: 10, right: 10),
                       width: double.infinity,
-                      child: CustomPaint(
-                          painter: MiniPriceChartPainter(widget.market.dailyBackValue)),
+                      child: CustomPaint(painter: MiniPriceChartPainter(widget.market.dailyBackValue)),
                     ),
+                  ),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [Text('-24h', style: TextStyle(fontSize: 11, color: Colors.grey[500])), 
+                    Text('now', style: TextStyle(fontSize: 11, color: Colors.grey[500]))],
                   )
                 ],
               ),
@@ -162,6 +166,7 @@ class MiniPriceChartPainter extends CustomPainter {
           path.lineTo(pathpX[i], pathpY[i]);
         }
       }
+      path.lineTo(pathpX.last, pathpY.last);
     } else {
       path.moveTo(0, size.height / 2);
       path.lineTo(size.width, size.height / 2);

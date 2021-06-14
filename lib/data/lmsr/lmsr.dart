@@ -1,4 +1,5 @@
 import 'dart:math' as math;
+import 'package:sportfolios_alpha/data/api/requests.dart';
 import 'package:sportfolios_alpha/utils/numerical/arrays.dart';
 
 class ArrayLMSR {
@@ -75,24 +76,94 @@ class MatrixLMSR {
   }
 }
 
-void main() {
-  Matrix x = Matrix.fromDynamicLists([
-    [1, 2, 3, 4, 5],
-    [5, 4, 3, 2, 1],
-    [5, 4, 6, 3, 2]
-  ]);
+class MarketLMSR {
+  String market;
+  bool cash;
+  int n;
 
-  print(x);
+  ArrayLMSR currentLMSR;
+  DateTime currentLatUpdated;
 
-  Array b = Array.fromDynamicList([3, 4, 5]);
+  Map<String, MatrixLMSR> historicalLMSR = Map<String, MatrixLMSR>();
+  DateTime historicalLastUpdated;
+  Map<String, List<int>> times;
 
-  MatrixLMSR lmsr = MatrixLMSR(x: x, b: b, cash: false);
+  int updateInterval = 30;
 
-  print(lmsr.getValue(Array.fromDynamicList([1, 2, 3, 2, 1])));
+  MarketLMSR(this.market) {
+    cash = market == 'cash';
+  }
 
-  print(ArrayLMSR(
-    x: Array.fromDynamicList([1, 2, 3, 4, 5]),
-    b: 3,
-    cash: false,
-  ).getValue(Array.fromDynamicList([1, 2, 3, 2, 1])));
+  Future<void> updateCurrentX() async {
+    if (currentLatUpdated == null ||
+        DateTime.now().difference(currentLatUpdated).inSeconds > updateInterval) {
+      Map<String, dynamic> holdings = await getcurrentX(market);
+      currentLatUpdated = DateTime.now();
+      currentLMSR = ArrayLMSR(
+        x: Array.fromList(List<double>.from(holdings['x'])),
+        b: holdings['b'] + 0.0,
+        cash: cash,
+      );
+      n = holdings['x'].length;
+    }
+  }
+
+  void setCurrentX(List x, double b) {
+    currentLatUpdated = DateTime.now();
+    currentLMSR = ArrayLMSR(
+      x: Array.fromList(List<double>.from(x)),
+      b: b,
+      cash: cash,
+    );
+  }
+
+  Future<void> updateHistoricalX() async {
+    if (historicalLastUpdated == null ||
+        DateTime.now().difference(historicalLastUpdated).inSeconds > updateInterval) {
+      Map<String, dynamic> historicalHoldings = await getHistoricalX(market);
+      historicalLastUpdated = DateTime.now();
+    Map<String, dynamic> xhist = historicalHoldings['data']['x'];
+      Map<String, dynamic> bhist = historicalHoldings['data']['b'];
+      times = historicalHoldings['time'];
+
+      for (String th in xhist.keys) {
+        historicalLMSR[th] =
+            MatrixLMSR(x: Matrix.fromLists(xhist[th]), b: Array.fromList(bhist[th]), cash: cash);
+      }
+    }
+  }
+
+  void setHistoricalX(Map<String, dynamic> x, Map<String, dynamic> b) {
+    Map<String, List<List<double>>> xhist = Map<String, List<List<double>>>.from(x);
+    Map<String, List<double>> bhist = Map<String, List<double>>.from(b);
+      for (String th in xhist.keys) {
+        historicalLMSR[th] =
+            MatrixLMSR(x: Matrix.fromLists(xhist[th]), b: Array.fromList(bhist[th]), cash: cash);
+      }
+  }
+
+  double getValue(List<double> q, [double k]) {
+    if (currentLMSR == null) {
+      print('Cannot getValue : currentLMSR has not been set (try calling updateCurrentX)');
+      return null;
+    }
+
+    return currentLMSR.getValue(Array.fromList(q), k);
+  }
+
+  Map<String, List<double>> getHistoricalValue(List<double> q, [double k]) {
+    if (historicalLMSR == null) {
+      print('Cannot getValue : historicalLMSR has not been set (try calling updateHistoricalX)');
+      return null;
+    }
+
+    return Map<String, List<double>>.fromIterables(
+      historicalLMSR.keys,
+      historicalLMSR.keys.map((String th) => historicalLMSR[th].getValue(Array.fromList(q), k).toList()),
+    );
+  }
+
+  double priceTrade(List<double> q, [double k]) {
+    return currentLMSR.priceTrade(Array.fromList(q), k);
+  }
 }

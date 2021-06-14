@@ -23,7 +23,7 @@ class PageHeader extends StatelessWidget {
               child: Column(
                 children: [
                   Text(
-                    formatCurrency(market.getCurrentValue(quantity), 'GBP'),
+                    formatCurrency(market.lmsr.getValue(quantity), 'GBP'),
                     style: TextStyle(fontSize: 25, fontWeight: FontWeight.w300),
                   ),
                   Text(

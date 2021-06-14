@@ -3,7 +3,6 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:sportfolios_alpha/data/objects/markets.dart';
-import 'package:sportfolios_alpha/data/objects/leagues.dart';
 import 'package:sportfolios_alpha/providers/settings_provider.dart';
 import 'package:sportfolios_alpha/screens/home/app_bar.dart';
 import 'package:sportfolios_alpha/screens/home/footers/stats.dart';
@@ -29,8 +28,8 @@ class _MarketDetailsState extends State<MarketDetails> {
   @override
   void initState() {
     updateState = Future.wait([
-      widget.market.updateCurrentX(),
-      widget.market.updateHistoricalX(),
+      widget.market.lmsr.updateCurrentX(),
+      widget.market.lmsr.updateHistoricalX(),
       Future.delayed(Duration(seconds: 3))
     ]);
     super.initState();
@@ -148,7 +147,11 @@ class _MarketDetailsState extends State<MarketDetails> {
                   CustomDetails(widget.market),
                 ],
               );
-            } else {
+            } else if (snapshot.hasError) {
+              return Container(child: Center(child: Text(snapshot.error.toString())));
+            } 
+            
+            else {
               return Container(
                   child: Center(child: CircularProgressIndicator()));
             }

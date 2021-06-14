@@ -31,7 +31,7 @@ class _BuyMarketState extends State<BuyMarket> {
   @override
   void initState() {
     super.initState();
-    _portfoliosFuture = Future.wait([_getPortfolios(), widget.market.updateCurrentX()]);
+    _portfoliosFuture = Future.wait([_getPortfolios(), widget.market.lmsr.updateCurrentX()]);
   }
 
   Future<List<Portfolio>> _getPortfolios() async {
@@ -92,7 +92,7 @@ class _BuyMarketState extends State<BuyMarket> {
                                   Text('Per contract'),
                                   SizedBox(height: 3),
                                   Text(
-                                    formatCurrency(widget.market.getCurrentValue(widget.quantity), 'GBP'),
+                                    formatCurrency(widget.market.lmsr.getValue(widget.quantity), 'GBP'),
                                     style: TextStyle(fontSize: 18, fontWeight: FontWeight.w300),
                                   ),
                                 ],
@@ -158,7 +158,6 @@ class _BuyFormState extends State<BuyForm> {
   bool complete = false;
 
   String _selectedPortfolioId;
-  Portfolio _selectedPortfolio;
 
   @override
   void dispose() {
@@ -216,14 +215,14 @@ class _BuyFormState extends State<BuyForm> {
                             ),
                           ],
                       onChanged: (String id) {
-                        _selectedPortfolio = widget.portfolios.firstWhere((Portfolio p) => p.id == id);
+                        // _selectedPortfolio = widget.portfolios.firstWhere((Portfolio p) => p.id == id);
 
                         setState(() {
                           _selectedPortfolioId = id;
                         });
                       },
                       onSaved: (String id) {
-                        _selectedPortfolio = widget.portfolios.firstWhere((Portfolio p) => p.id == id);
+                        // _selectedPortfolio = widget.portfolios.firstWhere((Portfolio p) => p.id == id);
                         _selectedPortfolioId = id;
                       },
                       validator: (String value) {
@@ -271,7 +270,7 @@ class _BuyFormState extends State<BuyForm> {
                       } else {
                         try {
                           units = double.parse(value);
-                          price = validatePrice(widget.market.priceTrade(widget.quantity, units));
+                          price = validatePrice(widget.market.lmsr.priceTrade(widget.quantity, units));
                           setState(() {});
                         } catch (error) {
                           print(error.toString());
