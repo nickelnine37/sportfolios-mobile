@@ -6,8 +6,8 @@ import 'package:sportfolios_alpha/plots/donut_chart.dart';
 import 'package:sportfolios_alpha/plots/payout_graph.dart';
 import 'package:sportfolios_alpha/screens/home/market_details.dart';
 import 'package:sportfolios_alpha/screens/portfolio/sell.dart';
-import 'package:sportfolios_alpha/utils/arrays.dart';
-import 'package:sportfolios_alpha/utils/number_format.dart';
+import 'package:sportfolios_alpha/utils/numerical/array_operations.dart';
+import 'package:sportfolios_alpha/utils/strings/number_format.dart';
 
 class Holdings extends StatefulWidget {
   final Portfolio portfolio;
@@ -63,7 +63,7 @@ class _HoldingsState extends State<Holdings> {
                     List<double> quantity = widget.portfolio.currentQuantities[marketId];
                     double value = widget.portfolio.currentValues[marketId];
                     double pmax = getMax(quantity);
-                    List<double> dailyPriceChart = market.getHistoricalValue(quantity)['d'].values.toList();
+                    List<double> dailyPriceChart = market.lmsr.getHistoricalValue(quantity)['d'];
                     double valueChange = dailyPriceChart.last - dailyPriceChart.first;
                     double percentChange = valueChange / dailyPriceChart.first;
                     String sign = valueChange < 0 ? '-' : '+';

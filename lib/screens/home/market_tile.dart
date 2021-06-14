@@ -2,7 +2,7 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:sportfolios_alpha/data/objects/leagues.dart';
 import 'package:sportfolios_alpha/providers/settings_provider.dart';
 import 'package:sportfolios_alpha/screens/home/market_details.dart';
-import 'package:sportfolios_alpha/utils/number_format.dart';
+import 'package:sportfolios_alpha/utils/strings/number_format.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'dart:math';
 import 'package:flutter/material.dart';
@@ -48,8 +48,8 @@ class MarketTileState extends State<MarketTile> {
   @override
   Widget build(BuildContext context) {
     if (valueChange == null) {
-      valueChange = widget.market.dailyBackValue.values.last - widget.market.dailyBackValue.values.first;
-      percentChange = valueChange / widget.market.dailyBackValue.values.first;
+      valueChange = widget.market.dailyBackValue.last - widget.market.dailyBackValue.first;
+      percentChange = valueChange / widget.market.dailyBackValue.first;
       sign = valueChange < 0 ? '-' : '+';
     }
 
@@ -113,11 +113,15 @@ class MarketTileState extends State<MarketTile> {
                   ),
                   Expanded(
                     child: Container(
-                      padding: EdgeInsets.only(top: 10, bottom: 5, left: 10, right: 10),
+                      padding: EdgeInsets.only(top: 10, bottom: 0, left: 10, right: 10),
                       width: double.infinity,
-                      child: CustomPaint(
-                          painter: MiniPriceChartPainter(widget.market.dailyBackValue.values.toList())),
+                      child: CustomPaint(painter: MiniPriceChartPainter(widget.market.dailyBackValue)),
                     ),
+                  ),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [Text('-24h', style: TextStyle(fontSize: 11, color: Colors.grey[500])), 
+                    Text('now', style: TextStyle(fontSize: 11, color: Colors.grey[500]))],
                   )
                 ],
               ),
@@ -162,6 +166,7 @@ class MiniPriceChartPainter extends CustomPainter {
           path.lineTo(pathpX[i], pathpY[i]);
         }
       }
+      path.lineTo(pathpX.last, pathpY.last);
     } else {
       path.moveTo(0, size.height / 2);
       path.lineTo(size.width, size.height / 2);

@@ -1,5 +1,4 @@
 import 'dart:collection';
-
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:sportfolios_alpha/data/api/requests.dart';
 import 'package:sportfolios_alpha/data/firebase/markets.dart';
@@ -34,7 +33,8 @@ class Portfolio {
   DateTime lastPushedValueServer;
   DateTime lastPushedHistoricalValuesServer;
 
-  Map<String, SplayTreeMap<int, double>> historicalValue = Map<String, SplayTreeMap<int, double>>();
+  Map<String, List<double>> historicalValue = Map<String, List<double>>();
+  Map<String, List<int>> times;
 
   Portfolio(this.id);
 
@@ -109,7 +109,7 @@ class Portfolio {
     if (!setCurrentX || (DateTime.now().difference(lastUpdatedCurrentX).inSeconds > 60)) {
       Map<String, dynamic> currentXs = await getMultipleCurrentX(currentMarketIds);
       for (String marketId in currentXs.keys) {
-        markets[marketId].setCurrentX(List<double>.from(currentXs[marketId]['x']), currentXs[marketId]['b']);
+        markets[marketId].lmsr.setCurrentX(List<double>.from(currentXs[marketId]['x']), currentXs[marketId]['b']);
       }
       lastUpdatedCurrentX = DateTime.now();
       setCurrentX = true;
@@ -122,8 +122,10 @@ class Portfolio {
     Stopwatch stopwatch = new Stopwatch()..start();
     if (!setHistoricalX || (DateTime.now().difference(lastUpdatedHistoricalX).inSeconds > 60)) {
       Map<String, dynamic> historicalXs = await getMultipleHistoricalX(markets.keys.toList());
-      for (String marketId in historicalXs.keys) {
-        markets[marketId].setHistoricalX(historicalXs[marketId]['xhist'], historicalXs[marketId]['bhist']);
+      times = Map<String, List<int>>.from(historicalXs['time']);
+      for (String marketId in historicalXs['data'].keys) {
+        print(marketId);
+        markets[marketId].lmsr.setHistoricalX(historicalXs['data'][marketId]['x'], historicalXs['data'][marketId]['b']);
       }
       lastUpdatedHistoricalX = DateTime.now();
       setHistoricalX = true;
@@ -138,7 +140,7 @@ class Portfolio {
     if (setCurrentX) {
       for (String marketId in currentQuantities.keys) {
         currentValues[marketId] =
-            markets[marketId].getCurrentValue(List<double>.from(currentQuantities[marketId]));
+            markets[marketId].lmsr.getValue(List<double>.from(currentQuantities[marketId]));
         total += currentValues[marketId];
       }
       currentValue = total;
@@ -177,22 +179,22 @@ class Portfolio {
         double purchaseTime = purchase['time'] + 0.0;
         List<double> quantity = purchase['quantity'];
         //
-        Map<String, SplayTreeMap<int, double>> historicalMarketValue =
-            markets[market].getHistoricalValue(quantity);
+        Map<String, List<double>> historicalMarketValue =
+            markets[market].lmsr.getHistoricalValue(quantity);
 
-        for (String ts in ['h', 'd', 'w', 'm', 'M']) {
+        for (String th in ['h', 'd', 'w', 'm', 'M']) {
           if (!firstPassComplete) {
-            historicalValue[ts] = SplayTreeMap<int, double>( (int t1, int t2) => t1.compareTo(t2));
+            historicalValue[th] = List<double>.generate(60, (int i) => 0.0);
           }
-          for (int t in historicalMarketValue[ts].keys.toList().reversed) {
+          for (int i=0; i < times[th].length; i++) {
             if (!firstPassComplete) {
-              historicalValue[ts][t] = 0.0;
-              if (purchaseTime <= t) {
-                historicalValue[ts][t] += historicalMarketValue[ts][t];
+              historicalValue[th][i] = 0.0;
+              if (purchaseTime <= times[th][i]) {
+                historicalValue[th][i] += historicalMarketValue[th][i];
               }
             } else {
-              if (purchaseTime <= t) {
-                historicalValue[ts][t] += historicalMarketValue[ts][t];
+              if (purchaseTime <= times[th][i]) {
+                historicalValue[th][i] += historicalMarketValue[th][i];
               } else {
                 break;
               }

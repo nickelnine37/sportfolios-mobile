@@ -71,6 +71,7 @@ class _LeaderboardScrollState extends State<LeaderboardScroll> with AutomaticKee
 
   @override
   Widget build(BuildContext context) {
+    super.build(context);
     return FutureBuilder(
       future: portfoliosFuture,
       builder: (BuildContext context, AsyncSnapshot snapshot) {

@@ -1,17 +1,11 @@
 import 'package:cached_network_image/cached_network_image.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import 'package:sportfolios_alpha/data/api/requests.dart';
-import 'package:sportfolios_alpha/data/firebase/portfolios.dart';
 import 'package:sportfolios_alpha/data/objects/markets.dart';
 import 'package:sportfolios_alpha/plots/payout_graph.dart';
-import 'package:sportfolios_alpha/providers/authenication_provider.dart';
-import 'package:sportfolios_alpha/utils/arrays.dart';
-import 'package:sportfolios_alpha/utils/number_format.dart';
+import 'package:sportfolios_alpha/utils/numerical/array_operations.dart';
+import 'package:sportfolios_alpha/utils/strings/number_format.dart';
 import 'package:confetti/confetti.dart';
-import 'package:sportfolios_alpha/utils/numbers.dart';
 import 'package:sportfolios_alpha/data/objects/portfolios.dart';
 import 'package:intl/intl.dart' as intl;
 
@@ -38,20 +32,19 @@ class _SellMarketState extends State<SellMarket> {
   @override
   void initState() {
     super.initState();
-    _marketFuture = widget.market.updateCurrentX();
+    _marketFuture = widget.market.lmsr.updateCurrentX();
   }
 
   void updateHistory() {
-    // print(widget.market
     // .priceTrade(range(widget.market.n).map((int i) => qHeldNew[i] - widget.quantityHeld[i]).toList(), 1));
   }
 
   void _makeSelection(Offset touchLocation) {
-    int x = (widget.market.n * touchLocation.dx / graphWidth).floor();
+    int x = (widget.market.lmsr.n * touchLocation.dx / graphWidth).floor();
     if (x < 0) {
       x = 0;
-    } else if (x > widget.market.n - 1) {
-      x = widget.market.n - 1;
+    } else if (x > widget.market.lmsr.n - 1) {
+      x = widget.market.lmsr.n - 1;
     }
     double y = pmax * (1 - (touchLocation.dy - 20) / (graphHeight + 20));
 
@@ -61,7 +54,7 @@ class _SellMarketState extends State<SellMarket> {
     if (y > widget.quantityHeld[x]) {
       y = widget.quantityHeld[x];
     }
-    List<double> qHeldNew_ = range(widget.market.n).map((int i) => i == x ? y : qHeldNew[i]).toList();
+    List<double> qHeldNew_ = range(widget.market.lmsr.n).map((int i) => i == x ? y : qHeldNew[i]).toList();
 
     if (qHeldNew != qHeldNew_) {
       setState(() {
@@ -128,7 +121,7 @@ class _SellMarketState extends State<SellMarket> {
                                   Text('Total value'),
                                   SizedBox(height: 3),
                                   Text(
-                                    formatCurrency(-widget.market.priceTrade(widget.quantityHeld, -1), 'GBP'),
+                                    formatCurrency(-widget.market.lmsr.priceTrade(widget.quantityHeld, -1), 'GBP'),
                                     style: TextStyle(fontSize: 18, fontWeight: FontWeight.w300),
                                   ),
                                 ],
@@ -201,7 +194,7 @@ class _SellMarketState extends State<SellMarket> {
                               return SellForm(
                                   widget.portfolio,
                                   widget.market,
-                                  range(widget.market.n)
+                                  range(widget.market.lmsr.n)
                                       .map((int i) => qHeldNew[i] - widget.quantityHeld[i])
                                       .toList());
                             } else if (snapshot.hasError) {
@@ -248,7 +241,7 @@ class _SellFormState extends State<SellForm> {
 
   @override
   Widget build(BuildContext context) {
-    payout = widget.market.priceTrade(widget.quantity, 1);
+    payout = widget.market.lmsr.priceTrade(widget.quantity, 1);
 
     return Padding(
       padding: EdgeInsets.symmetric(horizontal: 5),

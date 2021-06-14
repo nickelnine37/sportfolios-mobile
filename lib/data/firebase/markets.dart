@@ -31,7 +31,7 @@ class MarketFetcher {
     // work out whether this is a player or team market and order by different metric accordingly
 
     if (marketType == 'players') {
-      baseQuery = baseQuery.orderBy('rating', descending: true).limit(10);
+      baseQuery = baseQuery.orderBy('player_id', descending: true).limit(10);
     } else {
       baseQuery = baseQuery.orderBy('points', descending: true).limit(10);
     }
@@ -60,11 +60,11 @@ class MarketFetcher {
       if (results.docs.length > 0) {
         Map<String, double> prices = await getBackPrices(
             results.docs.map<String>((DocumentSnapshot snapshot) => snapshot.id).toList());
-        Map<String, Map> dailyPrices = await getDailyBackPrices(
+        Map<String, List> dailyPrices = await getDailyBackPrices(
             results.docs.map<String>((DocumentSnapshot snapshot) => snapshot.id).toList());
         loadedResults.addAll(
           results.docs.map<Market>((DocumentSnapshot snapshot) => Market.fromDocumentSnapshot(snapshot)
-            ..setBackProperties(prices[snapshot.id], dailyPrices[snapshot.id])),
+            ..setBackProperties(prices[snapshot.id], List<double>.from(dailyPrices[snapshot.id]))),
         );
       }
     }

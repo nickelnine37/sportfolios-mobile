@@ -8,9 +8,9 @@ import 'package:sportfolios_alpha/data/firebase/portfolios.dart';
 import 'package:sportfolios_alpha/data/objects/markets.dart';
 import 'package:sportfolios_alpha/plots/payout_graph.dart';
 import 'package:sportfolios_alpha/providers/authenication_provider.dart';
-import 'package:sportfolios_alpha/utils/number_format.dart';
+import 'package:sportfolios_alpha/utils/strings/number_format.dart';
 import 'package:confetti/confetti.dart';
-import 'package:sportfolios_alpha/utils/numbers.dart';
+import 'package:sportfolios_alpha/utils/numerical/numbers.dart';
 import 'package:sportfolios_alpha/data/objects/portfolios.dart';
 import 'package:intl/intl.dart' as intl;
 
@@ -31,7 +31,7 @@ class _BuyMarketState extends State<BuyMarket> {
   @override
   void initState() {
     super.initState();
-    _portfoliosFuture = Future.wait([_getPortfolios(), widget.market.updateCurrentX()]);
+    _portfoliosFuture = Future.wait([_getPortfolios(), widget.market.lmsr.updateCurrentX()]);
   }
 
   Future<List<Portfolio>> _getPortfolios() async {
@@ -92,7 +92,7 @@ class _BuyMarketState extends State<BuyMarket> {
                                   Text('Per contract'),
                                   SizedBox(height: 3),
                                   Text(
-                                    formatCurrency(widget.market.getCurrentValue(widget.quantity), 'GBP'),
+                                    formatCurrency(widget.market.lmsr.getValue(widget.quantity), 'GBP'),
                                     style: TextStyle(fontSize: 18, fontWeight: FontWeight.w300),
                                   ),
                                 ],
@@ -158,7 +158,6 @@ class _BuyFormState extends State<BuyForm> {
   bool complete = false;
 
   String _selectedPortfolioId;
-  Portfolio _selectedPortfolio;
 
   @override
   void dispose() {
@@ -216,14 +215,14 @@ class _BuyFormState extends State<BuyForm> {
                             ),
                           ],
                       onChanged: (String id) {
-                        _selectedPortfolio = widget.portfolios.firstWhere((Portfolio p) => p.id == id);
+                        // _selectedPortfolio = widget.portfolios.firstWhere((Portfolio p) => p.id == id);
 
                         setState(() {
                           _selectedPortfolioId = id;
                         });
                       },
                       onSaved: (String id) {
-                        _selectedPortfolio = widget.portfolios.firstWhere((Portfolio p) => p.id == id);
+                        // _selectedPortfolio = widget.portfolios.firstWhere((Portfolio p) => p.id == id);
                         _selectedPortfolioId = id;
                       },
                       validator: (String value) {
@@ -271,7 +270,7 @@ class _BuyFormState extends State<BuyForm> {
                       } else {
                         try {
                           units = double.parse(value);
-                          price = validatePrice(widget.market.priceTrade(widget.quantity, units));
+                          price = validatePrice(widget.market.lmsr.priceTrade(widget.quantity, units));
                           setState(() {});
                         } catch (error) {
                           print(error.toString());

@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:sportfolios_alpha/data/objects/leagues.dart';
 import 'package:sportfolios_alpha/data/firebase/markets.dart';
 import 'package:sportfolios_alpha/screens/home/market_tile.dart';
-import 'package:sportfolios_alpha/utils/string_utils.dart';
+import 'package:sportfolios_alpha/utils/strings/string_utils.dart';
 
 /// Widget for main scroll view of markets
 class MarketScroll extends StatefulWidget {
