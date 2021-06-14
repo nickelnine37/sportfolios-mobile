@@ -5,7 +5,7 @@ import 'package:sportfolios_alpha/plots/price_chart.dart';
 import 'package:sportfolios_alpha/utils/numerical/array_operations.dart';
 import 'dart:math' as math;
 
-import '../market_details.dart';
+import 'market_details.dart';
 import 'header.dart';
 import 'info_box.dart';
 
@@ -132,7 +132,7 @@ class _LongShortDetailsState extends State<LongShortDetails> with SingleTickerPr
               SizedBox(
                 height: 25,
               ),
-              // TabbedPriceGraph(priceHistory: priceHistory, times: widget.market.lmsr.times),
+              TabbedPriceGraph(priceHistory: priceHistory, times: widget.market.lmsr.times),
               SizedBox(height: 20),
               Divider(thickness: 2),
               PageFooter(widget.market),

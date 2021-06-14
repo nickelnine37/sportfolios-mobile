@@ -4,7 +4,7 @@ import 'package:sportfolios_alpha/data/objects/markets.dart';
 import 'package:sportfolios_alpha/data/objects/portfolios.dart';
 import 'package:sportfolios_alpha/plots/donut_chart.dart';
 import 'package:sportfolios_alpha/plots/payout_graph.dart';
-import 'package:sportfolios_alpha/screens/home/market_details.dart';
+import 'package:sportfolios_alpha/screens/home/options/market_details.dart';
 import 'package:sportfolios_alpha/screens/portfolio/sell.dart';
 import 'package:sportfolios_alpha/utils/numerical/array_operations.dart';
 import 'package:sportfolios_alpha/utils/strings/number_format.dart';

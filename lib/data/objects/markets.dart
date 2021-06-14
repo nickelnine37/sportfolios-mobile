@@ -126,7 +126,7 @@ class Market {
       info3 = data['team'].split(" ")[0];
     else
       info3 = data['team'];
-    team = data['team'];
+    team = '${data['team_id']}:${data['leauge_id']}:${data['season__id']}T' ;
   }
 
   /// initialise team info from firebase data
