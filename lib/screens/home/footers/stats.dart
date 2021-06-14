@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:sportfolios_alpha/data/objects/markets.dart';
 import 'package:sportfolios_alpha/utils/widgets/dialogues.dart';
 
@@ -41,23 +42,28 @@ class _StatsShowState extends State<StatsShow> {
               selectedSeasonId = seasons.last;
             }
 
+            Map<String, dynamic> new_season =
+                widget.market.stats[selectedSeasonId];
+
             return Scaffold(
               appBar: AppBar(
+              
+                iconTheme: IconThemeData(color: Colors.white),
                 title: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     GestureDetector(
                       onTap: () async {
-                        String newlySelectedLeague = await showDialog(
+                        String newlySelectedSeason = await showDialog(
                           context: context,
                           builder: (context) {
                             return SeasonSelectorDialogue(seasons);
                           },
                         );
-                        if (newlySelectedLeague != null &&
-                            newlySelectedLeague != selectedSeasonId) {
+                        if (newlySelectedSeason != null &&
+                            newlySelectedSeason != selectedSeasonId) {
                           setState(() {
-                            selectedSeasonId = newlySelectedLeague;
+                            selectedSeasonId = newlySelectedSeason;
                           });
                         }
                       },
@@ -65,9 +71,30 @@ class _StatsShowState extends State<StatsShow> {
                         mainAxisAlignment: MainAxisAlignment.start,
                         crossAxisAlignment: CrossAxisAlignment.center,
                         children: [
-                          Text(selectedSeasonId,
-                              style: TextStyle(
-                                  fontSize: 28.0, color: Colors.white)),
+                          // IconButton(
+                          //   color: Colors.white,
+                          //   icon: Icon(
+                          //     Icons.arrow_back,
+                          //     size: 22,
+                          //   ),
+                          //   onPressed: () {
+                          //     Navigator.of(context).pop();
+                          //   },
+                          // ),
+                          Container(
+                              child: CachedNetworkImage(
+                                  imageUrl: widget.market.imageURL,
+                                  height: 50)),
+                          SizedBox(width: 15),
+                          Column(children: [
+                            Text(selectedSeasonId,
+                                style: TextStyle(
+                                    fontSize: 23.0, color: Colors.white)),
+                            SizedBox(height: 2),
+                            Text(widget.market.name,
+                                style: TextStyle(
+                                    fontSize: 13.0, color: Colors.white)),
+                          ]),
                           Container(
                             padding: EdgeInsets.all(0),
                             width: 30,
@@ -77,13 +104,166 @@ class _StatsShowState extends State<StatsShow> {
                                   color: Colors.white),
                             ),
                           ),
+                          Container(
+                              child: CachedNetworkImage(
+                                  imageUrl: new_season['season_logo'].toString(),
+                                  height: 50)),
                         ],
                       ),
                     ),
                   ],
                 ),
               ),
-              body: Center(child: Text(widget.market.stats[selectedSeasonId].keys.toString())),
+              body: Row(
+                children: [
+                  Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Container(
+                          margin: const EdgeInsets.symmetric(vertical: 20.0),
+                          padding: const EdgeInsets.symmetric(horizontal: 25.0),
+                          child: Align(
+                            child: Text(
+                              'Wins',
+                              style: TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                  height: 2,
+                                  fontSize: 20),
+                            ),
+                          ),
+                        ),
+                        Container(
+                          margin: const EdgeInsets.symmetric(vertical: 20.0),
+                          padding: const EdgeInsets.symmetric(horizontal: 25.0),
+                          child: Text(
+                            'Draws',
+                            style: TextStyle(
+                                fontWeight: FontWeight.bold,
+                                height: 2,
+                                fontSize: 20),
+                          ),
+                        ),
+                        Container(
+                          margin: const EdgeInsets.symmetric(vertical: 20.0),
+                          padding: const EdgeInsets.symmetric(horizontal: 25.0),
+                          child: Text(
+                            'Losses',
+                            style: TextStyle(
+                                fontWeight: FontWeight.bold,
+                                height: 2,
+                                fontSize: 20),
+                          ),
+                        ),
+                        Container(
+                          margin: const EdgeInsets.symmetric(vertical: 20.0),
+                          padding: const EdgeInsets.symmetric(horizontal: 25.0),
+                          child: Text(
+                            'Goals for',
+                            style: TextStyle(
+                                fontWeight: FontWeight.bold,
+                                height: 2,
+                                fontSize: 20),
+                          ),
+                        ),
+                        Container(
+                          margin: const EdgeInsets.symmetric(vertical: 20.0),
+                          padding: const EdgeInsets.symmetric(horizontal: 25.0),
+                          child: Text(
+                            'Goals against',
+                            style: TextStyle(
+                                fontWeight: FontWeight.bold,
+                                height: 2,
+                                fontSize: 20),
+                          ),
+                        ),
+                        Container(
+                          margin: const EdgeInsets.symmetric(vertical: 20.0),
+                          padding: const EdgeInsets.symmetric(horizontal: 25.0),
+                          child: Text(
+                            'Goal difference',
+                            style: TextStyle(
+                                fontWeight: FontWeight.bold,
+                                height: 2,
+                                fontSize: 20),
+                          ),
+                        ),
+                        Container(
+                          margin: const EdgeInsets.symmetric(vertical: 20.0),
+                          padding: const EdgeInsets.symmetric(horizontal: 25.0),
+                          child: Text(
+                            'Points',
+                            style: TextStyle(
+                                fontWeight: FontWeight.bold,
+                                height: 2,
+                                fontSize: 20),
+                          ),
+                        ),
+                      ]),
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.end,
+                    children: [
+                      Container(
+                        margin: const EdgeInsets.symmetric(vertical: 20.0),
+                        padding: const EdgeInsets.only(left: 140.0),
+                        child: Text(
+                          new_season['wins'].toString(),
+                          style: TextStyle(height: 2, fontSize: 20),
+                        ),
+                      ),
+                      Container(
+                        margin: const EdgeInsets.symmetric(vertical: 20.0),
+                        padding: const EdgeInsets.only(left: 140.0),
+                        child: Text(
+                          new_season['draws'].toString(),
+                          style: TextStyle(height: 2, fontSize: 20),
+                        ),
+                      ),
+                      Container(
+                        margin: const EdgeInsets.symmetric(vertical: 20.0),
+                        padding: const EdgeInsets.only(left: 140.0),
+                        child: Text(
+                          new_season['losses'].toString(),
+                          style: TextStyle(height: 2, fontSize: 20),
+                        ),
+                      ),
+                      Container(
+                        margin: const EdgeInsets.symmetric(vertical: 20.0),
+                        padding: const EdgeInsets.only(left: 140.0),
+                        child: Text(
+                          new_season['goals_for'].toString(),
+                          style: TextStyle(height: 2, fontSize: 20),
+                        ),
+                      ),
+                      Container(
+                        margin: const EdgeInsets.symmetric(vertical: 20.0),
+                        padding: const EdgeInsets.only(left: 140.0),
+                        child: Text(
+                          new_season['goals_against'].toString(),
+                          style: TextStyle(height: 2, fontSize: 20),
+                        ),
+                      ),
+                      Container(
+                        margin: const EdgeInsets.symmetric(vertical: 20.0),
+                        padding: const EdgeInsets.only(left: 140.0),
+                        child: Text(
+                          (new_season['goals_for'] -
+                                  new_season['goals_against'])
+                              .toString(),
+                          style: TextStyle(height: 2, fontSize: 20),
+                        ),
+                      ),
+                      Container(
+                        margin: const EdgeInsets.symmetric(vertical: 20.0),
+                        padding: const EdgeInsets.only(left: 140.0),
+                        child: Text(
+                          new_season['points'].toString(),
+                          style: TextStyle(height: 2, fontSize: 20),
+                        ),
+                      ),
+                    ],
+                  )
+                ],
+              ),
             );
           } else if (snapshot.hasError) {
             return Scaffold(
@@ -92,7 +272,7 @@ class _StatsShowState extends State<StatsShow> {
             );
           } else {
             return Scaffold(
-              appBar: AppBar(),
+              // appBar: AppBar(),
               body: Center(child: CircularProgressIndicator()),
             );
           }
