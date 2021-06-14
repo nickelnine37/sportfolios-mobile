@@ -126,11 +126,12 @@ class Market {
       info3 = data['team'].split(" ")[0];
     else
       info3 = data['team'];
-    team = '${data['team_id']}:${data['leauge_id']}:${data['season__id']}T' ;
+    team = '${data['team_id']}:${data['league_id']}:${data['season_id']}T' ;
   }
 
   /// initialise team info from firebase data
   void initTeamInfo(Map<String, dynamic> data) {
+
     name = data['name'];
     info1 = "P ${data['played']}";
     info2 = "GD ${data['goal_difference'] > 0 ? '+' : '-'}${data['goal_difference'].abs()}";

@@ -29,10 +29,15 @@ class _MarketDetailsState extends State<MarketDetails> {
   @override
   void initState() {
     updateState = Future.wait([
-      widget.market.lmsr.updateCurrentX(),
-      widget.market.lmsr.updateHistoricalX(),
-      Future.delayed(Duration(seconds: 3))
-    ] + (widget.market.type == 'player' ? [getMarketById(widget.market.team)] : []));
+          widget.market.lmsr.updateCurrentX(),
+          widget.market.lmsr.updateHistoricalX(),
+        ] +
+        (widget.market.type == 'player'
+            ? [
+                getMarketById(widget.market.team),
+                Future.delayed(Duration(seconds: 3)),
+              ]
+            : [Future.delayed(Duration(seconds: 3))]));
     super.initState();
   }
 
@@ -258,7 +263,6 @@ class PageFooter extends StatelessWidget {
             ] +
             (market.type == 'team'
                 ? [
-                    
                     Container(
                       height: 60,
                       child: Center(
