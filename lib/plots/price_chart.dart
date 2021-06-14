@@ -168,7 +168,7 @@ class _PriceGraphState extends State<PriceGraph> {
   double lastp;
 
   // represents whether the prices are constant (in which case extra logic is needed for plotting)
-  bool isConstant;
+  // bool isConstant;
   intl.DateFormat dateFormat;
   String dateX;
 
@@ -196,7 +196,7 @@ class _PriceGraphState extends State<PriceGraph> {
 
   /// given an x-coordinate in pixels, return an interpolated y-coordinate in currency
   double _pxToY(double px) {
-    if (isConstant) {
+    if ((pmax - pmin).abs() < 1e-5) {
       return widget.prices.first;
     } else {
       // double equivelant of index number
@@ -218,7 +218,7 @@ class _PriceGraphState extends State<PriceGraph> {
   /// given an x-coordinate in pixels, return an interpolated y-coordinate in pixels
   double _pxToPy(double px) {
 
-    if (isConstant) {
+    if ((pmax - pmin).abs() < 1e-5) {
       return graphHeight * ((1 - widget.tPad - widget.bPad) * 0.5 + widget.tPad);
     } else {
       return graphHeight *
@@ -304,15 +304,17 @@ class _PriceGraphState extends State<PriceGraph> {
       dateX = null;
       returns = null;
       dt_t = null;
-      isConstant = null;
+      // isConstant = null;
     }
 
-    if (isConstant == null) {
-      isConstant = widget.prices.every((element) => element == widget.prices[0]);
-    }
+    // if (isConstant == null) {
+    //   isConstant = widget.prices.every((element) => (element - widget.prices[0]).abs() < 1e-5);
+    //   print(widget.prices.map((element) => (element - widget.prices[0]).abs() < 1e-5));
+    // }
+
+    // print(isConstant);
 
     if (pmin == null || widget.prices.last != lastp) {
-
       pmin = widget.prices.reduce(min);
       pmax = widget.prices.reduce(max);
       lastp = widget.prices.last;
@@ -369,7 +371,7 @@ class _PriceGraphState extends State<PriceGraph> {
               prices: widget.prices,
               touchX: touchX,
               touchY: touchY,
-              isConstant: isConstant,
+              // isConstant: isConstant,
               lineColor: widget.lineColor,
               shadeColor: widget.shadeColor,
               moving: widget.moving,
@@ -387,7 +389,7 @@ class _PriceGraphState extends State<PriceGraph> {
 
 class PriceGraphPainter extends CustomPainter {
   final List<double> prices;
-  final bool isConstant;
+  // final bool isConstant;
   final bool moving;
   final Color lineColor;
   final Color shadeColor;
@@ -407,7 +409,7 @@ class PriceGraphPainter extends CustomPainter {
 
   PriceGraphPainter({
     this.prices,
-    this.isConstant,
+    // this.isConstant,
     this.touchX,
     this.touchY,
     this.moving,
@@ -513,11 +515,19 @@ class PriceGraphPainter extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
     //
+
+
+
     n = prices.length;
     xMax = range(n).reduce((prev, cur) => prices[prev] > prices[cur] ? prev : cur);
     xMin = range(n).reduce((prev, cur) => prices[prev] < prices[cur] ? prev : cur);
     pmin = prices[xMin];
     pmax = prices[xMax];
+
+    bool isConstant = ((pmin - pmax).abs() < 1e-5);
+
+    // print('${pmin}, ${pmax}');
+
 
     // calculate cut-off index
     if (touchX != null) {
