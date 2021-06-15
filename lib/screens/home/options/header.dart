@@ -64,7 +64,7 @@ class PageHeader extends StatelessWidget {
             width: 80,
             child: Center(
               child: IconButton(
-                icon: Icon(Icons.info_outline, size: 23),
+                icon: Icon(Icons.info_outline, size: 23, color: Colors.grey[600],),
                 onPressed: () {
                   showDialog(
                       context: context,

@@ -167,7 +167,7 @@ class MarketScrollState extends State<MarketScroll> with AutomaticKeepAliveClien
                 );
               } else {
                 return MarketTile(
-                    market: _selectedMarketFetcher.loadedResults[index - 1], league: widget.league);
+                    market: _selectedMarketFetcher.loadedResults[index - 1]);
               }
             },
             separatorBuilder: (context, index) => Divider(

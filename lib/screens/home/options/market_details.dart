@@ -2,11 +2,11 @@ import 'package:intl/intl.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:sportfolios_alpha/data/firebase/markets.dart';
 import 'package:sportfolios_alpha/data/objects/markets.dart';
 import 'package:sportfolios_alpha/providers/settings_provider.dart';
 import 'package:sportfolios_alpha/screens/home/app_bar.dart';
 import 'package:sportfolios_alpha/screens/home/footers/stats.dart';
+import 'package:sportfolios_alpha/screens/home/market_tile.dart';
 import 'package:sportfolios_alpha/utils/design/colors.dart';
 import 'package:sportfolios_alpha/utils/strings/number_format.dart';
 
@@ -31,13 +31,9 @@ class _MarketDetailsState extends State<MarketDetails> {
     updateState = Future.wait([
           widget.market.lmsr.updateCurrentX(),
           widget.market.lmsr.updateHistoricalX(),
+          Future.delayed(Duration(seconds: 3)),
         ] +
-        (widget.market.type == 'player'
-            ? [
-                getMarketById(widget.market.team),
-                Future.delayed(Duration(seconds: 3)),
-              ]
-            : [Future.delayed(Duration(seconds: 3))]));
+        (widget.market.type == 'player' ? [widget.market.getTeamSnapshot()] : []));
     super.initState();
   }
 
@@ -122,9 +118,12 @@ class _MarketDetailsState extends State<MarketDetails> {
                 ),
               ],
             ),
-            LeagueProgressBar(
-              leagueOrMarket: widget.market,
-              textColor: textColor,
+            Padding(
+              padding: const EdgeInsets.only(right: 2.0),
+              child: LeagueProgressBar(
+                leagueOrMarket: widget.market,
+                textColor: textColor,
+              ),
             ),
           ]),
         ),
@@ -153,43 +152,43 @@ class _MarketDetailsState extends State<MarketDetails> {
   }
 }
 
-class MarketPageHeader extends ConsumerWidget {
-  final Market market;
-  const MarketPageHeader(this.market);
+// class MarketPageHeader extends ConsumerWidget {
+//   final Market market;
+//   const MarketPageHeader(this.market);
 
-  @override
-  Widget build(BuildContext context, ScopedReader watch) {
-    String currency = watch(settingsProvider).currency;
+//   @override
+//   Widget build(BuildContext context, ScopedReader watch) {
+//     String currency = watch(settingsProvider).currency;
 
-    return Container(
-      padding: EdgeInsets.symmetric(horizontal: 30, vertical: 20),
-      child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          crossAxisAlignment: CrossAxisAlignment.center,
-          children: [
-            CachedNetworkImage(
-              imageUrl: market.imageURL,
-              height: 65,
-            ),
-            SizedBox(height: 3),
-            Text(
-              formatCurrency(market.currentBackValue, currency),
-              style: TextStyle(fontSize: 25, fontWeight: FontWeight.w300),
-            ),
-            Column(
-              children: [
-                Text('Expirey date'),
-                SizedBox(height: 3),
-                Text(
-                  DateFormat('d MMM yy').format(market.startDate),
-                  style: TextStyle(fontSize: 20, fontWeight: FontWeight.w300),
-                ),
-              ],
-            ),
-          ]),
-    );
-  }
-}
+//     return Container(
+//       padding: EdgeInsets.symmetric(horizontal: 30, vertical: 20),
+//       child: Row(
+//           mainAxisAlignment: MainAxisAlignment.spaceBetween,
+//           crossAxisAlignment: CrossAxisAlignment.center,
+//           children: [
+//             CachedNetworkImage(
+//               imageUrl: market.imageURL,
+//               height: 65,
+//             ),
+//             SizedBox(height: 3),
+//             Text(
+//               formatCurrency(market.currentBackValue, currency),
+//               style: TextStyle(fontSize: 25, fontWeight: FontWeight.w300),
+//             ),
+//             Column(
+//               children: [
+//                 Text('Expirey date'),
+//                 SizedBox(height: 3),
+//                 Text(
+//                   DateFormat('d MMM yy').format(market.startDate),
+//                   style: TextStyle(fontSize: 20, fontWeight: FontWeight.w300),
+//                 ),
+//               ],
+//             ),
+//           ]),
+//     );
+//   }
+// }
 
 class PageFooter extends StatelessWidget {
   final Market market;
@@ -198,7 +197,9 @@ class PageFooter extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+
     return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
         children: [
               Container(
                 height: 60,
@@ -292,7 +293,36 @@ class PageFooter extends StatelessWidget {
                     ),
                     Divider(thickness: 2)
                   ]
-                : []));
+                : [
+                    Container(
+                      height: 60,
+                      child: Center(
+                        child: ListTile(
+                          // onTap: () {},
+                          leading: SizedBox(
+                            height: double.infinity,
+                            child: Row(
+                              crossAxisAlignment: CrossAxisAlignment.center,
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Icon(
+                                  Icons.group,
+                                  size: 28,
+                                ),
+                                SizedBox(width: 15),
+                                Text(
+                                  'Team',
+                                  style: TextStyle(fontSize: 16.0),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                    MarketTile(market: market.team),
+                    Divider(thickness: 2)
+                  ]));
   }
 }
 

@@ -1,4 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:sportfolios_alpha/data/api/requests.dart';
+import 'package:sportfolios_alpha/data/firebase/markets.dart';
 import 'package:sportfolios_alpha/data/lmsr/lmsr.dart';
 
 
@@ -16,7 +18,9 @@ class Market {
   Map<String, dynamic> stats;
 
   // -----  Link attributes -----
-  String team; // null for teams
+  String team_id; // null for teams
+  Market team;
+
   List<String> players; // null for players
 
   // ----- Visual attributes -----
@@ -71,6 +75,11 @@ class Market {
     }
   }
 
+  Future<void> getTeamSnapshot() async {
+    team = await getMarketById(team_id);
+    await team.getBackProperties();
+  }
+
   Future<void> getStats() async {
     String idStats = id.split(':')[0] + id[id.length - 1];
     DocumentSnapshot snapshot = await FirebaseFirestore.instance
@@ -108,6 +117,11 @@ class Market {
     dailyBackValue = dailyBValue;
   }
 
+  Future<void> getBackProperties() async {
+    currentBackValue = (await getBackPrices([id]))[id];
+    dailyBackValue = await List<double>.from((await getDailyBackPrices([id]))[id]);
+  }
+
   /// initialise player info from firebase data
   void initPlayerInfo(Map<String, dynamic> data) {
     if (data['name'].length > 24) {
@@ -126,7 +140,8 @@ class Market {
       info3 = data['team'].split(" ")[0];
     else
       info3 = data['team'];
-    team = '${data['team_id']}:${data['league_id']}:${data['season_id']}T' ;
+    team_id = '${data['team_id']}:${data['league_id']}:${data['season_id']}T' ;
+    team = Market(team_id);
   }
 
   /// initialise team info from firebase data

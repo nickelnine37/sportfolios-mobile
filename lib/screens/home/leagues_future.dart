@@ -59,8 +59,9 @@ class _HomeBodyState extends State<HomeBody> {
     return Scaffold(
       body: body,
       appBar: AppBar(
-        title: Text(title),
+        title: Text(title, style: TextStyle(color: Colors.white),),
         leading: IconButton(
+          color: Colors.white,
           icon: Icon(Icons.menu),
           onPressed: () {
             widget.parentScaffoldKey.currentState.openDrawer();

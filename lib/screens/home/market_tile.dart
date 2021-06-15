@@ -1,5 +1,4 @@
 import 'package:cached_network_image/cached_network_image.dart';
-import 'package:sportfolios_alpha/data/objects/leagues.dart';
 import 'package:sportfolios_alpha/providers/settings_provider.dart';
 import 'package:sportfolios_alpha/screens/home/options/market_details.dart';
 import 'package:sportfolios_alpha/utils/strings/number_format.dart';
@@ -8,67 +7,49 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:sportfolios_alpha/data/objects/markets.dart';
 
-class MarketTile extends StatefulWidget {
+
+class MarketTile extends StatelessWidget {
+
   final Market market;
-  final League league;
   final double height;
   final double imageHeight;
   final EdgeInsets padding;
 
+  final double upperTextSize = 16.0;
+  final double lowerTextSize = 12.0;
+  final double spacing = 3.0;
+
   MarketTile({
     @required this.market,
-    @required this.league,
     this.height = 115.0,
     this.imageHeight = 50.0,
     this.padding = const EdgeInsets.symmetric(vertical: 10, horizontal: 10),
   });
 
   @override
-  State<StatefulWidget> createState() {
-    return MarketTileState();
-  }
-}
-
-class MarketTileState extends State<MarketTile> {
-  final double upperTextSize = 16.0;
-  final double lowerTextSize = 12.0;
-  final double spacing = 3.0;
-  double valueChange;
-  double percentChange;
-  String sign;
-
-  MarketTileState();
-
-  void _goToMarketDetailsPage() {
-    Navigator.of(context).push(MaterialPageRoute<void>(builder: (BuildContext context) {
-      return MarketDetails(widget.market);
-    }));
-  }
-
-  @override
   Widget build(BuildContext context) {
-    if (valueChange == null) {
-      valueChange = widget.market.dailyBackValue.last - widget.market.dailyBackValue.first;
-      percentChange = valueChange / widget.market.dailyBackValue.first;
-      sign = valueChange < 0 ? '-' : '+';
-    }
+
 
     return InkWell(
-      onTap: _goToMarketDetailsPage,
+      onTap: () {
+    Navigator.of(context).push(MaterialPageRoute<void>(builder: (BuildContext context) {
+      return MarketDetails(market);
+    }));
+  },
       child: Container(
-        height: widget.height,
-        padding: widget.padding,
+        height: height,
+        padding: padding,
         child: Row(children: [
-          widget.market.imageURL != null
+          market.imageURL != null
               ? Container(
-                  height: widget.imageHeight,
-                  width: widget.imageHeight,
+                  height: imageHeight,
+                  width: imageHeight,
                   child: CachedNetworkImage(
-                    imageUrl: widget.market.imageURL,
-                    height: widget.imageHeight,
+                    imageUrl: market.imageURL,
+                    height: imageHeight,
                   ),
                 )
-              : Container(height: widget.imageHeight),
+              : Container(height: imageHeight),
           Expanded(
             child: Container(
               padding: EdgeInsets.only(left: 20),
@@ -81,10 +62,10 @@ class MarketTileState extends State<MarketTile> {
                       Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text(widget.market.name, style: TextStyle(fontSize: upperTextSize)),
+                          Text(market.name, style: TextStyle(fontSize: upperTextSize)),
                           SizedBox(height: spacing),
                           Text(
-                            '${widget.market.info1} • ${widget.market.info2} • ${widget.market.info3}',
+                            '${market.info1} • ${market.info2} • ${market.info3}',
                             style: TextStyle(fontSize: lowerTextSize, color: Colors.grey[600]),
                           ),
                         ],
@@ -96,15 +77,15 @@ class MarketTileState extends State<MarketTile> {
                             crossAxisAlignment: CrossAxisAlignment.end,
                             children: [
                               Text(
-                                formatCurrency(widget.market.currentBackValue, currency),
+                                formatCurrency(market.currentBackValue, currency),
                                 style: TextStyle(fontSize: upperTextSize),
                               ),
                               SizedBox(height: spacing),
                               Text(
-                                  '${sign}${formatPercentage(percentChange.abs(), currency)}  (${sign}${formatCurrency(valueChange.abs(), currency)})',
+                                  '${(market.dailyBackValue.last - market.dailyBackValue.first) < 0 ? '-' : '+'}${formatPercentage(((market.dailyBackValue.last - market.dailyBackValue.first) / market.dailyBackValue.first).abs(), currency)}  (${(market.dailyBackValue.last - market.dailyBackValue.first) < 0 ? '-' : '+'}${formatCurrency((market.dailyBackValue.last - market.dailyBackValue.first).abs(), currency)})',
                                   style: TextStyle(
                                       fontSize: 12,
-                                      color: valueChange >= 0 ? Colors.green[300] : Colors.red[300])),
+                                      color: (market.dailyBackValue.last - market.dailyBackValue.first) >= 0 ? Colors.green[300] : Colors.red[300])),
                             ],
                           );
                         },
@@ -115,7 +96,7 @@ class MarketTileState extends State<MarketTile> {
                     child: Container(
                       padding: EdgeInsets.only(top: 10, bottom: 0, left: 10, right: 10),
                       width: double.infinity,
-                      child: CustomPaint(painter: MiniPriceChartPainter(widget.market.dailyBackValue)),
+                      child: CustomPaint(painter: MiniPriceChartPainter(market.dailyBackValue)),
                     ),
                   ),
                   Row(

@@ -95,9 +95,9 @@ class _LongShortDetailsState extends State<LongShortDetails> with SingleTickerPr
                     height: 30,
                     padding: EdgeInsets.only(bottom: 5, top: 2, left: 3, right: 3),
                     child: TabBar(
-                      labelColor: Colors.grey[900],
+                      labelColor: Colors.grey[700],
                       unselectedLabelColor: Colors.grey[400],
-                      indicatorColor: Colors.grey[600],
+                      indicatorColor: Colors.grey[500],
                       indicatorWeight: 1,
                       controller: _tabController,
                       labelPadding: EdgeInsets.symmetric(horizontal: 2, vertical: 2),
