@@ -131,9 +131,9 @@ class _MainViewState extends State<MainView> {
         ),
         body: TabBarView(
           children: [
-            MarketScroll(league, 'teams'),
+            MarketScroll(league: league, marketType: 'teams'),
             // MarketScroll(league, 'teams'),
-            MarketScroll(league, 'players'),
+            MarketScroll(league: league, marketType:'players'),
             // MarketScroll(league, 'players'),
           ],
         ),

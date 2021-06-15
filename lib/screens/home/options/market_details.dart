@@ -7,6 +7,7 @@ import 'package:sportfolios_alpha/providers/settings_provider.dart';
 import 'package:sportfolios_alpha/screens/home/app_bar.dart';
 import 'package:sportfolios_alpha/screens/home/footers/stats.dart';
 import 'package:sportfolios_alpha/screens/home/market_tile.dart';
+import 'package:sportfolios_alpha/screens/home/options/team_players.dart';
 import 'package:sportfolios_alpha/utils/design/colors.dart';
 import 'package:sportfolios_alpha/utils/strings/number_format.dart';
 
@@ -197,9 +198,8 @@ class PageFooter extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-
     return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
               Container(
                 height: 60,
@@ -268,7 +268,12 @@ class PageFooter extends StatelessWidget {
                       height: 60,
                       child: Center(
                         child: ListTile(
-                          onTap: () {},
+                          onTap: () {
+                            Navigator.of(context)
+                                .push(MaterialPageRoute<void>(builder: (BuildContext context) {
+                              return TeamPlayers(market);
+                            }));
+                          },
                           leading: SizedBox(
                             height: double.infinity,
                             child: Row(
@@ -325,18 +330,3 @@ class PageFooter extends StatelessWidget {
                   ]));
   }
 }
-
-// SizedBox(
-//               // height: double.infinity,
-//               child: Row(
-//                 crossAxisAlignment: CrossAxisAlignment.center,
-//                 children: [
-//                   Icon(Icons.group, size: 28,),
-//                   SizedBox(width: 15),
-//                   Text(
-//                     'Players',
-//                     style: TextStyle(fontSize: 16.0),
-//                   ),
-//                 ],
-//               ),
-//             ),

@@ -72,11 +72,11 @@ class MarketFetcher {
 }
 
 /// class for fetching markets when there is no particular serach term associated
-class DefaultMarketFetcher extends MarketFetcher {
+class LeagueMarketFetcher extends MarketFetcher {
   int leagueID;
   String marketType;
 
-  DefaultMarketFetcher(this.leagueID, this.marketType) {
+  LeagueMarketFetcher(this.leagueID, this.marketType) {
     // set up basic query structure
     baseQuery = FirebaseFirestore.instance.collection(marketType).where('league_id', isEqualTo: leagueID);
     super.setData();
@@ -84,17 +84,47 @@ class DefaultMarketFetcher extends MarketFetcher {
 }
 
 /// class for fetching markets when there is no particular serach term associated
-class SearchQueryMarketFetcher extends MarketFetcher {
+class LeagueSearchMarketFetcher extends MarketFetcher {
   String search;
   int leagueID;
   String marketType;
   List<Market> alreadyLoaded;
 
-  SearchQueryMarketFetcher({this.search, this.leagueID, this.marketType, this.alreadyLoaded}) {
+  LeagueSearchMarketFetcher({this.search, this.leagueID, this.marketType, this.alreadyLoaded}) {
     // set up basic query structure
     baseQuery = FirebaseFirestore.instance
         .collection(marketType)
         .where('league_id', isEqualTo: leagueID)
+        .where('search_terms', arrayContains: search);
+
+    super.setData(alreadyLoaded: this.alreadyLoaded, search: search);
+  }
+}
+
+
+/// class for fetching markets when there is no particular serach term associated
+class TeamPlayerMarketFetcher extends MarketFetcher {
+  int teamId;
+  String marketType = 'players';
+
+  TeamPlayerMarketFetcher(this.teamId) {
+    // set up basic query structure
+    baseQuery = FirebaseFirestore.instance.collection('players').where('team_id', isEqualTo: teamId);
+    super.setData();
+  }
+}
+
+/// class for fetching markets when there is no particular serach term associated
+class TeamPlayerSearchMarketFetcher extends MarketFetcher {
+  String search;
+  int teamId;
+  List<Market> alreadyLoaded;
+
+  TeamPlayerSearchMarketFetcher({this.search, this.teamId, this.alreadyLoaded}) {
+    // set up basic query structure
+    baseQuery = FirebaseFirestore.instance
+        .collection('players')
+        .where('team_id', isEqualTo: teamId)
         .where('search_terms', arrayContains: search);
 
     super.setData(alreadyLoaded: this.alreadyLoaded, search: search);

@@ -8,7 +8,8 @@ import 'package:sportfolios_alpha/utils/strings/string_utils.dart';
 class MarketScroll extends StatefulWidget {
   final League league;
   final String marketType;
-  MarketScroll(this.league, this.marketType);
+  final int teamId;
+  MarketScroll({this.league, this.marketType, this.teamId});
 
   @override
   State<StatefulWidget> createState() {
@@ -26,8 +27,8 @@ class MarketScrollState extends State<MarketScroll> with AutomaticKeepAliveClien
   /// 2. [_searchQueryMarketFetcher]: this is responsible for getting markets when a search has been entered
   /// 3. [_selectedMarketFetcher]: this is a helper variable which just holds whichever of the above two we are
   /// currently considering.
-  DefaultMarketFetcher _defaultMarketFetcher;
-  SearchQueryMarketFetcher _searchQueryMarketFetcher;
+  MarketFetcher _defaultMarketFetcher;
+  MarketFetcher _searchQueryMarketFetcher;
   MarketFetcher _selectedMarketFetcher;
 
   /// initialise scroll controller with offset to cover search bar. We also use this when
@@ -52,6 +53,9 @@ class MarketScrollState extends State<MarketScroll> with AutomaticKeepAliveClien
 
   /// helper function: has the user just switched leagues on us?
   bool _justSwitchedLeagues() {
+    if (widget.league == null) {
+      return false;
+    }
     return _defaultMarketFetcher != null && _defaultMarketFetcher.leagueID != widget.league.leagueID;
   }
 
@@ -73,9 +77,11 @@ class MarketScrollState extends State<MarketScroll> with AutomaticKeepAliveClien
     }
   }
 
-  /// 'factory reset' our page. Get a new [DefaultMarketFetcher] for the relevant league,
+  /// 'factory reset' our page. Get a new [LeagueMarketFetcher] for the relevant league,
   void _refreshState() {
-    _defaultMarketFetcher = DefaultMarketFetcher(widget.league.leagueID, widget.marketType);
+    _defaultMarketFetcher = widget.league != null
+        ? LeagueMarketFetcher(widget.league.leagueID, widget.marketType)
+        : TeamPlayerMarketFetcher(widget.teamId);
     _searchQueryMarketFetcher = null;
     _selectedMarketFetcher = _defaultMarketFetcher;
     _marketsFuture = _selectedMarketFetcher.get10();
@@ -118,11 +124,17 @@ class MarketScrollState extends State<MarketScroll> with AutomaticKeepAliveClien
                     controller: _textController,
                     onSubmitted: (String value) async {
                       if (value != null && value.trim() != '') {
-                        _searchQueryMarketFetcher = SearchQueryMarketFetcher(
-                            search: value.trim().toLowerCase(),
-                            leagueID: widget.league.leagueID,
-                            marketType: widget.marketType,
-                            alreadyLoaded: _defaultMarketFetcher.loadedResults);
+                        _searchQueryMarketFetcher = widget.league != null
+                            ? LeagueSearchMarketFetcher(
+                                search: value.trim().toLowerCase(),
+                                leagueID: widget.league.leagueID,
+                                marketType: widget.marketType,
+                                alreadyLoaded: _defaultMarketFetcher.loadedResults)
+                            : TeamPlayerSearchMarketFetcher(
+                                search: value.trim().toLowerCase(),
+                                teamId: widget.teamId,
+                                alreadyLoaded: _defaultMarketFetcher.loadedResults
+                              );
                         await _searchQueryMarketFetcher.get10();
                         _selectedMarketFetcher = _searchQueryMarketFetcher;
                         setState(() {});
@@ -166,8 +178,7 @@ class MarketScrollState extends State<MarketScroll> with AutomaticKeepAliveClien
                   child: Center(child: Text("Sorry, no results :'(")),
                 );
               } else {
-                return MarketTile(
-                    market: _selectedMarketFetcher.loadedResults[index - 1]);
+                return MarketTile(market: _selectedMarketFetcher.loadedResults[index - 1]);
               }
             },
             separatorBuilder: (context, index) => Divider(
