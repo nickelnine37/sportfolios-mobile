@@ -32,9 +32,13 @@ class _PortfolioPageState extends State<PortfolioPage> {
     DocumentSnapshot result =
         await FirebaseFirestore.instance.collection('users').doc(AuthService().currentUid).get();
 
+    print(result['portfolios']);
+
     for (String portfolioId in result['portfolios']) {
+      print(portfolioId);
       if (!alreadyLoadedPortfolioIds.contains(portfolioId)) {
         Portfolio portfolio = await getPortfolioById(portfolioId);
+        print(portfolio);
         await portfolio.addMarketSnapshotData();
         await portfolio.updateMarketsCurrentX();
         portfolio.computeCurrentValue();
@@ -43,6 +47,7 @@ class _PortfolioPageState extends State<PortfolioPage> {
         loadedPortfolios.add(portfolio);
         alreadyLoadedPortfolioIds.add(portfolio.id);
       }
+      print(loadedPortfolios);
     }
 
     nPortfolios = loadedPortfolios.length;

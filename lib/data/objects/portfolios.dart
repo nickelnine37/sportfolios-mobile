@@ -30,8 +30,8 @@ class Portfolio {
   DateTime lastUpdatedCurrentX;
   DateTime lastUpdatedHistoricalX;
 
-  DateTime lastPushedValueServer;
-  DateTime lastPushedHistoricalValuesServer;
+  // DateTime lastPushedValueServer;
+  // DateTime lastPushedHistoricalValuesServer;
 
   Map<String, List<double>> historicalValue = Map<String, List<double>>();
   Map<String, List<int>> times;
@@ -46,8 +46,8 @@ class Portfolio {
     public = data['public'];
 
     // ensure we have doubles!!!!!!
-    for (String market in data['current'].keys) {
-      currentQuantities[market] = List<double>.from(data['current'][market].map((i) => i + 0.0));
+    for (String market in data['holdings'].keys) {
+      currentQuantities[market] = List<double>.from(data['holdings'][market].map((i) => i + 0.0));
     }
 
     purchaseHistory = List<Map<String, dynamic>>.from(data['history']);
@@ -62,18 +62,18 @@ class Portfolio {
         key: (marketId) => marketId, value: (marketId) => Market(marketId));
 
     // get current markets in portfolio
-    currentMarketIds = List<String>.from(data['current'].keys);
+    currentMarketIds = List<String>.from(data['holdings'].keys);
 
-    nCurrentMarkets = data['current'].length;
+    nCurrentMarkets = data['holdings'].length;
     nTotalMarkets = markets.length;
 
-    lastPushedValueServer = data['lastUpdated'].toDate();
+    // lastPushedValueServer = data['lastUpdated'].toDate();
   }
 
   Future<void> updateQuantities() async {
     DocumentSnapshot data = await FirebaseFirestore.instance.collection('portfolios').doc(id).get();
-    for (String market in data['current'].keys) {
-      currentQuantities[market] = List<double>.from(data['current'][market].map((i) => i + 0.0));
+    for (String market in data['holdings'].keys) {
+      currentQuantities[market] = List<double>.from(data['holdings'][market].map((i) => i + 0.0));
     }
 
     purchaseHistory = List<Map<String, dynamic>>.from(data['history']);
@@ -84,9 +84,9 @@ class Portfolio {
     }
 
     // get current markets in portfolio
-    currentMarketIds = List<String>.from(data['current'].keys);
+    currentMarketIds = List<String>.from(data['holdings'].keys);
 
-    nCurrentMarkets = data['current'].length;
+    nCurrentMarkets = data['holdings'].length;
     nTotalMarkets = markets.length;
 
     computeCurrentValue();
@@ -144,9 +144,9 @@ class Portfolio {
         total += currentValues[marketId];
       }
       currentValue = total;
-      if (DateTime.now().difference(lastPushedValueServer).inSeconds > 60) {
-        // TODO:  pushCurrentValue();
-      }
+      // if (DateTime.now().difference(lastPushedValueServer).inSeconds > 60) {
+      //   // TODO:  pushCurrentValue();
+      // }
       // also compute list of current values sorted by size
       sortedValues = SplayTreeMap.from(currentValues, (String t1, String t2) => currentValues[t2].compareTo(currentValues[t1]));
     } else {
@@ -155,17 +155,17 @@ class Portfolio {
     print('computeCurrentValue() executed in ${stopwatch.elapsed.inMilliseconds / 1000}s for ${toString()}');
   }
 
-  Future<void> pushCurrentValue() async {
-    if (currentValue != null) {
-      print('Pushing');
-      if (DateTime.now().difference(lastPushedValueServer).inSeconds > 120) {
-        await FirebaseFirestore.instance
-            .collection('portfolios')
-            .doc(id)
-            .update({'value': currentValue, 'lastUpdated': DateTime.now()});
-      }
-    }
-  }
+  // Future<void> pushCurrentValue() async {
+  //   if (currentValue != null) {
+  //     print('Pushing');
+  //     if (DateTime.now().difference(lastPushedValueServer).inSeconds > 120) {
+  //       await FirebaseFirestore.instance
+  //           .collection('portfolios')
+  //           .doc(id)
+  //           .update({'value': currentValue, 'lastUpdated': DateTime.now()});
+  //     }
+  //   }
+  // }
 
   void computeHistoricalValue() {
     Stopwatch stopwatch = new Stopwatch()..start();

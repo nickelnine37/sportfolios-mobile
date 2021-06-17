@@ -31,7 +31,7 @@ class MarketFetcher {
     // work out whether this is a player or team market and order by different metric accordingly
 
     if (marketType == 'players') {
-      baseQuery = baseQuery.orderBy('player_id', descending: true).limit(10);
+      baseQuery = baseQuery.orderBy('rating', descending: true).limit(10);
     } else {
       baseQuery = baseQuery.orderBy('points', descending: true).limit(10);
     }
