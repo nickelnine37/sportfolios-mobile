@@ -33,11 +33,11 @@ class LeaderboardReturnsData {
 }
 
 class ReturnsData {
-  final String name;
+  final String? name;
 
-  final List<double> time;
+  final List<double>? time;
 
-  final List<double> values;
+  final List<double>? values;
 
   ReturnsData({this.name, this.time, this.values});
 

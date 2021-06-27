@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
-import 'package:sportfolios_alpha/data/objects/markets.dart';
-import 'package:sportfolios_alpha/utils/strings/number_format.dart';
+import '../../../data/objects/markets.dart';
+import '../../../utils/strings/number_format.dart';
 
 import 'buy_contract.dart';
 
 class PageHeader extends StatelessWidget {
-  final List<double> quantity;
-  final Market market;
+  final List<double>? quantity;
+  final Market? market;
   final Widget infoBox;
 
   PageHeader(this.quantity, this.market, this.infoBox);
@@ -23,7 +23,7 @@ class PageHeader extends StatelessWidget {
               child: Column(
                 children: [
                   Text(
-                    formatCurrency(market.lmsr.getValue(quantity), 'GBP'),
+                    formatCurrency(market!.lmsr.getValue(quantity), 'GBP'),
                     style: TextStyle(fontSize: 25, fontWeight: FontWeight.w300),
                   ),
                   Text(

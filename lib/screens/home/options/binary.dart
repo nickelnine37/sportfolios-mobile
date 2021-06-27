@@ -1,15 +1,15 @@
 import 'package:flutter/material.dart';
-import 'package:sportfolios_alpha/data/objects/markets.dart';
-import 'package:sportfolios_alpha/plots/payout_graph.dart';
-import 'package:sportfolios_alpha/plots/price_chart.dart';
-import 'package:sportfolios_alpha/screens/home/options/market_details.dart';
-import 'package:sportfolios_alpha/utils/numerical/array_operations.dart';
+import '../../../data/objects/markets.dart';
+import '../../../plots/payout_graph.dart';
+import '../../../plots/price_chart.dart';
+import 'market_details.dart';
+import '../../../utils/numerical/array_operations.dart';
 
 import 'header.dart';
 import 'info_box.dart';
 
 class BinaryDetails extends StatefulWidget {
-  final Market market;
+  final Market? market;
 
   BinaryDetails(this.market);
 
@@ -21,16 +21,16 @@ class _BinaryDetailsState extends State<BinaryDetails> with AutomaticKeepAliveCl
   String helpText =
       'A binary market has a payout of either £10 or £0, based on whether a team finishes higher or lower than a chosen league position. Design your own binary market by dragging the cut-off in the payout graph. Tap the flip icon to reverse the directionality.';
   double lrPadding = 25;
-  List<double> p1;
-  List<double> p2;
+  List<double>? p1;
+  List<double>? p2;
   bool reversed = false;
   double graphHeight = 150;
   bool locked = false;
-  double graphWidth;
+  double? graphWidth;
 
   @override
   void initState() {
-    p1 = range(widget.market.lmsr.n).map((int i) => i < widget.market.lmsr.n / 2 ? 10.0 : 0.0).toList();
+    p1 = range(widget.market!.lmsr.n).map((int i) => i < widget.market!.lmsr.n! / 2 ? 10.0 : 0.0).toList();
     super.initState();
   }
 
@@ -40,14 +40,14 @@ class _BinaryDetailsState extends State<BinaryDetails> with AutomaticKeepAliveCl
   }
 
   void _updateBars(Offset position) {
-    double ii = widget.market.lmsr.n * position.dx / graphWidth;
-    p2 = range(widget.market.lmsr.n)
+    double ii = widget.market!.lmsr.n! * position.dx / graphWidth!;
+    p2 = range(widget.market!.lmsr.n)
         .map((int i) => i > ii ? (reversed ? 10.0 : 0.0) : (reversed ? 0.0 : 10.0))
         .toList();
     if (reversed) {
-      p2[widget.market.lmsr.n - 1] = 10;
+      p2![widget.market!.lmsr.n! - 1] = 10;
     } else {
-      p2[0] = 10;
+      p2![0] = 10;
     }
     if (p2 != p1) {
       setState(() {
@@ -63,12 +63,12 @@ class _BinaryDetailsState extends State<BinaryDetails> with AutomaticKeepAliveCl
     if (graphWidth == null) {
       graphWidth = MediaQuery.of(context).size.width - 2 * lrPadding;
     }
-    Map<String, List<double>> priceHistory = widget.market.lmsr.getHistoricalValue(p1);
+    Map<String, List<double>>? priceHistory = widget.market!.lmsr.getHistoricalValue(p1);
 
     return RefreshIndicator(
       onRefresh: () async {
-        await widget.market.lmsr.updateCurrentX();
-        await widget.market.lmsr.updateHistoricalX();
+        await widget.market!.lmsr.updateCurrentX();
+        await widget.market!.lmsr.updateHistoricalX();
         await Future.delayed(Duration(seconds: 1));
       },
       child: SingleChildScrollView(
@@ -118,7 +118,7 @@ class _BinaryDetailsState extends State<BinaryDetails> with AutomaticKeepAliveCl
                       onPressed: () {
                         setState(() {
                           reversed = !reversed;
-                          p1 = p1.map((i) => 10 - i).toList();
+                          p1 = p1!.map((i) => 10 - i).toList();
                         });
                       },
                     ),
@@ -148,7 +148,7 @@ class _BinaryDetailsState extends State<BinaryDetails> with AutomaticKeepAliveCl
                     },
                   ),
             SizedBox(height: 35),
-            TabbedPriceGraph(priceHistory: priceHistory, times: widget.market.lmsr.times),
+            TabbedPriceGraph(priceHistory: priceHistory, times: widget.market!.lmsr.times),
             SizedBox(height: 20),
             Divider(thickness: 2),
             PageFooter(widget.market)

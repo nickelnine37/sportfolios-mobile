@@ -1,9 +1,10 @@
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
-import 'package:sportfolios_alpha/app_main.dart';
-import 'package:sportfolios_alpha/providers/authenication_provider.dart';
-import 'package:sportfolios_alpha/screens/login/login.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+
+import 'app_main.dart';
+import 'providers/authenication_provider.dart';
+import 'screens/login/login.dart';
 
 /// It all begins here...
 void main() async {
@@ -26,7 +27,8 @@ class MyApp extends StatefulWidget {
 
 class _MyAppState extends State<MyApp> {
   /// use this to check whether a user is verified
-  Future<bool> verifiedUser;
+  late Future<void> verificationFuture;
+  late bool userIsVerified;
 
   /// set some theme data
   final ThemeData theme = ThemeData(primaryColor: Colors.blue[200]);
@@ -34,8 +36,12 @@ class _MyAppState extends State<MyApp> {
   /// check whether the user is verified here
   @override
   void initState() {
-    verifiedUser = AuthService().isVerified();
+    verificationFuture = getVerificationStatus();
     super.initState();
+  }
+
+  Future<void> getVerificationStatus() async {
+    userIsVerified = await AuthService().isVerified();
   }
  
   @override
@@ -47,12 +53,10 @@ class _MyAppState extends State<MyApp> {
 
       /// use FutureBuilder while we wait to find out whether user is verified
       home: FutureBuilder(
-        future: verifiedUser,
+        future: verificationFuture,
         builder: (context, snapshot) {
           /// run this block when we've completed the verification request
           if (snapshot.connectionState == ConnectionState.done) {
-            /// future will return a bool
-            bool userIsVerified = snapshot.data;
 
             /// user is verified
             if (userIsVerified)
@@ -92,7 +96,7 @@ class BlankPage extends StatelessWidget {
           gradient: LinearGradient(
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
-            colors: [Colors.blue[300], Colors.white],
+            colors: [Colors.blue[300]!, Colors.white],
           ),
         ),
       ),

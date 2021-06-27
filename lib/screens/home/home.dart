@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:sportfolios_alpha/screens/home/leagues_future.dart';
+import 'leagues_future.dart';
 
 /// the primary purpose of this parent widget for the Home page is to provide a scaffold with a
 /// drawer where various options can be selected. This includes which sport the user is #
@@ -51,7 +51,7 @@ class _HomeState extends State<Home> {
       gradient: LinearGradient(
         begin: Alignment.topCenter,
         end: Alignment.bottomCenter,
-        colors: [Colors.blue[300], Colors.grey[50]],
+        colors: [Colors.blue[300]!, Colors.grey[50]!],
       ),
     ),
   );

@@ -1,13 +1,13 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:sportfolios_alpha/data/objects/portfolios.dart';
-import 'package:sportfolios_alpha/providers/authenication_provider.dart';
+import '../objects/portfolios.dart';
+import '../../providers/authenication_provider.dart';
 
 Future<Portfolio> getPortfolioById(String portfoliloId) async {
   return Portfolio.fromDocumentSnapshot(
       await FirebaseFirestore.instance.collection('portfolios').doc(portfoliloId).get());
 }
 
-Future<void> addNewPortfolio(String name, bool public) async {
+Future<void> addNewPortfolio(String? name, bool public) async {
   String uid = AuthService().currentUid;
   CollectionReference portfoliosCollection = FirebaseFirestore.instance.collection('portfolios');
   try {
@@ -53,8 +53,8 @@ Future<void> addNewPortfolio(String name, bool public) async {
 }
 
 class PortfolioFetcher {
-  DocumentSnapshot lastDocument;
-  Query baseQuery;
+  DocumentSnapshot? lastDocument;
+  late Query baseQuery;
   List<Portfolio> loadedResults = [];
   bool finished = false;
 

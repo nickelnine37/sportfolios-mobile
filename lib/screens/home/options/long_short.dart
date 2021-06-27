@@ -1,16 +1,16 @@
 import 'package:flutter/material.dart';
-import 'package:sportfolios_alpha/data/objects/markets.dart';
-import 'package:sportfolios_alpha/plots/payout_graph.dart';
-import 'package:sportfolios_alpha/plots/price_chart.dart';
-import 'package:sportfolios_alpha/utils/numerical/array_operations.dart';
 import 'dart:math' as math;
 
+import '../../../data/objects/markets.dart';
+import '../../../plots/payout_graph.dart';
+import '../../../plots/price_chart.dart';
+import '../../../utils/numerical/array_operations.dart';
 import 'market_details.dart';
 import 'header.dart';
 import 'info_box.dart';
 
 class LongShortDetails extends StatefulWidget {
-  final Market market;
+  final Market? market;
   final String type;
 
   LongShortDetails(this.market, this.type);
@@ -20,20 +20,20 @@ class LongShortDetails extends StatefulWidget {
 }
 
 class _LongShortDetailsState extends State<LongShortDetails> with SingleTickerProviderStateMixin {
-  TabController _tabController;
+  TabController? _tabController;
   String selectedMarket = 'BACK';
-  List<double> selectedQ;
+  List<double>? selectedQ;
   double graphHeight = 150;
 
-  List<double> p1;
-  List<double> p2;
+  List<double>? p1;
+  List<double>? p2;
 
   @override
   void initState() {
     _tabController = TabController(length: 2, vsync: this);
-    _tabController.addListener(() {
+    _tabController!.addListener(() {
       setState(() {
-        if (_tabController.index == 0) {
+        if (_tabController!.index == 0) {
           selectedMarket = 'BACK';
           selectedQ = p1;
         } else {
@@ -47,7 +47,7 @@ class _LongShortDetailsState extends State<LongShortDetails> with SingleTickerPr
 
   @override
   void dispose() {
-    _tabController.dispose();
+    _tabController!.dispose();
     super.dispose();
   }
 
@@ -56,11 +56,11 @@ class _LongShortDetailsState extends State<LongShortDetails> with SingleTickerPr
 
     if (p1 == null) {
       if (widget.type == 'Short') {
-        p1 = range(widget.market.lmsr.n).map((i) => 10 * math.exp(-i / (widget.market.type == 'team' ? 6 : 3))).toList();
+        p1 = range(widget.market!.lmsr.n).map((i) => 10 * math.exp(-i / (widget.market!.type == 'team' ? 6 : 3))).toList();
       } else {
-        p1 = range(widget.market.lmsr.n).map((i) => 10 * math.exp(-(widget.market.lmsr.n - i - 1) / (widget.market.type == 'team' ? 6 : 3))).toList();
+        p1 = range(widget.market!.lmsr.n).map((i) => 10 * math.exp(-(widget.market!.lmsr.n! - i - 1) / (widget.market!.type == 'team' ? 6 : 3))).toList();
       }
-      p2 = p1.map((i) => 10 - i).toList();
+      p2 = p1!.map((i) => 10 - i).toList();
     }
 
     if (selectedQ == null) {
@@ -69,14 +69,14 @@ class _LongShortDetailsState extends State<LongShortDetails> with SingleTickerPr
 
     double lrPadding = 25;
 
-    Map<String, List<double>>  priceHistory = widget.market.lmsr.getHistoricalValue(selectedQ);
+    Map<String, List<double>>?  priceHistory = widget.market!.lmsr.getHistoricalValue(selectedQ);
 
     return DefaultTabController(
       length: 2,
       child: RefreshIndicator(
         onRefresh: () async {
-            await widget.market.lmsr.updateCurrentX();
-            await widget.market.lmsr.updateHistoricalX();
+            await widget.market!.lmsr.updateCurrentX();
+            await widget.market!.lmsr.updateHistoricalX();
             await Future.delayed(Duration(seconds: 1));
         },
         child: SingleChildScrollView(
@@ -113,14 +113,14 @@ class _LongShortDetailsState extends State<LongShortDetails> with SingleTickerPr
               PageHeader(selectedQ, widget.market, LongShortInfoBox(widget.type)),
               Container(
                 child: AnimatedBuilder(
-                    animation: _tabController.animation,
+                    animation: _tabController!.animation!,
                     builder: (BuildContext context, snapshot) {
                       return Padding(
                         padding: EdgeInsets.symmetric(vertical: 8.0, horizontal: lrPadding),
                         child: TrueStaticPayoutGraph(
                             matrixMultiplyDoubleDouble(
                               [p1, p2],
-                              [1 - _tabController.animation.value, _tabController.animation.value],
+                              [1 - _tabController!.animation!.value, _tabController!.animation!.value],
                             ),
                             Colors.blue,
                             lrPadding,
@@ -132,7 +132,7 @@ class _LongShortDetailsState extends State<LongShortDetails> with SingleTickerPr
               SizedBox(
                 height: 25,
               ),
-              TabbedPriceGraph(priceHistory: priceHistory, times: widget.market.lmsr.times),
+              TabbedPriceGraph(priceHistory: priceHistory, times: widget.market!.lmsr.times),
               SizedBox(height: 20),
               Divider(thickness: 2),
               PageFooter(widget.market),

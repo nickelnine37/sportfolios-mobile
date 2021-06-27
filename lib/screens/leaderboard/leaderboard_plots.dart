@@ -24,11 +24,11 @@ class MyPainter extends CustomPainter {
 
     var points = [
       for (var data = 0;
-          data < LeaderboardReturnsData().data[0].values.length;
+          data < LeaderboardReturnsData().data[0].values!.length;
           data++)
-        Offset(LeaderboardReturnsData().data[0].time[data] * 
-        (width_factor / LeaderboardReturnsData().data[0].values.length), 
-        LeaderboardReturnsData().data[0].values[data])
+        Offset(LeaderboardReturnsData().data[0].time![data] * 
+        (width_factor / LeaderboardReturnsData().data[0].values!.length), 
+        LeaderboardReturnsData().data[0].values![data])
     ];
 
     final paint = Paint()

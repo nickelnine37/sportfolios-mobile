@@ -1,14 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:shimmer/shimmer.dart';
-import 'package:sportfolios_alpha/utils/numerical/array_operations.dart';
+import '../../../utils/numerical/array_operations.dart';
 
 class InfoBox extends StatelessWidget {
   final String title;
   final List<Widget> pages;
 
   InfoBox({
-    @required this.title,
-    @required this.pages,
+    required this.title,
+    required this.pages,
   });
 
   @override
@@ -81,7 +81,7 @@ class InfoBox extends StatelessWidget {
 class MiniInfoPage extends StatelessWidget {
   final String text;
   final Widget icon;
-  final Color iconColor;
+  final Color? iconColor;
 
   MiniInfoPage(this.text, this.icon, this.iconColor);
 
@@ -98,8 +98,8 @@ class MiniInfoPage extends StatelessWidget {
         ),
         Shimmer.fromColors(
           period: Duration(milliseconds: 3000),
-          baseColor: iconColor,
-          highlightColor: iconColor.withAlpha(120),
+          baseColor: iconColor!,
+          highlightColor: iconColor!.withAlpha(120),
           child: icon
         )
       ],

@@ -1,16 +1,17 @@
 import 'package:cached_network_image/cached_network_image.dart';
-import 'package:sportfolios_alpha/providers/settings_provider.dart';
-import 'package:sportfolios_alpha/screens/home/options/market_details.dart';
-import 'package:sportfolios_alpha/utils/strings/number_format.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'dart:math';
 import 'package:flutter/material.dart';
-import 'package:sportfolios_alpha/data/objects/markets.dart';
+
+import '../../providers/settings_provider.dart';
+import 'options/market_details.dart';
+import '../../utils/strings/number_format.dart';
+import '../../data/objects/markets.dart';
 
 
 class MarketTile extends StatelessWidget {
 
-  final Market market;
+  final Market? market;
   final double height;
   final double imageHeight;
   final EdgeInsets padding;
@@ -20,7 +21,7 @@ class MarketTile extends StatelessWidget {
   final double spacing = 3.0;
 
   MarketTile({
-    @required this.market,
+    required this.market,
     this.height = 115.0,
     this.imageHeight = 50.0,
     this.padding = const EdgeInsets.symmetric(vertical: 10, horizontal: 10),
@@ -40,12 +41,12 @@ class MarketTile extends StatelessWidget {
         height: height,
         padding: padding,
         child: Row(children: [
-          market.imageURL != null
+          market!.imageURL != null
               ? Container(
                   height: imageHeight,
                   width: imageHeight,
                   child: CachedNetworkImage(
-                    imageUrl: market.imageURL,
+                    imageUrl: market!.imageURL!,
                     height: imageHeight,
                   ),
                 )
@@ -62,33 +63,33 @@ class MarketTile extends StatelessWidget {
                       Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text(market.name, style: TextStyle(fontSize: upperTextSize)),
+                          Text(market!.name!, style: TextStyle(fontSize: upperTextSize)),
                           SizedBox(height: spacing),
                           Text(
-                            '${market.info1} • ${market.info2} • ${market.info3}',
+                            '${market!.info1} • ${market!.info2} • ${market!.info3}',
                             style: TextStyle(fontSize: lowerTextSize, color: Colors.grey[600]),
                           ),
                         ],
                       ),
                       Consumer(
                         builder: (context, watch, value) {
-                          String currency = watch(settingsProvider).currency;
+                          String? currency = watch(settingsProvider).currency;
                           return Column(
                             crossAxisAlignment: CrossAxisAlignment.end,
                             children: [
                               Text(
-                                formatCurrency(market.currentBackValue, currency),
+                                formatCurrency(market!.currentBackValue, currency),
                                 style: TextStyle(fontSize: upperTextSize),
                               ),
                               SizedBox(height: spacing),
                               Text(
-                                  '${(market.dailyBackValue.last - market.dailyBackValue.first) < 0 ? '-' : '+'}${formatPercentage(((market.dailyBackValue.last - market.dailyBackValue.first) / market.dailyBackValue.first).abs(), currency)}  (${(market.dailyBackValue.last - market.dailyBackValue.first) < 0 ? '-' : '+'}${formatCurrency((market.dailyBackValue.last - market.dailyBackValue.first).abs(), currency)})',
+                                  '${(market!.dailyBackValue!.last - market!.dailyBackValue!.first) < 0 ? '-' : '+'}${formatPercentage(((market!.dailyBackValue!.last - market!.dailyBackValue!.first) / market!.dailyBackValue!.first).abs(), currency)}  (${(market!.dailyBackValue!.last - market!.dailyBackValue!.first) < 0 ? '-' : '+'}${formatCurrency((market!.dailyBackValue!.last - market!.dailyBackValue!.first).abs(), currency)})',
                                   style: TextStyle(
                                       fontSize: 12,
-                                      color: (market.dailyBackValue.last - market.dailyBackValue.first) >= 0 ? Colors.green[300] : Colors.red[300])),
+                                      color: (market!.dailyBackValue!.last - market!.dailyBackValue!.first) >= 0 ? Colors.green[300] : Colors.red[300])),
                             ],
                           );
-                        },
+                        } as Widget Function(BuildContext, T Function<T>(ProviderBase<Object?, T>), Widget?),
                       )
                     ],
                   ),
@@ -96,7 +97,7 @@ class MarketTile extends StatelessWidget {
                     child: Container(
                       padding: EdgeInsets.only(top: 10, bottom: 0, left: 10, right: 10),
                       width: double.infinity,
-                      child: CustomPaint(painter: MiniPriceChartPainter(market.dailyBackValue)),
+                      child: CustomPaint(painter: MiniPriceChartPainter(market!.dailyBackValue)),
                     ),
                   ),
                   Row(
@@ -115,10 +116,10 @@ class MarketTile extends StatelessWidget {
 }
 
 class MiniPriceChartPainter extends CustomPainter {
-  List<double> pathY;
-  Color lineColor;
+  List<double>? pathY;
+  Color? lineColor;
   MiniPriceChartPainter(this.pathY) {
-    if (this.pathY[0] > this.pathY[this.pathY.length - 1])
+    if (this.pathY![0] > this.pathY![this.pathY!.length - 1])
       this.lineColor = Colors.red[300];
     else
       this.lineColor = Colors.green[300];
@@ -127,18 +128,18 @@ class MiniPriceChartPainter extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
     Paint paint = Paint()
-      ..color = lineColor
+      ..color = lineColor!
       ..style = PaintingStyle.stroke
       ..strokeWidth = 2.0;
 
-    int N = pathY.length;
-    double pmin = pathY.reduce(min);
-    double pmax = pathY.reduce(max);
+    int N = pathY!.length;
+    double pmin = pathY!.reduce(min);
+    double pmax = pathY!.reduce(max);
 
     Path path = Path();
 
     if (pmin != pmax) {
-      List pathpY = pathY.map((y) => size.height * (1 - (y - pmin) / (pmax - pmin))).toList();
+      List pathpY = pathY!.map((y) => size.height * (1 - (y - pmin) / (pmax - pmin))).toList();
       List pathpX = List.generate(N, (index) => index * size.width / (N - 1));
 
       path.moveTo(pathpX[0], pathpY[0]);

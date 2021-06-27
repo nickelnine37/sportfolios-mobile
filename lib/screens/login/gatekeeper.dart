@@ -1,9 +1,10 @@
 import 'dart:async';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:sportfolios_alpha/app_main.dart';
-import 'package:sportfolios_alpha/providers/authenication_provider.dart';
-import 'package:sportfolios_alpha/screens/login/login.dart';
+
+import '../../app_main.dart';
+import '../../providers/authenication_provider.dart';
+import 'login.dart';
 
 /// This class is used to decide whether or not to let a user into the app
 class GateKeeper {
@@ -31,8 +32,8 @@ class GateKeeper {
     }
   }
 
-  Future<String> enter({@required String email, @required String password}) async {
-    FirebaseAuthException signInProblem = await _authService.signInWithEmail(
+  Future<String> enter({required String email, required String password}) async {
+    FirebaseAuthException? signInProblem = await _authService.signInWithEmail(
       email: email,
       password: password,
     );
@@ -64,12 +65,12 @@ class GateKeeper {
     ));
   }
 
-  Future<String> registerUser({
-    @required String email,
-    @required String username,
-    @required String password,
+  Future<String?> registerUser({
+    required String email,
+    required String? username,
+    required String password,
   }) async {
-    FirebaseAuthException newUserProblem =
+    FirebaseAuthException? newUserProblem =
         await _authService.createNewUser(email: email, username: username, password: password);
     if (newUserProblem == null) {
       return null;
@@ -86,8 +87,8 @@ class GateKeeper {
     }
   }
 
-  Future<String> sendVerificationEmail() async {
-    FirebaseAuthException verificationResult = await _authService.sendVerificationEmail();
+  Future<String?> sendVerificationEmail() async {
+    FirebaseAuthException? verificationResult = await _authService.sendVerificationEmail();
     if (verificationResult == null) {
       return null;
     } else {

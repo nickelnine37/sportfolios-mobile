@@ -1,7 +1,8 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
-import 'package:sportfolios_alpha/data/objects/portfolios.dart';
-import 'package:sportfolios_alpha/screens/leaderboard/pie_chart.dart';
+
+import '../../data/objects/portfolios.dart';
+import 'pie_chart.dart';
 import 'leaderboard_plots.dart';
 
 class Leaderboard extends StatelessWidget {
@@ -42,8 +43,8 @@ class LeaderboardScroll extends StatefulWidget {
 }
 
 class _LeaderboardScrollState extends State<LeaderboardScroll> with AutomaticKeepAliveClientMixin{
-  Future<List<Portfolio>> portfoliosFuture;
-  List<Portfolio> portfolios;
+  Future<List<Portfolio>>? portfoliosFuture;
+  List<Portfolio>? portfolios;
 
   @override
   void initState() {
@@ -55,7 +56,7 @@ class _LeaderboardScrollState extends State<LeaderboardScroll> with AutomaticKee
   Future<List<Portfolio>> getPortfolios() async {
     // run firebase queires here
     // use await and return the portfolio objects
-    QuerySnapshot results;
+    late QuerySnapshot results;
 
     if (widget.timeHorizon == 'd') {
       // set results
@@ -66,7 +67,8 @@ class _LeaderboardScrollState extends State<LeaderboardScroll> with AutomaticKee
     }
     // simulate delay
     await Future.delayed(Duration(seconds: 1));
-    return results.docs.map((DocumentSnapshot doc) => Portfolio.fromDocumentSnapshot(doc)).toList();
+    // return results.docs.map((DocumentSnapshot doc) => Portfolio.fromDocumentSnapshot(doc)).toList();
+    return [];
   }
 
   @override

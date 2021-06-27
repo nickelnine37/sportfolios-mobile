@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:cached_network_image/cached_network_image.dart';
-import 'package:sportfolios_alpha/data/objects/markets.dart';
-import 'package:sportfolios_alpha/utils/widgets/dialogues.dart';
+import '../../../data/objects/markets.dart';
+import '../../../utils/widgets/dialogues.dart';
 
 class StatsShow extends StatefulWidget {
-  final Market market;
+  final Market? market;
   final String initialSeasonId;
 
   StatsShow(this.market, this.initialSeasonId);
@@ -14,16 +14,16 @@ class StatsShow extends StatefulWidget {
 }
 
 class _StatsShowState extends State<StatsShow> {
-  Future<void> statsFuture;
-  String selectedSeasonId;
-  List<String> seasons;
-  String conditional_string;
+  Future<void>? statsFuture;
+  String? selectedSeasonId;
+  List<String>? seasons;
+  String? conditional_string;
 
   @override
   void initState() {
     super.initState();
     statsFuture = Future.wait([
-      widget.market.getStats(),
+      widget.market!.getStats(),
       Future.delayed(Duration(seconds: 2)),
     ]);
   }
@@ -35,20 +35,20 @@ class _StatsShowState extends State<StatsShow> {
         builder: (BuildContext context, AsyncSnapshot snapshot) {
           if (snapshot.connectionState == ConnectionState.done) {
             if (seasons == null) {
-              seasons = widget.market.stats.keys.toList();
-              seasons.sort();
+              seasons = widget.market!.stats!.keys.toList();
+              seasons!.sort();
             }
 
             if (selectedSeasonId == null) {
-              selectedSeasonId = seasons.last;
+              selectedSeasonId = seasons!.last;
             }
 
-            Map<String, dynamic> new_season =
-                widget.market.stats[selectedSeasonId];
+            Map<String, dynamic>? new_season =
+                widget.market!.stats![selectedSeasonId!];
 
             conditional_string = widget.market.toString();
-            conditional_string = conditional_string.substring(
-                conditional_string.length - 2, conditional_string.length - 1);
+            conditional_string = conditional_string!.substring(
+                conditional_string!.length - 2, conditional_string!.length - 1);
 
             // if teams display these stats
             if (conditional_string == 'T') {
@@ -64,7 +64,7 @@ class _StatsShowState extends State<StatsShow> {
                     children: [
                       GestureDetector(
                         onTap: () async {
-                          String newlySelectedSeason = await showDialog(
+                          String? newlySelectedSeason = await showDialog(
                             context: context,
                             builder: (context) {
                               return SeasonSelectorDialogue(seasons);
@@ -94,17 +94,17 @@ class _StatsShowState extends State<StatsShow> {
                             SizedBox(width: 25), // adjust center of AppBar
                             Container(
                                 child: CachedNetworkImage(
-                                    imageUrl: widget.market.imageURL,
+                                    imageUrl: widget.market!.imageURL!,
                                     height: 50)),
                             SizedBox(width: 15),
                             Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
-                                  Text(selectedSeasonId,
+                                  Text(selectedSeasonId!,
                                       style: TextStyle(
                                           fontSize: 23.0, color: Colors.white)),
                                   SizedBox(height: 2),
-                                  Text(widget.market.name,
+                                  Text(widget.market!.name!,
                                       style: TextStyle(
                                           fontSize: 13.0, color: Colors.white)),
                                 ]),
@@ -120,7 +120,7 @@ class _StatsShowState extends State<StatsShow> {
                             Container(
                                 child: CachedNetworkImage(
                                     imageUrl:
-                                        new_season['season_logo'].toString(),
+                                        new_season!['season_logo'].toString(),
                                     height: 50)),
                           ],
                         ),
@@ -317,7 +317,7 @@ class _StatsShowState extends State<StatsShow> {
             }
 
             // if players display these stats
-            if (conditional_string == 'P') {
+            else if (conditional_string == 'P') {
               return Scaffold(
                 appBar: AppBar(
                   automaticallyImplyLeading: false,
@@ -330,7 +330,7 @@ class _StatsShowState extends State<StatsShow> {
                     children: [
                       GestureDetector(
                         onTap: () async {
-                          String newlySelectedSeason = await showDialog(
+                          String? newlySelectedSeason = await showDialog(
                             context: context,
                             builder: (context) {
                               return SeasonSelectorDialogue(seasons);
@@ -360,17 +360,17 @@ class _StatsShowState extends State<StatsShow> {
                             SizedBox(width: 25), // adjust center of AppBar
                             Container(
                                 child: CachedNetworkImage(
-                                    imageUrl: widget.market.imageURL,
+                                    imageUrl: widget.market!.imageURL!,
                                     height: 50)),
                             SizedBox(width: 15),
                             Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
-                                  Text(selectedSeasonId,
+                                  Text(selectedSeasonId!,
                                       style: TextStyle(
                                           fontSize: 23.0, color: Colors.white)),
                                   SizedBox(height: 2),
-                                  Text(widget.market.name,
+                                  Text(widget.market!.name!,
                                       style: TextStyle(
                                           fontSize: 13.0, color: Colors.white)),
                                 ]),
@@ -386,7 +386,7 @@ class _StatsShowState extends State<StatsShow> {
                             Container(
                                 child: CachedNetworkImage(
                                     // must load and save team image
-                                    imageUrl: new_season['team_url'].toString(),
+                                    imageUrl: new_season!['team_url'].toString(),
                                     height: 50)),
                           ],
                         ),
@@ -747,10 +747,16 @@ class _StatsShowState extends State<StatsShow> {
                 ),
               );
             }
+            else {
+              return Scaffold(
+              appBar: AppBar(),
+              body: Center(child: Text('Error')),
+            );
+            }
           } else if (snapshot.hasError) {
             return Scaffold(
               appBar: AppBar(),
-              body: Center(child: Text(snapshot.error)),
+              body: Center(child: Text(snapshot.error as String)),
             );
           } else {
             return Scaffold(
