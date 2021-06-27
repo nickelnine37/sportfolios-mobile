@@ -1,7 +1,7 @@
 import 'dart:typed_data';
 
 class Array {
-  Float64List a;
+  late Float64List a;
 
   /// ------- Constructors --------
 
@@ -150,10 +150,10 @@ class Array {
     return true;
   }
 
-  double dotProduct(Array b) {
+  double dotProduct(Array? b) {
     double out = 0.0;
     for (int i = 0; i < length; i++) {
-      out += a[i] * b[i];
+      out += a[i] * b![i];
     }
     return out;
   }
@@ -175,7 +175,7 @@ class Array {
 }
 
 class Matrix {
-  List<Array> m;
+  late List<Array> m;
 
   /// ------- Constructors --------
 

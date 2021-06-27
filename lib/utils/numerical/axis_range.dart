@@ -3,10 +3,10 @@ import 'dart:math';
 List<double> getAxisTicks(double ymin, double ymax) {
   
    var scale = NiceScale(ymin, ymax, 5);
-   double nmin = scale.niceMin;
-   double nmax = scale.niceMax;
-   int N = (nmax - nmin + 1e-8) ~/ scale.tickSpacing;
-   return List.generate(N + 1, (i) => nmin + i * scale.tickSpacing);
+   double nmin = scale.niceMin!;
+   double nmax = scale.niceMax!;
+   int N = (nmax - nmin + 1e-8) ~/ scale.tickSpacing!;
+   return List.generate(N + 1, (i) => nmin + i * scale.tickSpacing!);
   
 }
 
@@ -15,16 +15,16 @@ class NiceScale {
 
   /// Class for getting optimal 'nice' axis ticks 
   
-  double _niceMin, _niceMax;
-  double _tickSpacing;
+  double? _niceMin, _niceMax;
+  double? _tickSpacing;
 
-  double get tickSpacing { return _tickSpacing; }
-  double get niceMin{ return _niceMin; }
-  double get niceMax{ return _niceMax; }
+  double? get tickSpacing { return _tickSpacing; }
+  double? get niceMin{ return _niceMin; }
+  double? get niceMax{ return _niceMax; }
 
-  double _minPoint, _maxPoint;
-  double _maxTicks;
-  double _range;
+  late double _minPoint, _maxPoint;
+  late double _maxTicks;
+  late double _range;
 
   NiceScale(double minP, double maxP, double maxTicks){
     this._minPoint = minP;
@@ -41,13 +41,13 @@ class NiceScale {
   }
 
   double _calcMin() {
-    int floored = (_minPoint / _tickSpacing).floor();
-    return floored * _tickSpacing;
+    int floored = (_minPoint / _tickSpacing!).floor();
+    return floored * _tickSpacing!;
   }
 
   double _calcMax() {
-    int ceiled = (_maxPoint / _tickSpacing).ceil();
-    return ceiled * _tickSpacing;
+    int ceiled = (_maxPoint / _tickSpacing!).ceil();
+    return ceiled * _tickSpacing!;
   }
 
   double _niceNum(double range, bool round){

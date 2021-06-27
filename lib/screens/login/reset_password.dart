@@ -1,10 +1,11 @@
 import 'package:flutter/material.dart';
-import 'package:sportfolios_alpha/providers/authenication_provider.dart';
-import 'package:sportfolios_alpha/screens/login/login_utils.dart';
+
+import '../../providers/authenication_provider.dart';
+import 'login_utils.dart';
 
 /// Main Password Rest Page Widget
 class PasswordResetPage extends StatefulWidget {
-  PasswordResetPage({Key key}) : super(key: key);
+  PasswordResetPage({Key? key}) : super(key: key);
 
   @override
   _PasswordResetPageState createState() => _PasswordResetPageState();
@@ -55,7 +56,7 @@ class _PasswordResetPageState extends State<PasswordResetPage> {
 
 /// Widget to handle the main password reset logic
 class PasswordResetForm extends StatefulWidget {
-  PasswordResetForm({Key key}) : super(key: key);
+  PasswordResetForm({Key? key}) : super(key: key);
 
   @override
   _PasswordResetFormState createState() => _PasswordResetFormState();
@@ -63,7 +64,7 @@ class PasswordResetForm extends StatefulWidget {
 
 class _PasswordResetFormState extends State<PasswordResetForm> {
   /// the user's email
-  String _email;
+  String? _email;
 
   /// text to display at the bottom
   String _bottomText =
@@ -95,7 +96,7 @@ class _PasswordResetFormState extends State<PasswordResetForm> {
                     autocorrect: false,
                     keyboardType: TextInputType.emailAddress,
                     validator: (email) {
-                      if (!isValidEmail(email)) {
+                      if (!isValidEmail(email!)) {
                         return 'Please input a valid email address';
                       }
                       return null;
@@ -118,22 +119,22 @@ class _PasswordResetFormState extends State<PasswordResetForm> {
                     style: TextStyle(color: Colors.white, fontSize: 18, letterSpacing: 1),
                   ),
                   onPressed: () {
-                    if (_formKey.currentState.validate()) {
+                    if (_formKey.currentState!.validate()) {
 
                      // close the keyboard
                       if (!FocusScope.of(context).hasPrimaryFocus) {
-                        FocusManager.instance.primaryFocus.unfocus();
+                        FocusManager.instance.primaryFocus!.unfocus();
                       }
 
                       // save the form state
-                      _formKey.currentState.save();
+                      _formKey.currentState!.save();
 
                       // change the bottom text
                       setState(() {
                         _bottomText = 'Email sent. Follow the link to reset your password';
                       });
                       print('sending password reset to ${this._email}');
-                      _authService.sendResetPasswordEmail(email: this._email);
+                      _authService.sendResetPasswordEmail(email: this._email!);
                     }
                   },
                 ),

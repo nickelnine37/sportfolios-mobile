@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 /// helper function for creating stylised text input boxes
 InputDecoration createTextInput(String hint) {
 
-  OutlineInputBorder _boxBorder({Color color, double width}) {
+  OutlineInputBorder _boxBorder({required Color color, required double width}) {
     return OutlineInputBorder(
       borderRadius: BorderRadius.circular(30.0),
       borderSide: BorderSide(color: color, width: width),

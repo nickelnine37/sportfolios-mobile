@@ -1,14 +1,14 @@
 import 'package:flutter/material.dart';
-import 'package:sportfolios_alpha/data/objects/leagues.dart';
-import 'package:sportfolios_alpha/data/firebase/markets.dart';
-import 'package:sportfolios_alpha/screens/home/market_tile.dart';
-import 'package:sportfolios_alpha/utils/strings/string_utils.dart';
+import '../../data/objects/leagues.dart';
+import '../../data/firebase/markets.dart';
+import 'market_tile.dart';
+import '../../utils/strings/string_utils.dart';
 
 /// Widget for main scroll view of markets
 class MarketScroll extends StatefulWidget {
-  final League league;
-  final String marketType;
-  final int teamId;
+  final League? league;
+  final String? marketType;
+  final int? teamId;
   MarketScroll({this.league, this.marketType, this.teamId});
 
   @override
@@ -20,16 +20,16 @@ class MarketScroll extends StatefulWidget {
 class MarketScrollState extends State<MarketScroll> with AutomaticKeepAliveClientMixin {
   /// [_marketsFuture] helps us load a spinner at the start, when the first 10 markets are
   /// being fetched
-  Future<void> _marketsFuture;
+  Future<void>? _marketsFuture;
 
   /// three marketFeter-type objects:
   /// 1. [_defaultMarketFetcher]: this is responsible for getting markets when casually scrolling
   /// 2. [_searchQueryMarketFetcher]: this is responsible for getting markets when a search has been entered
   /// 3. [_selectedMarketFetcher]: this is a helper variable which just holds whichever of the above two we are
   /// currently considering.
-  MarketFetcher _defaultMarketFetcher;
-  MarketFetcher _searchQueryMarketFetcher;
-  MarketFetcher _selectedMarketFetcher;
+  MarketFetcher? _defaultMarketFetcher;
+  MarketFetcher? _searchQueryMarketFetcher;
+  MarketFetcher? _selectedMarketFetcher;
 
   /// initialise scroll controller with offset to cover search bar. We also use this when
   /// checking if we've scrolled to the bottom, to load more markets
@@ -56,7 +56,7 @@ class MarketScrollState extends State<MarketScroll> with AutomaticKeepAliveClien
     if (widget.league == null) {
       return false;
     }
-    return _defaultMarketFetcher != null && _defaultMarketFetcher.leagueID != widget.league.leagueID;
+    return _defaultMarketFetcher != null && _defaultMarketFetcher!.leagueID != widget.league!.leagueID;
   }
 
   /// helper function: has the user scrolled to the bottom of the page?
@@ -67,11 +67,11 @@ class MarketScrollState extends State<MarketScroll> with AutomaticKeepAliveClien
 
   /// listener for scroll controller
   void _scrollListener() async {
-    if (!_selectedMarketFetcher.finished) {
+    if (!_selectedMarketFetcher!.finished) {
       if (_scrolledToBottom()) {
         // await Future.delayed(Duration(seconds: 1), () => 12);
         // don't reassign the future here - it's just for the initial building
-        await _selectedMarketFetcher.get10();
+        await _selectedMarketFetcher!.get10();
         setState(() {});
       }
     }
@@ -80,11 +80,11 @@ class MarketScrollState extends State<MarketScroll> with AutomaticKeepAliveClien
   /// 'factory reset' our page. Get a new [LeagueMarketFetcher] for the relevant league,
   void _refreshState() {
     _defaultMarketFetcher = widget.league != null
-        ? LeagueMarketFetcher(widget.league.leagueID, widget.marketType)
+        ? LeagueMarketFetcher(widget.league!.leagueID, widget.marketType)
         : TeamPlayerMarketFetcher(widget.teamId);
     _searchQueryMarketFetcher = null;
     _selectedMarketFetcher = _defaultMarketFetcher;
-    _marketsFuture = _selectedMarketFetcher.get10();
+    _marketsFuture = _selectedMarketFetcher!.get10();
   }
 
   @override
@@ -106,7 +106,7 @@ class MarketScrollState extends State<MarketScroll> with AutomaticKeepAliveClien
           print('MS1 ${snapshot.error.toString()}');
           return Center(child: Text('Error'));
         } else {
-          int nTiles = _selectedMarketFetcher.loadedResults.length + 2;
+          int nTiles = _selectedMarketFetcher!.loadedResults.length + 2;
           // make space for the apology tile
           if (nTiles == 2) {
             nTiles += 1;
@@ -127,15 +127,15 @@ class MarketScrollState extends State<MarketScroll> with AutomaticKeepAliveClien
                         _searchQueryMarketFetcher = widget.league != null
                             ? LeagueSearchMarketFetcher(
                                 search: value.trim().toLowerCase(),
-                                leagueID: widget.league.leagueID,
+                                leagueID: widget.league!.leagueID,
                                 marketType: widget.marketType,
-                                alreadyLoaded: _defaultMarketFetcher.loadedResults)
+                                alreadyLoaded: _defaultMarketFetcher!.loadedResults)
                             : TeamPlayerSearchMarketFetcher(
                                 search: value.trim().toLowerCase(),
                                 teamId: widget.teamId,
-                                alreadyLoaded: _defaultMarketFetcher.loadedResults
+                                alreadyLoaded: _defaultMarketFetcher!.loadedResults
                               );
-                        await _searchQueryMarketFetcher.get10();
+                        await _searchQueryMarketFetcher!.get10();
                         _selectedMarketFetcher = _searchQueryMarketFetcher;
                         setState(() {});
                       }
@@ -152,7 +152,7 @@ class MarketScrollState extends State<MarketScroll> with AutomaticKeepAliveClien
                           _selectedMarketFetcher = _defaultMarketFetcher;
                           // close keyboard - not sure exactly what's going on here...
                           if (!FocusScope.of(context).hasPrimaryFocus) {
-                            FocusManager.instance.primaryFocus.unfocus();
+                            FocusManager.instance.primaryFocus!.unfocus();
                           }
                           setState(() {});
                         },
@@ -162,7 +162,7 @@ class MarketScrollState extends State<MarketScroll> with AutomaticKeepAliveClien
                 );
               } else if (index == nTiles - 1) {
                 // final tile contains the loading spinner
-                if (_selectedMarketFetcher.finished) {
+                if (_selectedMarketFetcher!.finished) {
                   return Container(height: 0);
                 } else {
                   return Padding(
@@ -171,14 +171,14 @@ class MarketScrollState extends State<MarketScroll> with AutomaticKeepAliveClien
                   );
                 }
               }
-              if (_selectedMarketFetcher.loadedResults.length == 0) {
+              if (_selectedMarketFetcher!.loadedResults.length == 0) {
                 // no results here
                 return Padding(
                   padding: const EdgeInsets.all(25.0),
                   child: Center(child: Text("Sorry, no results :'(")),
                 );
               } else {
-                return MarketTile(market: _selectedMarketFetcher.loadedResults[index - 1]);
+                return MarketTile(market: _selectedMarketFetcher!.loadedResults[index - 1]);
               }
             },
             separatorBuilder: (context, index) => Divider(

@@ -1,16 +1,17 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
-import 'package:sportfolios_alpha/data/objects/markets.dart';
-import 'package:sportfolios_alpha/data/objects/portfolios.dart';
-import 'package:sportfolios_alpha/plots/donut_chart.dart';
-import 'package:sportfolios_alpha/plots/payout_graph.dart';
-import 'package:sportfolios_alpha/screens/home/options/market_details.dart';
-import 'package:sportfolios_alpha/screens/portfolio/sell.dart';
-import 'package:sportfolios_alpha/utils/numerical/array_operations.dart';
-import 'package:sportfolios_alpha/utils/strings/number_format.dart';
+
+import '../../data/objects/markets.dart';
+import '../../data/objects/portfolios.dart';
+import '../../plots/donut_chart.dart';
+import '../../plots/payout_graph.dart';
+import '../home/options/market_details.dart';
+import 'sell.dart';
+import '../../utils/numerical/array_operations.dart';
+import '../../utils/strings/number_format.dart';
 
 class Holdings extends StatefulWidget {
-  final Portfolio portfolio;
+  final Portfolio? portfolio;
   Holdings(this.portfolio);
 
   @override
@@ -18,12 +19,12 @@ class Holdings extends StatefulWidget {
 }
 
 class _HoldingsState extends State<Holdings> {
-  String currentPortfolioId;
+  String? currentPortfolioId;
   double op = 0;
-  String selectedAsset;
-  List<bool> isExpanded;
+  String? selectedAsset;
+  List<bool>? isExpanded;
   final double imageHeight = 50;
-  Future<void> portfolioUpdateFuture;
+  Future<void>? portfolioUpdateFuture;
 
   @override
   void initState() {
@@ -34,7 +35,7 @@ class _HoldingsState extends State<Holdings> {
   @override
   Widget build(BuildContext context) {
     if (isExpanded == null) {
-      isExpanded = range(widget.portfolio.nCurrentMarkets).map((int i) => false).toList();
+      isExpanded = range(widget.portfolio!.nCurrentMarkets).map((int i) => false).toList();
     }
 
     return FutureBuilder(
@@ -50,20 +51,25 @@ class _HoldingsState extends State<Holdings> {
                   elevation: 2,
                   animationDuration: Duration(milliseconds: 600),
                   expansionCallback: (int i, bool itemIsExpanded) {
-                    if (widget.portfolio.sortedValues.keys.toList()[i] != 'cash') {
+                    if (widget.portfolio!.sortedValues.keys.toList()[i] != 'cash') {
                       setState(() {
-                        isExpanded[i] = !itemIsExpanded;
+                        isExpanded![i] = !itemIsExpanded;
                       });
                     }
                   },
-                  children: range(widget.portfolio.nCurrentMarkets).map<ExpansionPanel>((int i) {
+                  children: range(widget.portfolio!.nCurrentMarkets).map<ExpansionPanel>((int i) {
                     //
-                    String marketId = widget.portfolio.sortedValues.keys.toList()[i];
-                    Market market = widget.portfolio.markets[marketId];
-                    List<double> quantity = widget.portfolio.currentQuantities[marketId];
-                    double value = widget.portfolio.currentValues[marketId];
-                    double pmax = getMax(quantity);
-                    List<double> dailyPriceChart = market.lmsr.getHistoricalValue(quantity)['d'];
+                    String marketId = widget.portfolio!.sortedValues.keys.toList()[i];
+                    Market market = widget.portfolio!.markets[marketId]!;
+                    List<double> quantity = widget.portfolio!.currentQuantities[marketId]!;
+                    double? value = widget.portfolio!.currentValues[marketId];
+                    double? pmax = getMax(quantity);
+                    List<double>? dailyPriceChart = market.lmsr.getHistoricalValue(quantity)?['d']!;
+                    
+                    if (dailyPriceChart == null) {
+                      dailyPriceChart = List<double>.generate(60, (index) => 1.0);
+                    }
+                    
                     double valueChange = dailyPriceChart.last - dailyPriceChart.first;
                     double percentChange = valueChange / dailyPriceChart.first;
                     String sign = valueChange < 0 ? '-' : '+';
@@ -98,7 +104,7 @@ class _HoldingsState extends State<Holdings> {
                                                       height: imageHeight,
                                                       width: imageHeight,
                                                       child: CachedNetworkImage(
-                                                        imageUrl: market.imageURL,
+                                                        imageUrl: market.imageURL!,
                                                         height: imageHeight,
                                                       ),
                                                     )
@@ -115,7 +121,7 @@ class _HoldingsState extends State<Holdings> {
                                               Column(
                                                 crossAxisAlignment: CrossAxisAlignment.start,
                                                 children: [
-                                                  Text(market.name, style: TextStyle(fontSize: 16)),
+                                                  Text(market.name!, style: TextStyle(fontSize: 16)),
                                                   SizedBox(height: 3),
                                                   marketId == 'cash'
                                                       ? Container()
@@ -175,11 +181,11 @@ class _HoldingsState extends State<Holdings> {
                                         builder: (context) {
                                           return SellMarket(widget.portfolio, market, quantity);
                                         },
-                                      );
+                                      ) ?? false;
 
                                       if (saleComplete) {
                                         setState(() {
-                                          portfolioUpdateFuture = widget.portfolio.updateQuantities();
+                                          portfolioUpdateFuture = widget.portfolio!.updateQuantities();
                                         });
                                       }
                                     },
@@ -194,7 +200,7 @@ class _HoldingsState extends State<Holdings> {
                                 ),
                               ],
                             ),
-                      isExpanded: isExpanded[i],
+                      isExpanded: isExpanded![i],
                     );
                   }).toList(),
                 )

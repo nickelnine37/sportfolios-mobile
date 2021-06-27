@@ -1,12 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:sportfolios_alpha/providers/authenication_provider.dart';
-import 'package:sportfolios_alpha/providers/settings_provider.dart';
-import 'package:sportfolios_alpha/screens/login/gatekeeper.dart';
-import 'package:sportfolios_alpha/utils/widgets/dialogues.dart';
+import '../providers/settings_provider.dart';
+import 'login/gatekeeper.dart';
+import '../utils/widgets/dialogues.dart';
 
 class Settings extends StatefulWidget {
-  Settings({Key key}) : super(key: key);
+  Settings({Key? key}) : super(key: key);
 
   @override
   _SettingsState createState() => _SettingsState();
@@ -14,7 +13,7 @@ class Settings extends StatefulWidget {
 
 class _SettingsState extends State<Settings> {
 
-  GateKeeper gateKeeper;
+  GateKeeper? gateKeeper;
 
   // final AuthService _auth = AuthService();
 
@@ -50,7 +49,7 @@ class _SettingsState extends State<Settings> {
                           description: 'Are you sure you want to sign out?',
                           buttonText: 'Confirm',
                           action: () {
-                            gateKeeper.exit();
+                            gateKeeper!.exit();
                           },
                         );
                       });
@@ -86,25 +85,25 @@ class _SettingsBodyState extends State<SettingsBody> {
                 SizedBox(width: 25),
                 Icon(Icons.account_circle_rounded, size: 50),
                 SizedBox(width: 25),
-                Consumer(builder: (context, watch, child) {
-                  String uname =
-                      watch(authenticationProvider).data?.value?.uname ?? '';
-                  String email =
-                      watch(authenticationProvider).data?.value?.email ?? '';
-                  return Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(uname,
-                          style:
-                              TextStyle(fontSize: 15, color: Colors.grey[800])),
-                      SizedBox(height: 2),
-                      Text(email,
-                          style:
-                              TextStyle(fontSize: 15, color: Colors.grey[800])),
-                    ],
-                  );
-                })
+                // Consumer(builder: (context, watch, child) {
+                //   String uname =
+                //       watch(authenticationProvider!).data?.value.uname ?? '';
+                //   String email =
+                //       watch(authenticationProvider!).data?.value.email ?? '';
+                //   return Column(
+                //     mainAxisAlignment: MainAxisAlignment.center,
+                //     crossAxisAlignment: CrossAxisAlignment.start,
+                //     children: [
+                //       Text(uname,
+                //           style:
+                //               TextStyle(fontSize: 15, color: Colors.grey[800])),
+                //       SizedBox(height: 2),
+                //       Text(email,
+                //           style:
+                //               TextStyle(fontSize: 15, color: Colors.grey[800])),
+                //     ],
+                //   );
+                // })
               ],
             )));
 
@@ -127,7 +126,7 @@ class _SettingsBodyState extends State<SettingsBody> {
                   );
                 }).toList(),
                 value: watch(settingsProvider).currency,
-                onChanged: (String value) {
+                onChanged: (String? value) {
                   context.read(settingsProvider).setCurrency(value);
                 },
               );

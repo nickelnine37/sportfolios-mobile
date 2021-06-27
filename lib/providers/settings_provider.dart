@@ -10,17 +10,17 @@ List<String> _supportedCurrencies = ['GBP', 'EUR', 'USD'];
 
 
 class SettingsChangeNotifier with ChangeNotifier {
-  String _currency;
-  bool _darkMode;
+  String? _currency;
+  bool? _darkMode;
 
   SettingsChangeNotifier() {
     loadPreferences();
   }
 
-  String get currency => this._currency;
-  bool get darkMode => this._darkMode;
+  String? get currency => this._currency;
+  bool? get darkMode => this._darkMode;
 
-  void setCurrency(String currency) {
+  void setCurrency(String? currency) {
     if (_supportedCurrencies.contains(currency)) {
       if (this._currency != currency) {
         this._currency = currency;
@@ -43,8 +43,8 @@ class SettingsChangeNotifier with ChangeNotifier {
 
   savePreferences() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
-    prefs.setString('currency', _currency);
-    prefs.setBool('darkMode', _darkMode);
+    prefs.setString('currency', _currency!);
+    prefs.setBool('darkMode', _darkMode!);
   }
 
   loadPreferences() async {

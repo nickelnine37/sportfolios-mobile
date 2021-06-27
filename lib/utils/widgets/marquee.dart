@@ -5,7 +5,7 @@ class Marquee extends StatefulWidget {
   final Duration animationDuration, backDuration, pauseDuration;
 
   Marquee({
-    @required this.child,
+    required this.child,
     this.animationDuration: const Duration(milliseconds: 3000),
     this.backDuration: const Duration(milliseconds: 800),
     this.pauseDuration: const Duration(milliseconds: 1500),
@@ -16,18 +16,18 @@ class Marquee extends StatefulWidget {
 }
 
 class _MarqueeState extends State<Marquee> {
-  ScrollController scrollController;
+  ScrollController? scrollController;
 
   @override
   void initState() {
     scrollController = ScrollController(initialScrollOffset: 0);
-    WidgetsBinding.instance.addPostFrameCallback(scroll);
+    WidgetsBinding.instance!.addPostFrameCallback(scroll);
     super.initState();
   }
 
   @override
   void dispose() {
-    scrollController.dispose();
+    scrollController!.dispose();
     super.dispose();
   }
 
@@ -42,17 +42,17 @@ class _MarqueeState extends State<Marquee> {
   }
 
   void scroll(_) async {
-    while (scrollController.hasClients) {
+    while (scrollController!.hasClients) {
       await Future.delayed(widget.pauseDuration);
-      if (scrollController.hasClients)
-        await scrollController.animateTo(
-          scrollController.position.maxScrollExtent,
+      if (scrollController!.hasClients)
+        await scrollController!.animateTo(
+          scrollController!.position.maxScrollExtent,
           duration: widget.animationDuration,
           curve: Curves.linear,
         );
       await Future.delayed(widget.pauseDuration);
-      if (scrollController.hasClients)
-        await scrollController.animateTo(
+      if (scrollController!.hasClients)
+        await scrollController!.animateTo(
           0.0,
           duration: widget.backDuration,
           curve: Curves.linear,

@@ -1,24 +1,25 @@
 import 'package:flutter/material.dart';
-import 'package:sportfolios_alpha/screens/login/gatekeeper.dart';
+
+import 'gatekeeper.dart';
 
 class VerifyScreen extends StatefulWidget {
 
-  final String email;
-  VerifyScreen({@required this.email});
+  final String? email;
+  VerifyScreen({required this.email});
 
   @override
   _VerifyScreenState createState() => _VerifyScreenState();
 }
 
 class _VerifyScreenState extends State<VerifyScreen> {
-  GateKeeper gateKeeper;
+  GateKeeper? gateKeeper;
 
   @override
   Widget build(BuildContext context) {
     if (gateKeeper == null) {
       gateKeeper = GateKeeper(context);
-      gateKeeper.sendVerificationEmail();
-      gateKeeper.awaitVerification();
+      gateKeeper!.sendVerificationEmail();
+      gateKeeper!.awaitVerification();
     }
 
     return Scaffold(
