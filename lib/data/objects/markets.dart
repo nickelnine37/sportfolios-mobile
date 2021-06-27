@@ -80,6 +80,7 @@ class Market {
     await team.getBackProperties();
   }
 
+  // get statistics for team and player
   Future<void> getStats() async {
     String idStats = id.split(':')[0] + id[id.length - 1];
     DocumentSnapshot snapshot = await FirebaseFirestore.instance
@@ -124,7 +125,7 @@ class Market {
 
   /// initialise player info from firebase data
   void initPlayerInfo(Map<String, dynamic> data) {
-    if (data['name'].length > 24) {
+    if (data['name'].length > 20) {
       List names = data['name'].split(" ");
       if (names.length > 2)
         name = names.first + ' ' + names.last;
@@ -132,6 +133,8 @@ class Market {
         name = names.last;
     } else
       name = data['name'];
+    print(data['name']);
+    print(name);
 
     info1 = data['country_flag'] + ' ' + data['position'];
     info2 = "${data['rating']}";
