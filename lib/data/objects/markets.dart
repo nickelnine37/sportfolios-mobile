@@ -136,10 +136,10 @@ class Market {
     info1 = data['country_flag'] + ' ' + data['position'];
     info2 = "${data['rating']}";
 
-    if (data['team'].length > 20)
-      info3 = data['team'].split(" ")[0];
+    if (data['team_name'].length > 20)
+      info3 = data['team_name'].split(" ")[0];
     else
-      info3 = data['team'];
+      info3 = data['team_name'];
     team_id = '${data['team_id']}:${data['league_id']}:${data['season_id']}T' ;
     team = Market(team_id);
   }
