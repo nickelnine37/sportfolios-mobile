@@ -1,13 +1,14 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
-import 'package:sportfolios_alpha/data/objects/markets.dart';
-import 'package:sportfolios_alpha/data/objects/portfolios.dart';
-import 'package:sportfolios_alpha/plots/donut_chart.dart';
-import 'package:sportfolios_alpha/plots/payout_graph.dart';
-import 'package:sportfolios_alpha/screens/home/options/market_details.dart';
-import 'package:sportfolios_alpha/screens/portfolio/sell.dart';
-import 'package:sportfolios_alpha/utils/numerical/array_operations.dart';
-import 'package:sportfolios_alpha/utils/strings/number_format.dart';
+
+import '../../data/objects/markets.dart';
+import '../../data/objects/portfolios.dart';
+import '../../plots/donut_chart.dart';
+import '../../plots/payout_graph.dart';
+import '../home/options/market_details.dart';
+import 'sell.dart';
+import '../../utils/numerical/array_operations.dart';
+import '../../utils/strings/number_format.dart';
 
 class Holdings extends StatefulWidget {
   final Portfolio portfolio;

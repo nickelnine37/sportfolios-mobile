@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:sportfolios_alpha/providers/authenication_provider.dart';
-import 'package:sportfolios_alpha/providers/settings_provider.dart';
-import 'package:sportfolios_alpha/screens/login/gatekeeper.dart';
-import 'package:sportfolios_alpha/utils/widgets/dialogues.dart';
+import '../providers/authenication_provider.dart';
+import '../providers/settings_provider.dart';
+import 'login/gatekeeper.dart';
+import '../utils/widgets/dialogues.dart';
 
 class Settings extends StatefulWidget {
   Settings({Key key}) : super(key: key);

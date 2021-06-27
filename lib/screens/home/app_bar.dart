@@ -1,10 +1,11 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:sportfolios_alpha/data/objects/leagues.dart';
-import 'package:sportfolios_alpha/screens/home/market_scroll.dart';
-import 'package:sportfolios_alpha/utils/widgets/dialogues.dart';
 import 'package:intl/intl.dart';
+
+import '../../data/objects/leagues.dart';
+import 'market_scroll.dart';
+import '../../utils/widgets/dialogues.dart';
 
 class MainView extends StatefulWidget {
   final List<League> leagues;

@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
-import 'package:sportfolios_alpha/data/objects/markets.dart';
-import 'package:sportfolios_alpha/plots/payout_graph.dart';
-import 'package:sportfolios_alpha/plots/price_chart.dart';
-import 'package:sportfolios_alpha/utils/numerical/array_operations.dart';
 import 'dart:math' as math;
 
+import '../../../data/objects/markets.dart';
+import '../../../plots/payout_graph.dart';
+import '../../../plots/price_chart.dart';
+import '../../../utils/numerical/array_operations.dart';
 import 'market_details.dart';
 import 'header.dart';
 import 'info_box.dart';

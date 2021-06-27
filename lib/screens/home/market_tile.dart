@@ -1,11 +1,12 @@
 import 'package:cached_network_image/cached_network_image.dart';
-import 'package:sportfolios_alpha/providers/settings_provider.dart';
-import 'package:sportfolios_alpha/screens/home/options/market_details.dart';
-import 'package:sportfolios_alpha/utils/strings/number_format.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'dart:math';
 import 'package:flutter/material.dart';
-import 'package:sportfolios_alpha/data/objects/markets.dart';
+
+import '../../providers/settings_provider.dart';
+import 'options/market_details.dart';
+import '../../utils/strings/number_format.dart';
+import '../../data/objects/markets.dart';
 
 
 class MarketTile extends StatelessWidget {

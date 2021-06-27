@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:sportfolios_alpha/screens/login/gatekeeper.dart';
+
+import 'gatekeeper.dart';
 
 class VerifyScreen extends StatefulWidget {
 

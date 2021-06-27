@@ -1,7 +1,8 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
-import 'package:sportfolios_alpha/data/objects/portfolios.dart';
-import 'package:sportfolios_alpha/screens/leaderboard/pie_chart.dart';
+
+import '../../data/objects/portfolios.dart';
+import 'pie_chart.dart';
 import 'leaderboard_plots.dart';
 
 class Leaderboard extends StatelessWidget {

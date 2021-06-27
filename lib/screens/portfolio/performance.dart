@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:sportfolios_alpha/data/objects/portfolios.dart';
-import 'package:sportfolios_alpha/plots/price_chart.dart';
+
+import '../../data/objects/portfolios.dart';
+import '../../plots/price_chart.dart';
 
 
 class Performance extends StatefulWidget {

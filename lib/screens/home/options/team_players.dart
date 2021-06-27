@@ -1,8 +1,9 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
-import 'package:sportfolios_alpha/data/objects/markets.dart';
-import 'package:sportfolios_alpha/screens/home/market_scroll.dart';
-import 'package:sportfolios_alpha/utils/design/colors.dart';
+
+import '../../../data/objects/markets.dart';
+import '../market_scroll.dart';
+import '../../../utils/design/colors.dart';
 
 class TeamPlayers extends StatefulWidget {
   final Market team;

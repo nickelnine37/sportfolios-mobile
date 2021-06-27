@@ -1,6 +1,6 @@
 import 'dart:math' as math;
-import 'package:sportfolios_alpha/data/api/requests.dart';
-import 'package:sportfolios_alpha/utils/numerical/arrays.dart';
+import '../api/requests.dart';
+import '../../utils/numerical/arrays.dart';
 
 class ArrayLMSR {
   final double b;

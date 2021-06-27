@@ -1,6 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:sportfolios_alpha/data/api/requests.dart';
-import 'package:sportfolios_alpha/data/objects/markets.dart';
+import '../api/requests.dart';
+import '../objects/markets.dart';
 
 Future<Market> getMarketById(String id) async {
   DocumentSnapshot snapshot = await FirebaseFirestore.instance

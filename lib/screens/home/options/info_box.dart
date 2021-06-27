@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:shimmer/shimmer.dart';
-import 'package:sportfolios_alpha/utils/numerical/array_operations.dart';
+import '../../../utils/numerical/array_operations.dart';
 
 class InfoBox extends StatelessWidget {
   final String title;

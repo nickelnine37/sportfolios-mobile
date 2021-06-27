@@ -3,16 +3,17 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:sportfolios_alpha/data/api/requests.dart';
-import 'package:sportfolios_alpha/data/firebase/portfolios.dart';
-import 'package:sportfolios_alpha/data/objects/markets.dart';
-import 'package:sportfolios_alpha/plots/payout_graph.dart';
-import 'package:sportfolios_alpha/providers/authenication_provider.dart';
-import 'package:sportfolios_alpha/utils/strings/number_format.dart';
 import 'package:confetti/confetti.dart';
-import 'package:sportfolios_alpha/utils/numerical/numbers.dart';
-import 'package:sportfolios_alpha/data/objects/portfolios.dart';
 import 'package:intl/intl.dart' as intl;
+
+import '../../../data/api/requests.dart';
+import '../../../data/firebase/portfolios.dart';
+import '../../../data/objects/markets.dart';
+import '../../../plots/payout_graph.dart';
+import '../../../providers/authenication_provider.dart';
+import '../../../utils/strings/number_format.dart';
+import '../../../utils/numerical/numbers.dart';
+import '../../../data/objects/portfolios.dart';
 
 
 class BuyMarket extends StatefulWidget {

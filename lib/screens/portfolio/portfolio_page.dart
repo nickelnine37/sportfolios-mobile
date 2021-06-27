@@ -2,13 +2,14 @@ import 'dart:ui';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:sportfolios_alpha/data/firebase/portfolios.dart';
-import 'package:sportfolios_alpha/providers/authenication_provider.dart';
-import 'package:sportfolios_alpha/data/objects/portfolios.dart';
-import 'package:sportfolios_alpha/screens/leaderboard/pie_chart.dart';
-import 'package:sportfolios_alpha/screens/portfolio/holdings.dart';
-import 'package:sportfolios_alpha/screens/portfolio/performance.dart';
-import 'package:sportfolios_alpha/utils/strings/number_format.dart';
+
+import '../../data/firebase/portfolios.dart';
+import '../../providers/authenication_provider.dart';
+import '../../data/objects/portfolios.dart';
+import '../leaderboard/pie_chart.dart';
+import 'holdings.dart';
+import 'performance.dart';
+import '../../utils/strings/number_format.dart';
 
 class PortfolioPage extends StatefulWidget {
   @override

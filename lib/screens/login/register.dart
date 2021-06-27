@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:sportfolios_alpha/screens/login/gatekeeper.dart';
-import 'package:sportfolios_alpha/screens/login/login_utils.dart';
-import 'package:sportfolios_alpha/screens/login/verify.dart';
+
+import 'gatekeeper.dart';
+import 'login_utils.dart';
+import 'verify.dart';
 
 class AccountRegistrationPage extends StatefulWidget {
   AccountRegistrationPage({Key key}) : super(key: key);

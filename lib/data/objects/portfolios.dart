@@ -1,7 +1,7 @@
 import 'dart:collection';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:sportfolios_alpha/data/api/requests.dart';
-import 'package:sportfolios_alpha/data/firebase/markets.dart';
+import '../api/requests.dart';
+import '../firebase/markets.dart';
 import 'markets.dart';
 
 class Portfolio {

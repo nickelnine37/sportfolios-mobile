@@ -1,9 +1,10 @@
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
-import 'package:sportfolios_alpha/app_main.dart';
-import 'package:sportfolios_alpha/providers/authenication_provider.dart';
-import 'package:sportfolios_alpha/screens/login/login.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+
+import 'app_main.dart';
+import 'providers/authenication_provider.dart';
+import 'screens/login/login.dart';
 
 /// It all begins here...
 void main() async {

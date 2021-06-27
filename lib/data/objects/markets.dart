@@ -1,7 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:sportfolios_alpha/data/api/requests.dart';
-import 'package:sportfolios_alpha/data/firebase/markets.dart';
-import 'package:sportfolios_alpha/data/lmsr/lmsr.dart';
+import '../api/requests.dart';
+import '../firebase/markets.dart';
+import '../lmsr/lmsr.dart';
 
 
 class Market {

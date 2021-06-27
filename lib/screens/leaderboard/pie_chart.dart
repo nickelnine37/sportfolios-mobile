@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:sportfolios_alpha/data/objects/portfolios.dart';
-import 'package:sportfolios_alpha/utils/numerical/array_operations.dart';
-import 'package:sportfolios_alpha/utils/design/colors.dart';
+
+import '../../data/objects/portfolios.dart';
+import '../../utils/numerical/array_operations.dart';
+import '../../utils/design/colors.dart';
 
 double pi = 3.1415926535;
 

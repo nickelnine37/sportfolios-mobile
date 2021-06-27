@@ -1,13 +1,14 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
-import 'package:sportfolios_alpha/data/api/requests.dart';
-import 'package:sportfolios_alpha/data/objects/markets.dart';
-import 'package:sportfolios_alpha/plots/payout_graph.dart';
-import 'package:sportfolios_alpha/utils/numerical/array_operations.dart';
-import 'package:sportfolios_alpha/utils/strings/number_format.dart';
-import 'package:confetti/confetti.dart';
-import 'package:sportfolios_alpha/data/objects/portfolios.dart';
 import 'package:intl/intl.dart' as intl;
+import 'package:confetti/confetti.dart';
+
+import '../../data/api/requests.dart';
+import '../../data/objects/markets.dart';
+import '../../plots/payout_graph.dart';
+import '../../utils/numerical/array_operations.dart';
+import '../../utils/strings/number_format.dart';
+import '../../data/objects/portfolios.dart';
 
 class SellMarket extends StatefulWidget {
   final Market market;

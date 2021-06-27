@@ -1,16 +1,12 @@
-import 'package:intl/intl.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:sportfolios_alpha/data/objects/markets.dart';
-import 'package:sportfolios_alpha/providers/settings_provider.dart';
-import 'package:sportfolios_alpha/screens/home/app_bar.dart';
-import 'package:sportfolios_alpha/screens/home/footers/stats.dart';
-import 'package:sportfolios_alpha/screens/home/market_tile.dart';
-import 'package:sportfolios_alpha/screens/home/options/team_players.dart';
-import 'package:sportfolios_alpha/utils/design/colors.dart';
-import 'package:sportfolios_alpha/utils/strings/number_format.dart';
 
+import '../../../data/objects/markets.dart';
+import '../app_bar.dart';
+import '../footers/stats.dart';
+import '../market_tile.dart';
+import 'team_players.dart';
+import '../../../utils/design/colors.dart';
 import 'binary.dart';
 import 'custom.dart';
 import 'long_short.dart';

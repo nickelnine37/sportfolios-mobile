@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:sportfolios_alpha/screens/login/gatekeeper.dart';
-import 'package:sportfolios_alpha/screens/login/login_utils.dart';
-import 'package:sportfolios_alpha/screens/login/register.dart';
-import 'package:sportfolios_alpha/screens/login/reset_password.dart';
+
+import 'gatekeeper.dart';
+import 'login_utils.dart';
+import 'register.dart';
+import 'reset_password.dart';
 
 /// Main login widget. This consists of three pages:
 /// 1. The main login page, for users who already have an account. This is where we start

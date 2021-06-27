@@ -1,6 +1,7 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
-import 'package:sportfolios_alpha/data/objects/leagues.dart';
+
+import '../../data/objects/leagues.dart';
 
 class BasicDialog extends StatelessWidget {
   final String title, description, buttonText;

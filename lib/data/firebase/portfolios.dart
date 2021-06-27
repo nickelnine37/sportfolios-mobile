@@ -1,6 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:sportfolios_alpha/data/objects/portfolios.dart';
-import 'package:sportfolios_alpha/providers/authenication_provider.dart';
+import '../objects/portfolios.dart';
+import '../../providers/authenication_provider.dart';
 
 Future<Portfolio> getPortfolioById(String portfoliloId) async {
   return Portfolio.fromDocumentSnapshot(

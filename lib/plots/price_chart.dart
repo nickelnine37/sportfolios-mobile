@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:sportfolios_alpha/utils/numerical/array_operations.dart';
+import '../utils/numerical/array_operations.dart';
 import 'dart:math';
 import 'dart:ui' as ui;
-import 'package:sportfolios_alpha/utils/strings/number_format.dart';
+import '../utils/strings/number_format.dart';
 import 'package:intl/intl.dart' as intl;
 
 class TabbedPriceGraph extends StatefulWidget {

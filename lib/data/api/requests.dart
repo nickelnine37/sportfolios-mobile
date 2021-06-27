@@ -1,8 +1,8 @@
 import 'package:http/http.dart' as http;
-import 'package:sportfolios_alpha/data/api/urls.dart';
+import 'urls.dart';
 import 'dart:convert' as convert;
 
-import 'package:sportfolios_alpha/providers/authenication_provider.dart';
+import '../../providers/authenication_provider.dart';
 
 String __version__ = '0.0';
 

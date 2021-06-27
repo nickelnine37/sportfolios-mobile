@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:sportfolios_alpha/providers/authenication_provider.dart';
-import 'package:sportfolios_alpha/screens/login/login_utils.dart';
+
+import '../../providers/authenication_provider.dart';
+import 'login_utils.dart';
 
 /// Main Password Rest Page Widget
 class PasswordResetPage extends StatefulWidget {
