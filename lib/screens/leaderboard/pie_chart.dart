@@ -7,8 +7,8 @@ import '../../utils/design/colors.dart';
 double pi = 3.1415926535;
 
 class SegmentData {
-  final double percentage;
-  final Color colour;
+  final double? percentage;
+  final Color? colour;
 
   SegmentData({this.percentage, this.colour});
 
@@ -20,19 +20,19 @@ class SegmentData {
 }
 
 class MiniDonutChart extends StatelessWidget {
-  final Portfolio portfolio;
+  final Portfolio? portfolio;
   final double strokeWidth;
 
   MiniDonutChart(this.portfolio, {this.strokeWidth=10});
 
   @override
   Widget build(BuildContext context) {
-    List<SegmentData> pieData = range(portfolio.nCurrentMarkets)
+    List<SegmentData> pieData = range(portfolio!.nCurrentMarkets)
         .map((int i) => SegmentData(
-            percentage: portfolio.sortedValues.values.toList()[i] / portfolio.currentValue,
-            colour: portfolio.sortedValues.keys.toList()[i] == 'cash'
+            percentage: portfolio!.sortedValues.values.toList()[i] / portfolio!.currentValue!,
+            colour: portfolio!.sortedValues.keys.toList()[i] == 'cash'
                         ? Colors.green[500]
-                        : fromHex(portfolio.markets[portfolio.sortedValues.keys.toList()[i]].colours[0])))
+                        : fromHex(portfolio!.markets[portfolio!.sortedValues.keys.toList()[i]]!.colours[0])))
         .toList();
 
     return CustomPaint(painter: MiniDonutChartPainter(pieData, strokeWidth));
@@ -52,11 +52,11 @@ class MiniDonutChartPainter extends CustomPainter {
 
     for (SegmentData data in pieData) {
       Paint arcPaint = Paint()
-        ..color = data.colour
+        ..color = data.colour!
         ..style = PaintingStyle.stroke
         ..strokeWidth = strokeWidth;
 
-      end += data.percentage;
+      end += data.percentage!;
 
       Path path = Path();
       double startAngle = 2 * pi * (this.start - 0.25);

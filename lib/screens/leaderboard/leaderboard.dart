@@ -43,8 +43,8 @@ class LeaderboardScroll extends StatefulWidget {
 }
 
 class _LeaderboardScrollState extends State<LeaderboardScroll> with AutomaticKeepAliveClientMixin{
-  Future<List<Portfolio>> portfoliosFuture;
-  List<Portfolio> portfolios;
+  Future<List<Portfolio>>? portfoliosFuture;
+  List<Portfolio>? portfolios;
 
   @override
   void initState() {
@@ -56,7 +56,7 @@ class _LeaderboardScrollState extends State<LeaderboardScroll> with AutomaticKee
   Future<List<Portfolio>> getPortfolios() async {
     // run firebase queires here
     // use await and return the portfolio objects
-    QuerySnapshot results;
+    late QuerySnapshot results;
 
     if (widget.timeHorizon == 'd') {
       // set results
@@ -67,7 +67,8 @@ class _LeaderboardScrollState extends State<LeaderboardScroll> with AutomaticKee
     }
     // simulate delay
     await Future.delayed(Duration(seconds: 1));
-    return results.docs.map((DocumentSnapshot doc) => Portfolio.fromDocumentSnapshot(doc)).toList();
+    // return results.docs.map((DocumentSnapshot doc) => Portfolio.fromDocumentSnapshot(doc)).toList();
+    return [];
   }
 
   @override

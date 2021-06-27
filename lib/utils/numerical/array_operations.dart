@@ -1,10 +1,10 @@
 import 'dart:math' as math;
 
 
-List<int> range(int n0, [int end, int step]) {
+List<int> range(int? n0, [int? end, int? step]) {
   // mirrors python's range function
 
-  int start;
+  int? start;
 
   if (step == null) {
     step = 1;
@@ -17,10 +17,10 @@ List<int> range(int n0, [int end, int step]) {
     start = n0;
   }
 
-  int N = (end - start) ~/ step;
+  int N = (end! - start!) ~/ step;
 
   return List.generate(N, (int i) {
-    return start + i * step;
+    return start! + i * step!;
   });
 }
 
@@ -59,14 +59,14 @@ double doubleDotProduct(List<double> array1, List<double> array2) {
 }
 
 
-List<double> matrixMultiplyDoubleDouble (List<List<double>> transposedMatrix, List<double> array) {
+List<double> matrixMultiplyDoubleDouble (List<List<double>?> transposedMatrix, List<double> array) {
 
-  List<double> out = transposedMatrix[0].map<double>((element) => element * array[0]).toList();
+  List<double> out = transposedMatrix[0]!.map<double>((element) => element * array[0]).toList();
   
   for (int i=1; i<array.length; i++) {
 
-  for (int j=0; j<transposedMatrix[i].length; j++) {
-          out[j] += transposedMatrix[i][j] * array[i];
+  for (int j=0; j<transposedMatrix[i]!.length; j++) {
+          out[j] += transposedMatrix[i]![j] * array[i];
         }
     
   }
@@ -90,9 +90,9 @@ List<double> matrixMultiplyIntDouble (List<List<int>> transposedMatrix, List<dou
   return out;
 }
 
-List<double> matrixMultiply(List<List<dynamic>> transposedMatrix, List array) {
+List<double>? matrixMultiply(List<List<dynamic>> transposedMatrix, List array) {
 
-  List<double> out;
+  List<double>? out;
   
   for (int i=0; i<array.length; i++) {
 
@@ -102,7 +102,7 @@ List<double> matrixMultiply(List<List<dynamic>> transposedMatrix, List array) {
 
     else {
       for (int j=0; j<transposedMatrix[i].length; j++) {
-        out[j] += transposedMatrix[i][j] * array[i];
+        out![j] += transposedMatrix[i][j] * array[i];
       }
     }
   }
@@ -123,7 +123,7 @@ List<num> ns(int N, num n) {
 }
 
 
-double getMax (List<double> y) {
+double? getMax (List<double> y) {
   if (y.length == 0) {
     return null;
   }
@@ -133,7 +133,7 @@ double getMax (List<double> y) {
   return y.reduce(math.max);
 }
 
-int argMax (List<num> y) {
+int? argMax (List<num> y) {
     if (y.length == 0) {
     return null;
   }
@@ -150,5 +150,5 @@ dynamic getSum (List<num> y) {
   else if (y.length == 1) {
     return y[0];
   }
-  return y.fold(0, (p, c) => p + c);
+  return y.fold(0, (dynamic p, c) => p + c);
 }

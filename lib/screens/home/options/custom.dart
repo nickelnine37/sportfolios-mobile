@@ -9,7 +9,7 @@ import '../../../utils/numerical/array_operations.dart';
 import 'header.dart';
 
 class CustomDetails extends StatefulWidget {
-  final Market market;
+  final Market? market;
 
   CustomDetails(this.market);
 
@@ -21,18 +21,18 @@ class _CustomDetailsState extends State<CustomDetails> with AutomaticKeepAliveCl
   String helpText =
       'A custom market gives you full autonomy to design your own payout structure. Drag each bar on the payout graph up and down to create your desired payout. ';
   double lrPadding = 25;
-  List<double> p1;
-  List<double> p2;
+  List<double>? p1;
+  List<double>? p2;
   bool reversed = false;
-  Map priceHistory;
-  double graphWidth;
+  Map? priceHistory;
+  double? graphWidth;
   double graphHeight = 150;
   bool locked = false;
 
   @override
   void initState() {
-    p1 = range(widget.market.lmsr.n).map((int i) => 10.0).toList();
-    p2 = range(widget.market.lmsr.n).map((int i) => 10.0).toList();
+    p1 = range(widget.market!.lmsr.n).map((int i) => 10.0).toList();
+    p2 = range(widget.market!.lmsr.n).map((int i) => 10.0).toList();
     super.initState();
   }
 
@@ -45,15 +45,15 @@ class _CustomDetailsState extends State<CustomDetails> with AutomaticKeepAliveCl
   bool get wantKeepAlive => true;
 
   void updateHistory() {
-    priceHistory = widget.market.lmsr.getHistoricalValue(p1);
+    priceHistory = widget.market!.lmsr.getHistoricalValue(p1);
   }
 
   void _makeSelection(Offset touchLocation) {
-    int x = (widget.market.lmsr.n * touchLocation.dx / graphWidth).floor();
+    int x = (widget.market!.lmsr.n! * touchLocation.dx / graphWidth!).floor();
     if (x < 0) {
       x = 0;
-    } else if (x > widget.market.lmsr.n - 1) {
-      x = widget.market.lmsr.n;
+    } else if (x > widget.market!.lmsr.n! - 1) {
+      x = widget.market!.lmsr.n!;
     }
     double y = 10 * (1 - (touchLocation.dy - 20) / (graphHeight + 20));
 
@@ -63,7 +63,7 @@ class _CustomDetailsState extends State<CustomDetails> with AutomaticKeepAliveCl
     if (y > 10) {
       y = 10;
     }
-    p2 = range(widget.market.lmsr.n).map((int i) => i == x ? y : p2[i]).toList();
+    p2 = range(widget.market!.lmsr.n).map((int i) => i == x ? y : p2![i]).toList();
 
     if (p2 != p1) {
       setState(() {
@@ -86,8 +86,8 @@ class _CustomDetailsState extends State<CustomDetails> with AutomaticKeepAliveCl
 
     return RefreshIndicator(
       onRefresh: () async {
-        await widget.market.lmsr.updateCurrentX();
-        await widget.market.lmsr.updateHistoricalX();
+        await widget.market!.lmsr.updateCurrentX();
+        await widget.market!.lmsr.updateHistoricalX();
         await Future.delayed(Duration(seconds: 1));
       },
       child: SingleChildScrollView(
@@ -161,7 +161,7 @@ class _CustomDetailsState extends State<CustomDetails> with AutomaticKeepAliveCl
                     },
                   ),
             SizedBox(height: 35),
-            TabbedPriceGraph(priceHistory: priceHistory, times: widget.market.lmsr.times),
+            TabbedPriceGraph(priceHistory: priceHistory as Map<String, List<double>>?, times: widget.market!.lmsr.times),
             SizedBox(height: 20),
             Divider(thickness: 2),
             PageFooter(widget.market)

@@ -8,10 +8,10 @@ class BasicDialog extends StatelessWidget {
   final void Function() action;
 
   BasicDialog({
-    @required this.title,
-    @required this.description,
-    @required this.buttonText,
-    @required this.action,
+    required this.title,
+    required this.description,
+    required this.buttonText,
+    required this.action,
   });
 
   @override
@@ -93,13 +93,13 @@ class LeagueSelectorDialogue extends StatelessWidget {
                 },
                 itemBuilder: (context, i) {
                   return ListTile(
-                    title: Text(leagues[i].name),
+                    title: Text(leagues[i].name!),
                     leading: Container(
                       width: 35,
                       height: 35,
-                      child: CachedNetworkImage(imageUrl: leagues[i].imageURL),
+                      child: CachedNetworkImage(imageUrl: leagues[i].imageURL!),
                     ),
-                    trailing: Text(leagues[i].countryFlagEmoji),
+                    trailing: Text(leagues[i].countryFlagEmoji!),
                     onTap: () {
                       Navigator.of(context).pop(leagues[i].leagueID);
                     },
@@ -117,7 +117,7 @@ class LeagueSelectorDialogue extends StatelessWidget {
 
 // need to further adjust this
 class SeasonSelectorDialogue extends StatelessWidget {
-  final List<String> seasons;
+  final List<String>? seasons;
 
   const SeasonSelectorDialogue(this.seasons);
 
@@ -146,15 +146,15 @@ class SeasonSelectorDialogue extends StatelessWidget {
             Container(
               height: 340,
               child: ListView.separated(
-                itemCount: seasons.length,
+                itemCount: seasons!.length,
                 separatorBuilder: (context, index) {
                   return Divider();
                 },
                 itemBuilder: (context, i) {
                   return ListTile(
-                    title: Text(seasons[i]),
+                    title: Text(seasons![i]),
                     onTap: () {
-                      Navigator.of(context).pop(seasons[i]);
+                      Navigator.of(context).pop(seasons![i]);
                     },
                   );
                 },

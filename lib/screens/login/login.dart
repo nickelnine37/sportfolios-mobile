@@ -95,7 +95,7 @@ class _LoginPageState extends State<LoginPage> {
               gradient: LinearGradient(
                 begin: Alignment.topCenter,
                 end: Alignment.bottomCenter,
-                colors: [Colors.blue[300], Colors.white],
+                colors: [Colors.blue[300]!, Colors.white],
               ),
             ),
 
@@ -141,14 +141,14 @@ class LoginForm extends StatefulWidget {
 
 class _LoginFormState extends State<LoginForm> {
   /// variables for the user's email and password
-  String _email;
-  String _password;
+  String? _email;
+  String? _password;
 
   /// this will hold the error message, if any
   String _errorText = '';
 
   /// the [GateKeeper] is responsible for deciding whether to allows someone into the main app
-  GateKeeper _gateKeeper;
+  GateKeeper? _gateKeeper;
 
   /// global key needed for the form
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
@@ -170,7 +170,7 @@ class _LoginFormState extends State<LoginForm> {
         keyboardType: TextInputType.emailAddress,
         validator: (email) {
           /// email validation logic comes from login_utils
-          if (!isValidEmail(email)) return 'Please input a valid email address';
+          if (!isValidEmail(email!)) return 'Please input a valid email address';
           return null;
         },
         onSaved: (email) {
@@ -186,7 +186,7 @@ class _LoginFormState extends State<LoginForm> {
       autocorrect: false,
       obscureText: true,
       validator: (password) {
-        if (!isValidPassword(password))
+        if (!isValidPassword(password!))
           return 'Password must be at least 8 characters';
         else
           return null;
@@ -216,14 +216,14 @@ class _LoginFormState extends State<LoginForm> {
               )
             : Text('LOGIN', style: TextStyle(color: Colors.white, fontSize: 18, letterSpacing: 1)),
         onPressed: () {
-          if (_formKey.currentState.validate()) {
+          if (_formKey.currentState!.validate()) {
             // close the keyboard
             if (!FocusScope.of(context).hasPrimaryFocus) {
-              FocusManager.instance.primaryFocus.unfocus();
+              FocusManager.instance.primaryFocus!.unfocus();
             }
 
             // save the form state
-            _formKey.currentState.save();
+            _formKey.currentState!.save();
 
             // add loading indicator
             setState(() {
@@ -231,7 +231,7 @@ class _LoginFormState extends State<LoginForm> {
             });
 
             // attempt sign in
-            _gateKeeper.enter(email: this._email, password: this._password).then((value) {
+            _gateKeeper!.enter(email: this._email!, password: this._password!).then((value) {
               // on fail, display error text
               setState(() {
                 if (value != 'Success') {

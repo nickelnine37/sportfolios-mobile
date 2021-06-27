@@ -19,15 +19,15 @@ Future<DocumentSnapshot> getMarketSnapshotById(String id) async {
 }
 
 class MarketFetcher {
-  DocumentSnapshot lastDocument;
-  Query baseQuery;
-  int leagueID;
-  String marketType;
+  DocumentSnapshot? lastDocument;
+  late Query baseQuery;
+  int? leagueID;
+  String? marketType;
   List<Market> loadedResults = [];
   bool finished = false;
-  List<Market> alreadyLoaded;
+  List<Market>? alreadyLoaded;
 
-  void setData({List<Market> alreadyLoaded = null, String search = null}) {
+  void setData({List<Market>? alreadyLoaded = null, String? search = null}) {
     // work out whether this is a player or team market and order by different metric accordingly
 
     if (marketType == 'players') {
@@ -58,13 +58,13 @@ class MarketFetcher {
       }
 
       if (results.docs.length > 0) {
-        Map<String, double> prices = await getBackPrices(
+        Map<String, double>? prices = await getBackPrices(
             results.docs.map<String>((DocumentSnapshot snapshot) => snapshot.id).toList());
-        Map<String, List> dailyPrices = await getDailyBackPrices(
+        Map<String, List>? dailyPrices = await getDailyBackPrices(
             results.docs.map<String>((DocumentSnapshot snapshot) => snapshot.id).toList());
         loadedResults.addAll(
           results.docs.map<Market>((DocumentSnapshot snapshot) => Market.fromDocumentSnapshot(snapshot)
-            ..setBackProperties(prices[snapshot.id], List<double>.from(dailyPrices[snapshot.id]))),
+            ..setBackProperties(prices![snapshot.id], List<double>.from(dailyPrices![snapshot.id]!))),
         );
       }
     }
@@ -73,27 +73,27 @@ class MarketFetcher {
 
 /// class for fetching markets when there is no particular serach term associated
 class LeagueMarketFetcher extends MarketFetcher {
-  int leagueID;
-  String marketType;
+  int? leagueID;
+  String? marketType;
 
   LeagueMarketFetcher(this.leagueID, this.marketType) {
     // set up basic query structure
-    baseQuery = FirebaseFirestore.instance.collection(marketType).where('league_id', isEqualTo: leagueID);
+    baseQuery = FirebaseFirestore.instance.collection(marketType!).where('league_id', isEqualTo: leagueID);
     super.setData();
   }
 }
 
 /// class for fetching markets when there is no particular serach term associated
 class LeagueSearchMarketFetcher extends MarketFetcher {
-  String search;
-  int leagueID;
-  String marketType;
-  List<Market> alreadyLoaded;
+  String? search;
+  int? leagueID;
+  String? marketType;
+  List<Market>? alreadyLoaded;
 
   LeagueSearchMarketFetcher({this.search, this.leagueID, this.marketType, this.alreadyLoaded}) {
     // set up basic query structure
     baseQuery = FirebaseFirestore.instance
-        .collection(marketType)
+        .collection(marketType!)
         .where('league_id', isEqualTo: leagueID)
         .where('search_terms', arrayContains: search);
 
@@ -104,8 +104,8 @@ class LeagueSearchMarketFetcher extends MarketFetcher {
 
 /// class for fetching markets when there is no particular serach term associated
 class TeamPlayerMarketFetcher extends MarketFetcher {
-  int teamId;
-  String marketType = 'players';
+  int? teamId;
+  String? marketType = 'players';
 
   TeamPlayerMarketFetcher(this.teamId) {
     // set up basic query structure
@@ -116,9 +116,9 @@ class TeamPlayerMarketFetcher extends MarketFetcher {
 
 /// class for fetching markets when there is no particular serach term associated
 class TeamPlayerSearchMarketFetcher extends MarketFetcher {
-  String search;
-  int teamId;
-  List<Market> alreadyLoaded;
+  String? search;
+  int? teamId;
+  List<Market>? alreadyLoaded;
 
   TeamPlayerSearchMarketFetcher({this.search, this.teamId, this.alreadyLoaded}) {
     // set up basic query structure

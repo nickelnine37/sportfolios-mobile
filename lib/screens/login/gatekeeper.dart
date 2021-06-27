@@ -32,8 +32,8 @@ class GateKeeper {
     }
   }
 
-  Future<String> enter({@required String email, @required String password}) async {
-    FirebaseAuthException signInProblem = await _authService.signInWithEmail(
+  Future<String> enter({required String email, required String password}) async {
+    FirebaseAuthException? signInProblem = await _authService.signInWithEmail(
       email: email,
       password: password,
     );
@@ -65,12 +65,12 @@ class GateKeeper {
     ));
   }
 
-  Future<String> registerUser({
-    @required String email,
-    @required String username,
-    @required String password,
+  Future<String?> registerUser({
+    required String email,
+    required String? username,
+    required String password,
   }) async {
-    FirebaseAuthException newUserProblem =
+    FirebaseAuthException? newUserProblem =
         await _authService.createNewUser(email: email, username: username, password: password);
     if (newUserProblem == null) {
       return null;
@@ -87,8 +87,8 @@ class GateKeeper {
     }
   }
 
-  Future<String> sendVerificationEmail() async {
-    FirebaseAuthException verificationResult = await _authService.sendVerificationEmail();
+  Future<String?> sendVerificationEmail() async {
+    FirebaseAuthException? verificationResult = await _authService.sendVerificationEmail();
     if (verificationResult == null) {
       return null;
     } else {

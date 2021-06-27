@@ -2,7 +2,7 @@ import 'package:intl/intl.dart';
 
 List<String> _supportedCurrencies = ['GBP', 'EUR', 'USD'];
 
-String _checkCurrency(currency) {
+String? _checkCurrency(currency) {
   if (currency == null) {
     print('Warning: null currency passed. Defaulting to GBP');
     currency = 'GBP';
@@ -25,9 +25,9 @@ String getCurrencySymbol(String currency) {
     return out[0];
 }
 
-String formatCurrency(double amount, String currency) {
-  NumberFormat currencyFormatter;
-  double priceConversionRatio;
+String formatCurrency(double? amount, String? currency) {
+  late NumberFormat currencyFormatter;
+  late double priceConversionRatio;
 
   currency = _checkCurrency(currency);
 
@@ -52,11 +52,11 @@ String formatCurrency(double amount, String currency) {
       break;
   }
 
-  return currencyFormatter.format(priceConversionRatio * amount);
+  return currencyFormatter.format(priceConversionRatio * amount!);
 }
 
-String formatPercentage(double percent, String currency) {
-  NumberFormat percentFormatter;
+String formatPercentage(double? percent, String? currency) {
+  late NumberFormat percentFormatter;
 
   currency = _checkCurrency(currency);
 
@@ -81,7 +81,7 @@ String formatPercentage(double percent, String currency) {
   return percentFormatter.format(percent);
 }
 
-String formatDecimal(double number, String currency, [int decimalPlaces = 2]) {
+String formatDecimal(double number, String? currency, [int decimalPlaces = 2]) {
   currency = _checkCurrency(currency);
 
   if (currency == 'EUR')

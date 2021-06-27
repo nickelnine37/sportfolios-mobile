@@ -5,7 +5,7 @@ import 'login_utils.dart';
 import 'verify.dart';
 
 class AccountRegistrationPage extends StatefulWidget {
-  AccountRegistrationPage({Key key}) : super(key: key);
+  AccountRegistrationPage({Key? key}) : super(key: key);
 
   @override
   _AccountRegistrationPageState createState() => _AccountRegistrationPageState();
@@ -51,7 +51,7 @@ class _AccountRegistrationPageState extends State<AccountRegistrationPage> {
 }
 
 class AccountRegistrationForm extends StatefulWidget {
-  AccountRegistrationForm({Key key}) : super(key: key);
+  AccountRegistrationForm({Key? key}) : super(key: key);
 
   @override
   _AccountRegistrationFormState createState() => _AccountRegistrationFormState();
@@ -59,16 +59,16 @@ class AccountRegistrationForm extends StatefulWidget {
 
 class _AccountRegistrationFormState extends State<AccountRegistrationForm> {
   //
-  String _email;
-  String _username;
-  String _password1;
-  String errorText;
+  String? _email;
+  String? _username;
+  String? _password1;
+  String? errorText;
 
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
   final TextEditingController _pass = TextEditingController();
   final TextEditingController _confirmPass = TextEditingController();
 
-  GateKeeper gateKeeper;
+  GateKeeper? gateKeeper;
 
   @override
   void dispose() {
@@ -93,7 +93,7 @@ class _AccountRegistrationFormState extends State<AccountRegistrationForm> {
       autocorrect: false,
       keyboardType: TextInputType.emailAddress,
       validator: (email) {
-        if (!isValidEmail(email)) {
+        if (!isValidEmail(email!)) {
           return 'Please input a valid email address';
         }
         return null;
@@ -110,13 +110,13 @@ class _AccountRegistrationFormState extends State<AccountRegistrationForm> {
     ///
     TextFormField usernameInput = TextFormField(
       autocorrect: false,
-      validator: (String username) {
-        if (!isValidUsername(username)) {
+      validator: (String? username) {
+        if (!isValidUsername(username!)) {
           return 'Username must be between 5 and 20 characters';
         }
         return null;
       },
-      onSaved: (String username) {
+      onSaved: (String? username) {
         this._username = username;
       },
       style: TextStyle(color: Colors.white, fontSize: 17),
@@ -130,13 +130,13 @@ class _AccountRegistrationFormState extends State<AccountRegistrationForm> {
       autocorrect: false,
       controller: _pass,
       obscureText: true,
-      validator: (String password1) {
-        if (!isValidPassword(password1)) {
+      validator: (String? password1) {
+        if (!isValidPassword(password1!)) {
           return 'Password must be at least 8 characters';
         }
         return null;
       },
-      onSaved: (String password1) {
+      onSaved: (String? password1) {
         this._password1 = password1;
       },
       style: TextStyle(color: Colors.white, fontSize: 17),
@@ -151,7 +151,7 @@ class _AccountRegistrationFormState extends State<AccountRegistrationForm> {
       controller: _confirmPass,
       obscureText: true,
       validator: (password2) {
-        if (!isValidPassword(password2)) {
+        if (!isValidPassword(password2!)) {
           return 'Password must be at least 8 characters';
         }
         if (password2 != _pass.text) {
@@ -180,20 +180,20 @@ class _AccountRegistrationFormState extends State<AccountRegistrationForm> {
           style: TextStyle(color: Colors.white, fontSize: 18, letterSpacing: 1),
         ),
         onPressed: () async {
-          if (_formKey.currentState.validate()) {
-            _formKey.currentState.save();
+          if (_formKey.currentState!.validate()) {
+            _formKey.currentState!.save();
 
             // close the keyboard
             if (!FocusScope.of(context).hasPrimaryFocus) {
-              FocusManager.instance.primaryFocus.unfocus();
+              FocusManager.instance.primaryFocus!.unfocus();
             }
 
             // save the form state
-            _formKey.currentState.save();
+            _formKey.currentState!.save();
 
             // register user and check for problems
-            String error =
-                await gateKeeper.registerUser(email: _email, username: _username, password: _password1);
+            String? error =
+                await gateKeeper!.registerUser(email: _email!, username: _username, password: _password1!);
 
             // if no problems happened with registering, push to verification stage
             if (error == null) {
@@ -259,7 +259,7 @@ class _AccountRegistrationFormState extends State<AccountRegistrationForm> {
         SizedBox(height: 13),
         (errorText == null)
             ? Container()
-            : Container(height: 20, child: Text(errorText, style: TextStyle(color: Colors.red))),
+            : Container(height: 20, child: Text(errorText!, style: TextStyle(color: Colors.red))),
       ],
     );
   }

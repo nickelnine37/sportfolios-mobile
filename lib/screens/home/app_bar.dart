@@ -14,10 +14,10 @@ class MainView extends StatefulWidget {
   final initialLeagueId;
 
   MainView({
-    @required this.sport,
-    @required this.leagues,
-    @required this.initialLeagueId,
-    @required this.drawerKey,
+    required this.sport,
+    required this.leagues,
+    required this.initialLeagueId,
+    required this.drawerKey,
   });
 
   @override
@@ -25,8 +25,8 @@ class MainView extends StatefulWidget {
 }
 
 class _MainViewState extends State<MainView> {
-  int selectedLeagueId;
-  SharedPreferences prefs;
+  int? selectedLeagueId;
+  late SharedPreferences prefs;
 
   @override
   void initState() {
@@ -80,17 +80,17 @@ class _MainViewState extends State<MainView> {
                   color: Colors.white,
                   icon: Icon(Icons.menu),
                   onPressed: () {
-                    widget.drawerKey.currentState.openDrawer();
+                    widget.drawerKey.currentState!.openDrawer();
                   },
                 ),
-                Container(child: CachedNetworkImage(imageUrl: league.imageURL, height: 50)),
+                Container(child: CachedNetworkImage(imageUrl: league.imageURL!, height: 50)),
                 SizedBox(width: 5),
                 Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     GestureDetector(
                       onTap: () async {
-                        int newlySelectedLeague = await showDialog(
+                        int? newlySelectedLeague = await showDialog(
                           context: context,
                           builder: (context) {
                             return LeagueSelectorDialogue(widget.leagues);
@@ -107,7 +107,7 @@ class _MainViewState extends State<MainView> {
                         mainAxisAlignment: MainAxisAlignment.start,
                         crossAxisAlignment: CrossAxisAlignment.center,
                         children: [
-                          Text(league.name, style: TextStyle(fontSize: 28.0, color: Colors.white)),
+                          Text(league.name!, style: TextStyle(fontSize: 28.0, color: Colors.white)),
                           Container(
                             padding: EdgeInsets.all(0),
                             width: 30,
@@ -120,7 +120,7 @@ class _MainViewState extends State<MainView> {
                       ),
                     ),
                     Text(
-                      league.countryFlagEmoji + '  ' + league.country,
+                      league.countryFlagEmoji! + '  ' + league.country!,
                       style: TextStyle(fontSize: 13.0, color: Colors.white),
                     )
                   ],
@@ -164,7 +164,7 @@ class _MainViewState extends State<MainView> {
 
 class LeagueProgressBar extends StatelessWidget {
   final dynamic leagueOrMarket;
-  final Color textColor;
+  final Color? textColor;
   final Color paintColor1;
   final Color paintColor2;
 

@@ -24,16 +24,16 @@ class HomeBody extends StatefulWidget {
 
   final List<String> supportedSports = ['Football'];
 
-  HomeBody({@required this.selectedSport, @required this.parentScaffoldKey});
+  HomeBody({required this.selectedSport, required this.parentScaffoldKey});
 
   @override
   _HomeBodyState createState() => _HomeBodyState();
 }
 
 class _HomeBodyState extends State<HomeBody> {
-  Future<List<League>> _leaguesFuture;
-  String _lastLoadedSport;
-  int initialLeagueId;
+  Future<List<League>>? _leaguesFuture;
+  String? _lastLoadedSport;
+  int? initialLeagueId;
 
   @override
   void initState() {
@@ -55,7 +55,7 @@ class _HomeBodyState extends State<HomeBody> {
     }
   }
 
-  Scaffold _buildScaffold({String title, Widget body}) {
+  Scaffold _buildScaffold({required String title, Widget? body}) {
     return Scaffold(
       body: body,
       appBar: AppBar(
@@ -64,7 +64,7 @@ class _HomeBodyState extends State<HomeBody> {
           color: Colors.white,
           icon: Icon(Icons.menu),
           onPressed: () {
-            widget.parentScaffoldKey.currentState.openDrawer();
+            widget.parentScaffoldKey.currentState!.openDrawer();
           },
         ),
       ),
@@ -81,7 +81,7 @@ class _HomeBodyState extends State<HomeBody> {
           Text("Sorry, ${sport.toLowerCase()} is not available yet :'( "),
           SizedBox(height: 20),
           CachedNetworkImage(
-            imageUrl: widget.photos[sport],
+            imageUrl: widget.photos[sport]!,
             width: MediaQuery.of(context).size.width * 0.9,
           )
         ],

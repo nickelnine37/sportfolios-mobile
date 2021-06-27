@@ -10,12 +10,12 @@ import '../utils/strings/string_utils.dart';
 
 
 class TrueStaticPayoutGraph extends StatefulWidget {
-  final List<double> payouts;
+  final List<double>? payouts;
   final Color color;
   final double lrPadding;
   final double height;
   final bool lock;
-  final double pmax;
+  final double? pmax;
 
   TrueStaticPayoutGraph(this.payouts, this.color, this.lrPadding, [this.height=200, this.lock=false, this.pmax]);
 
@@ -24,15 +24,15 @@ class TrueStaticPayoutGraph extends StatefulWidget {
 }
 
 class _TrueStaticPayoutGraphState extends State<TrueStaticPayoutGraph> {
-  double width;
-  int selectedBar;
-  double pmax;
-  int n;
+  double? width;
+  int? selectedBar;
+  double? pmax;
+  int? n;
 
-  int _selectedBar(Offset touchLocation) {
-    int selected = (n * touchLocation.dx / width).floor();
+  int? _selectedBar(Offset touchLocation) {
+    int selected = (n! * touchLocation.dx / width!).floor();
 
-    if (touchLocation.dy + 20 > widget.height - widget.height * widget.payouts[selected] / pmax)
+    if (touchLocation.dy + 20 > widget.height - widget.height * widget.payouts![selected] / pmax!)
       return selected;
     else
       return null;
@@ -50,7 +50,7 @@ class _TrueStaticPayoutGraphState extends State<TrueStaticPayoutGraph> {
                   percentComplete: percentComplete,
                   color: widget.color, 
                   pmax: pmax),
-              size: Size(width, widget.height),
+              size: Size(width!, widget.height),
             ),
           )
           .toList();
@@ -64,7 +64,7 @@ class _TrueStaticPayoutGraphState extends State<TrueStaticPayoutGraph> {
                   opacity: (i == selectedBar) ? 1 : 0.5,
                   color: widget.color, 
                   pmax: pmax),
-              size: Size(width, widget.height),
+              size: Size(width!, widget.height),
             ),
           )
           .toList();
@@ -80,7 +80,7 @@ class _TrueStaticPayoutGraphState extends State<TrueStaticPayoutGraph> {
     }
 
     if (widget.pmax == null) {
-    pmax = widget.payouts.reduce(max);
+    pmax = widget.payouts!.reduce(max);
 
     }
     else {
@@ -88,7 +88,7 @@ class _TrueStaticPayoutGraphState extends State<TrueStaticPayoutGraph> {
     }
 
     if (n == null) {
-    n = widget.payouts.length;
+    n = widget.payouts!.length;
 
     }
 
@@ -100,7 +100,7 @@ class _TrueStaticPayoutGraphState extends State<TrueStaticPayoutGraph> {
             height: 20,
             child: Text(
               selectedBar != null
-                  ? '${widget.payouts.length - selectedBar}${formatOrdinal(widget.payouts.length - selectedBar)} place payout: ${formatCurrency(widget.payouts[selectedBar], 'GBP')}'
+                  ? '${widget.payouts!.length - selectedBar!}${formatOrdinal(widget.payouts!.length - selectedBar!)} place payout: ${formatCurrency(widget.payouts![selectedBar!], 'GBP')}'
                   : 'Payout Structure',
               style: TextStyle(fontSize: 15),
             ),
@@ -114,7 +114,7 @@ class _TrueStaticPayoutGraphState extends State<TrueStaticPayoutGraph> {
           child: widget.lock
               ? GestureDetector(
                   onTapDown: (TapDownDetails details) {
-                    int newSelectedBar = _selectedBar(details.localPosition);
+                    int? newSelectedBar = _selectedBar(details.localPosition);
                     if (newSelectedBar != selectedBar) {
                       setState(() {
                         selectedBar = newSelectedBar;
@@ -154,11 +154,11 @@ class StaticPayoutGraph extends StatefulWidget {
 }
 
 class _StaticPayoutGraphState extends State<StaticPayoutGraph> {
-  double width;
+  double? width;
   double height = 200;
-  int selectedBar;
-  double pmax;
-  int n;
+  int? selectedBar;
+  late double pmax;
+  int? n;
 
   List<CustomPaint> _rereshPainters(double percentComplete) {
     if (selectedBar == null) {
@@ -171,7 +171,7 @@ class _StaticPayoutGraphState extends State<StaticPayoutGraph> {
                   opacity: 1,
                   percentComplete: percentComplete,
                   color: widget.color),
-              size: Size(width, height),
+              size: Size(width!, height),
             ),
           )
           .toList();
@@ -184,15 +184,15 @@ class _StaticPayoutGraphState extends State<StaticPayoutGraph> {
                   index: i,
                   opacity: (i == selectedBar) ? 1 : 0.5,
                   color: widget.color),
-              size: Size(width, height),
+              size: Size(width!, height),
             ),
           )
           .toList();
     }
   }
 
-  int _selectedBar(Offset touchLocation) {
-    int selected = (n * touchLocation.dx / width).floor();
+  int? _selectedBar(Offset touchLocation) {
+    int selected = (n! * touchLocation.dx / width!).floor();
 
     if (touchLocation.dy + 20 > height - height * widget.payouts[selected] / pmax)
       return selected;
@@ -212,7 +212,7 @@ class _StaticPayoutGraphState extends State<StaticPayoutGraph> {
         SizedBox(height: 15),
         GestureDetector(
           onTapDown: (TapDownDetails details) {
-            int newSelectedBar = _selectedBar(details.localPosition);
+            int? newSelectedBar = _selectedBar(details.localPosition);
             if (newSelectedBar != selectedBar) {
               setState(() {
                 selectedBar = newSelectedBar;
@@ -224,7 +224,7 @@ class _StaticPayoutGraphState extends State<StaticPayoutGraph> {
               duration: Duration(milliseconds: 1000),
               tween: Tween<double>(begin: 0, end: 1),
               child: Consumer(builder: (context, watch, child) {
-                String currency = watch(settingsProvider).currency;
+                String? currency = watch(settingsProvider).currency;
                 return Container(
                     padding: EdgeInsets.all(20),
                     child: (selectedBar == null)
@@ -232,10 +232,10 @@ class _StaticPayoutGraphState extends State<StaticPayoutGraph> {
                         : Column(
                             children: [
                               Text(
-                                '${widget.payouts.length - selectedBar}${formatOrdinal(widget.payouts.length - selectedBar)} place payout:',
+                                '${widget.payouts.length - selectedBar!}${formatOrdinal(widget.payouts.length - selectedBar!)} place payout:',
                                 style: TextStyle(fontSize: 15),
                               ),
-                              Text(formatCurrency(widget.payouts[selectedBar], currency),
+                              Text(formatCurrency(widget.payouts[selectedBar!], currency),
                                   style: TextStyle(
                                     fontSize: 20,
                                     fontWeight: FontWeight.w300,
@@ -243,13 +243,13 @@ class _StaticPayoutGraphState extends State<StaticPayoutGraph> {
                             ],
                           ));
               }),
-              builder: (BuildContext context, double percentComlpete, Widget child) {
+              builder: (BuildContext context, double percentComlpete, Widget? child) {
                 return Container(
                   alignment: Alignment.topRight,
                   width: width,
                   height: height,
                   child: Stack(
-                    children: [child] + _rereshPainters(percentComlpete),
+                    children: [child] + _rereshPainters(percentComlpete) as List<Widget>,
                   ),
                 );
               }),
@@ -260,27 +260,27 @@ class _StaticPayoutGraphState extends State<StaticPayoutGraph> {
 }
 
 class Bar extends CustomPainter {
-  List<double> payouts;
-  int index;
+  List<double>? payouts;
+  int? index;
   double percentComplete;
   double opacity;
   Color color;
-  double pmax;
+  double? pmax;
 
   Bar({this.payouts, this.index, this.percentComplete = 1, this.opacity = 1, this.color = Colors.blue, this.pmax=10});
 
   @override
   void paint(Canvas canvas, Size size) {
-    int n = payouts.length;
+    int n = payouts!.length;
     double barWidth = 0.95 * size.width / n;
-    double barHeight = percentComplete * payouts[index] * size.height / pmax;
+    double barHeight = percentComplete * payouts![index!] * size.height / pmax!;
 
-    Paint paint = Paint()..color = color.withOpacity(opacity * (0.4 + 0.6 * payouts[index] / pmax));
+    Paint paint = Paint()..color = color.withOpacity(opacity * (0.4 + 0.6 * payouts![index!] / pmax!));
 
     TextSpan positionText = TextSpan(
-        text: (payouts.length - index).toString(),
+        text: (payouts!.length - index!).toString(),
         style: TextStyle(
-            color: Colors.grey[850].withOpacity(opacity), fontSize: 11, fontWeight: FontWeight.w400));
+            color: Colors.grey[850]!.withOpacity(opacity), fontSize: 11, fontWeight: FontWeight.w400));
 
     TextPainter positionTextPainter =
         TextPainter(text: positionText, textDirection: TextDirection.ltr, textAlign: TextAlign.center);
@@ -288,10 +288,10 @@ class Bar extends CustomPainter {
     positionTextPainter.layout(minWidth: 0, maxWidth: 60);
 
     positionTextPainter.paint(
-        canvas, Offset((index + 0.5) * size.width / n - positionTextPainter.width / 2, size.height));
+        canvas, Offset((index! + 0.5) * size.width / n - positionTextPainter.width / 2, size.height));
 
     canvas.drawRect(
-        Rect.fromLTWH(index * size.width / n, size.height - barHeight, barWidth, barHeight), paint);
+        Rect.fromLTWH(index! * size.width / n, size.height - barHeight, barWidth, barHeight), paint);
   }
 
   @override

@@ -13,7 +13,7 @@ import '../../data/objects/portfolios.dart';
 class SellMarket extends StatefulWidget {
   final Market market;
   final List<double> quantityHeld;
-  final Portfolio portfolio;
+  final Portfolio? portfolio;
 
   SellMarket(this.portfolio, this.market, this.quantityHeld);
 
@@ -22,13 +22,13 @@ class SellMarket extends StatefulWidget {
 }
 
 class _SellMarketState extends State<SellMarket> {
-  Future<void> _marketFuture;
-  List<double> qHeldNew;
+  Future<void>? _marketFuture;
+  List<double>? qHeldNew;
   bool locked = false;
   double lrPadding = 25;
-  double graphWidth;
+  double? graphWidth;
   double graphHeight = 150;
-  double pmax;
+  double? pmax;
 
   @override
   void initState() {
@@ -41,13 +41,13 @@ class _SellMarketState extends State<SellMarket> {
   }
 
   void _makeSelection(Offset touchLocation) {
-    int x = (widget.market.lmsr.n * touchLocation.dx / graphWidth).floor();
+    int x = (widget.market.lmsr.n! * touchLocation.dx / graphWidth!).floor();
     if (x < 0) {
       x = 0;
-    } else if (x > widget.market.lmsr.n - 1) {
-      x = widget.market.lmsr.n - 1;
+    } else if (x > widget.market.lmsr.n! - 1) {
+      x = widget.market.lmsr.n! - 1;
     }
-    double y = pmax * (1 - (touchLocation.dy - 20) / (graphHeight + 20));
+    double y = pmax! * (1 - (touchLocation.dy - 20) / (graphHeight + 20));
 
     if (y < 0) {
       y = 0;
@@ -55,7 +55,7 @@ class _SellMarketState extends State<SellMarket> {
     if (y > widget.quantityHeld[x]) {
       y = widget.quantityHeld[x];
     }
-    List<double> qHeldNew_ = range(widget.market.lmsr.n).map((int i) => i == x ? y : qHeldNew[i]).toList();
+    List<double> qHeldNew_ = range(widget.market.lmsr.n).map((int i) => i == x ? y : qHeldNew![i]).toList();
 
     if (qHeldNew != qHeldNew_) {
       setState(() {
@@ -114,7 +114,7 @@ class _SellMarketState extends State<SellMarket> {
                             crossAxisAlignment: CrossAxisAlignment.center,
                             children: [
                               CachedNetworkImage(
-                                imageUrl: widget.market.imageURL,
+                                imageUrl: widget.market.imageURL!,
                                 height: 50,
                               ),
                               Column(
@@ -132,7 +132,7 @@ class _SellMarketState extends State<SellMarket> {
                                   Text('Payout date'),
                                   SizedBox(height: 3),
                                   Text(
-                                    intl.DateFormat.yMMMd().format(widget.market.endDate),
+                                    intl.DateFormat.yMMMd().format(widget.market.endDate!),
                                     // TODO: add market expirey date
                                     // DateFormat('d MMM yy').format(widget.league.endDate),
                                     style: TextStyle(fontSize: 17, fontWeight: FontWeight.w300),
@@ -196,7 +196,7 @@ class _SellMarketState extends State<SellMarket> {
                                   widget.portfolio,
                                   widget.market,
                                   range(widget.market.lmsr.n)
-                                      .map((int i) => qHeldNew[i] - widget.quantityHeld[i])
+                                      .map((int i) => qHeldNew![i] - widget.quantityHeld[i])
                                       .toList());
                             } else if (snapshot.hasError) {
                               print(snapshot.error);
@@ -220,7 +220,7 @@ class _SellMarketState extends State<SellMarket> {
 }
 
 class SellForm extends StatefulWidget {
-  final Portfolio portfolio;
+  final Portfolio? portfolio;
   final Market market;
   final List<double> quantity;
 
@@ -231,7 +231,7 @@ class SellForm extends StatefulWidget {
 }
 
 class _SellFormState extends State<SellForm> {
-  double payout;
+  double? payout;
   bool loading = false;
   bool complete = false;
 
@@ -257,7 +257,7 @@ class _SellFormState extends State<SellForm> {
                 style: TextStyle(fontSize: 18, fontWeight: FontWeight.w400),
               ),
               Text(
-                formatCurrency(payout.abs(), 'GBP'),
+                formatCurrency(payout!.abs(), 'GBP'),
                 style: TextStyle(fontSize: 18, fontWeight: FontWeight.w400),
               ),
               FlatButton(
@@ -279,8 +279,13 @@ class _SellFormState extends State<SellForm> {
                       loading = true;
                     });
 
-                    Map<String, dynamic> purchaseRequestResult = await makePurchaseRequest(
-                        widget.market.id, widget.portfolio.id, widget.quantity, payout + 1);
+                    Map<String, dynamic>? purchaseRequestResult = await makePurchaseRequest(
+                        widget.market.id, widget.portfolio!.id, widget.quantity, payout! + 1);
+
+                    if (purchaseRequestResult == null) {
+                      Navigator.of(context).pop(false);
+                      return;
+                    }
 
                     await Future.delayed(Duration(seconds: 1));
 
@@ -321,7 +326,7 @@ class _SellFormState extends State<SellForm> {
                         confirm,
                         purchaseRequestResult['cancelId'],
                         widget.market.id,
-                        widget.portfolio.id,
+                        widget.portfolio!.id,
                         widget.quantity,
                         purchaseRequestResult['price'],
                       );
@@ -360,7 +365,7 @@ class _SellFormState extends State<SellForm> {
 }
 
 class PurchaseCompletePopup extends StatelessWidget {
-  const PurchaseCompletePopup({Key key}) : super(key: key);
+  const PurchaseCompletePopup({Key? key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -390,7 +395,7 @@ class PurchaseCompletePopup extends StatelessWidget {
 }
 
 class ProblemPopup extends StatelessWidget {
-  const ProblemPopup({Key key}) : super(key: key);
+  const ProblemPopup({Key? key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -419,19 +424,19 @@ class ProblemPopup extends StatelessWidget {
 }
 
 class ConfirmPurchase extends StatefulWidget {
-  final double oldPrice;
-  final double newPrice;
+  final double? oldPrice;
+  final double? newPrice;
 
   // TODO: implement countdown timer
 
-  ConfirmPurchase({@required this.oldPrice, @required this.newPrice});
+  ConfirmPurchase({required this.oldPrice, required this.newPrice});
 
   @override
   _ConfirmPurchaseState createState() => _ConfirmPurchaseState();
 }
 
 class _ConfirmPurchaseState extends State<ConfirmPurchase> {
-  Widget selectedContent;
+  Widget? selectedContent;
   int contentId = 0;
 
   @override
@@ -456,14 +461,14 @@ class _ConfirmPurchaseState extends State<ConfirmPurchase> {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
             children: [
-              Text(formatCurrency(-widget.oldPrice, 'GBP'), style: TextStyle(fontSize: 18.0)),
+              Text(formatCurrency(-widget.oldPrice!, 'GBP'), style: TextStyle(fontSize: 18.0)),
               Text('to', style: TextStyle(fontSize: 16.0)),
-              Text(formatCurrency(-widget.newPrice, 'GBP'), style: TextStyle(fontSize: 18.0))
+              Text(formatCurrency(-widget.newPrice!, 'GBP'), style: TextStyle(fontSize: 18.0))
             ],
           ),
           SizedBox(height: 20),
           Text(
-              'Thats a${widget.oldPrice > widget.newPrice ? "n increase" : " decrease"} of ${formatCurrency((widget.newPrice - widget.oldPrice).abs(), 'GBP')}. Would you still like to proceed with this sale? ',
+              'Thats a${widget.oldPrice! > widget.newPrice! ? "n increase" : " decrease"} of ${formatCurrency((widget.newPrice! - widget.oldPrice!).abs(), 'GBP')}. Would you still like to proceed with this sale? ',
               style: TextStyle(fontSize: 16.0),
               textAlign: TextAlign.center),
           SizedBox(height: 24.0),
@@ -471,7 +476,7 @@ class _ConfirmPurchaseState extends State<ConfirmPurchase> {
             duration: Duration(seconds: 30),
             tween: Tween<double>(begin: 1, end: 0),
             curve: Curves.linear,
-            builder: (BuildContext context, double value, Widget child) {
+            builder: (BuildContext context, double value, Widget? child) {
               return LinearProgressIndicator(
                 backgroundColor: Colors.grey,
                 value: value,
@@ -567,7 +572,7 @@ class CongratualtionsDialogue extends StatefulWidget {
 }
 
 class _CongratualtionsDialogueState extends State<CongratualtionsDialogue> {
-  ConfettiController controllerTopCenter;
+  late ConfettiController controllerTopCenter;
 
   @override
   void initState() {
@@ -682,9 +687,9 @@ class SecondsLinearProgress extends StatefulWidget {
 }
 
 class _SecondsLinearProgressState extends State<SecondsLinearProgress> with SingleTickerProviderStateMixin {
-  AnimationController controller;
-  Animation<double> animation;
-  int _timeout;
+  late AnimationController controller;
+  late Animation<double> animation;
+  int? _timeout;
   int _total;
 
   _SecondsLinearProgressState(this._timeout, this._total);
@@ -692,8 +697,8 @@ class _SecondsLinearProgressState extends State<SecondsLinearProgress> with Sing
   @override
   void initState() {
     super.initState();
-    controller = AnimationController(duration: Duration(seconds: _timeout), vsync: this);
-    animation = Tween(begin: _timeout.toDouble() / _total.toDouble(), end: 0.0).animate(controller)
+    controller = AnimationController(duration: Duration(seconds: _timeout!), vsync: this);
+    animation = Tween(begin: _timeout!.toDouble() / _total.toDouble(), end: 0.0).animate(controller)
       ..addListener(() {
         setState(() {});
       });

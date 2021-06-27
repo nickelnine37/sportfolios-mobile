@@ -12,7 +12,7 @@ import 'custom.dart';
 import 'long_short.dart';
 
 class MarketDetails extends StatefulWidget {
-  final Market market;
+  final Market? market;
 
   MarketDetails(this.market);
 
@@ -21,16 +21,16 @@ class MarketDetails extends StatefulWidget {
 }
 
 class _MarketDetailsState extends State<MarketDetails> {
-  Future updateState;
+  Future? updateState;
 
   @override
   void initState() {
     updateState = Future.wait([
-          widget.market.lmsr.updateCurrentX(),
-          widget.market.lmsr.updateHistoricalX(),
+          widget.market!.lmsr.updateCurrentX(),
+          widget.market!.lmsr.updateHistoricalX(),
           Future.delayed(Duration(seconds: 3)),
         ] +
-        (widget.market.type == 'player' ? [widget.market.getTeamSnapshot()] : []));
+        (widget.market!.type == 'player' ? [widget.market!.getTeamSnapshot()] : []));
     super.initState();
   }
 
@@ -44,8 +44,8 @@ class _MarketDetailsState extends State<MarketDetails> {
 
   @override
   Widget build(BuildContext context) {
-    Color background = fromHex(widget.market.colours[0]);
-    Color textColor = background.computeLuminance() > 0.5 ? Colors.grey[700] : Colors.white;
+    Color background = fromHex(widget.market!.colours[0]);
+    Color? textColor = background.computeLuminance() > 0.5 ? Colors.grey[700] : Colors.white;
 
     return DefaultTabController(
       length: 4,
@@ -100,15 +100,15 @@ class _MarketDetailsState extends State<MarketDetails> {
                     Navigator.of(context).pop();
                   },
                 ),
-                Container(child: CachedNetworkImage(imageUrl: widget.market.imageURL, height: 50)),
+                Container(child: CachedNetworkImage(imageUrl: widget.market!.imageURL!, height: 50)),
                 SizedBox(width: 15),
                 Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(widget.market.name, style: TextStyle(fontSize: 23.0, color: textColor)),
+                    Text(widget.market!.name!, style: TextStyle(fontSize: 23.0, color: textColor)),
                     SizedBox(height: 2),
                     Text(
-                      '${widget.market.info1} • ${widget.market.info2} • ${widget.market.info3}',
+                      '${widget.market!.info1} • ${widget.market!.info2} • ${widget.market!.info3}',
                       style: TextStyle(fontSize: 13.0, color: textColor, fontWeight: FontWeight.w400),
                     )
                   ],
@@ -188,7 +188,7 @@ class _MarketDetailsState extends State<MarketDetails> {
 // }
 
 class PageFooter extends StatelessWidget {
-  final Market market;
+  final Market? market;
 
   PageFooter(this.market);
 
@@ -258,7 +258,7 @@ class PageFooter extends StatelessWidget {
               ),
               Divider(thickness: 2),
             ] +
-            (market.type == 'team'
+            (market!.type == 'team'
                 ? [
                     Container(
                       height: 60,
@@ -321,7 +321,7 @@ class PageFooter extends StatelessWidget {
                         ),
                       ),
                     ),
-                    MarketTile(market: market.team),
+                    MarketTile(market: market!.team),
                     Divider(thickness: 2)
                   ]));
   }

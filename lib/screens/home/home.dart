@@ -51,7 +51,7 @@ class _HomeState extends State<Home> {
       gradient: LinearGradient(
         begin: Alignment.topCenter,
         end: Alignment.bottomCenter,
-        colors: [Colors.blue[300], Colors.grey[50]],
+        colors: [Colors.blue[300]!, Colors.grey[50]!],
       ),
     ),
   );

@@ -2,11 +2,10 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:riverpod/riverpod.dart';
 import '../data/objects/users.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:flutter/material.dart';
 
-final authenticationProvider = StreamProvider.autoDispose<SportfoliosUser>((ref) {
-  return AuthService().userStream;
-});
+// final AutoDisposeStreamProvider<SportfoliosUser>? authenticationProvider = StreamProvider.autoDispose<SportfoliosUser>((ref) {
+//   return AuthService().userStream;
+// });
 
 /// a class to handle basic authentication tasks
 class AuthService {
@@ -14,68 +13,68 @@ class AuthService {
   final FirebaseAuth _auth = FirebaseAuth.instance;
 
   String get currentUid {
-    return _auth.currentUser.uid;
+    return _auth.currentUser!.uid;
   }
 
-  Stream<SportfoliosUser> get userStream {
-    return _auth
-        .userChanges()
-        .where((User user) => user.emailVerified)
-        .map((User user) => SportfoliosUser(user));
-  }
+  // Stream<SportfoliosUser> get userStream {
+  //   return _auth
+  //       .userChanges()
+  //       .where((User? user) => user!.emailVerified)
+  //       .map((User? user) => SportfoliosUser(user));
+  // }
 
   void signOut() {
     _auth.signOut();
     print('Signing user out');
   }
 
-  Future<FirebaseAuthException> signInWithEmail({
-    @required String email,
-    @required String password,
+  Future<FirebaseAuthException?> signInWithEmail({
+    required String email,
+    required String password,
   }) async {
     try {
       await _auth.signInWithEmailAndPassword(email: email, password: password);
       return null;
     } on FirebaseAuthException catch (error) {
-      print('Login error: ' + error.message);
+      print('Login error: ' + error.message!);
       return error;
     }
   }
 
-  Future<FirebaseAuthException> sendResetPasswordEmail({@required String email}) async {
+  Future<FirebaseAuthException?> sendResetPasswordEmail({required String email}) async {
     try {
       await _auth.sendPasswordResetEmail(email: email);
       return null;
-    } catch (error) {
+    } on FirebaseAuthException catch (error)  {
       print('Error sending password reset: ${error.message}');
       return error;
     }
   }
 
-  Future<FirebaseAuthException> createNewUser({
-    @required String email,
-    @required String username,
-    @required String password,
+  Future<FirebaseAuthException?> createNewUser({
+    required String email,
+    required String? username,
+    required String password,
   }) async {
     try {
       UserCredential result = await _auth.createUserWithEmailAndPassword(email: email, password: password);
-      await result.user.updateProfile(displayName: username);
+      await result.user!.updateProfile(displayName: username);
       CollectionReference users = FirebaseFirestore.instance.collection('users');
       users
-          .doc(result.user.uid)
+          .doc(result.user!.uid)
           .set({'portfolios': []}).catchError((error) => print("Failed to add user database entry: $error"));
       return null;
     } on FirebaseAuthException catch (error) {
-      print('Error creating new user: ' + error.message);
+      print('Error creating new user: ' + error.message!);
       return error;
     }
   }
 
   /// senda verification email to the curent user
-  Future<FirebaseAuthException> sendVerificationEmail() async {
+  Future<FirebaseAuthException?> sendVerificationEmail() async {
     if (_auth.currentUser != null) {
       try {
-        await _auth.currentUser.sendEmailVerification();
+        await _auth.currentUser!.sendEmailVerification();
         return null;
       } on FirebaseAuthException catch (error) {
         print('Error sending verification email: ${error.message}');
@@ -90,11 +89,11 @@ class AuthService {
   /// refresh the token??? Needed sometimes 
   /// https://stackoverflow.com/questions/47243702/firebase-token-email-verified-going-weird
   Future<void> refreshToken() async {
-    await _auth.currentUser.getIdToken(true);
+    await _auth.currentUser!.getIdToken(true);
   }
 
   Future<String> getJWTToken() async {
-    return await _auth.currentUser.getIdToken(false);
+    return await _auth.currentUser!.getIdToken(false);
   }
 
   /// check whether there is a current user signed in, 
@@ -103,7 +102,7 @@ class AuthService {
     // if there is no user signed in, return false
     if (_auth.currentUser == null) return false;
     // else reload user details, and check if they're email-verified
-    await _auth.currentUser.reload();
-    return _auth.currentUser.emailVerified;
+    await _auth.currentUser!.reload();
+    return _auth.currentUser!.emailVerified;
   }
 }

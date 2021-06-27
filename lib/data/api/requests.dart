@@ -6,7 +6,7 @@ import '../../providers/authenication_provider.dart';
 
 String __version__ = '0.0';
 
-Future<Map<String, double>> getBackPrices(List<String> markets) async {
+Future<Map<String, double>?> getBackPrices(List<String?> markets) async {
   Uri url = currentBackPricesURL(markets);
 
   var response = await http.get(
@@ -26,7 +26,7 @@ Future<Map<String, double>> getBackPrices(List<String> markets) async {
   }
 }
 
-Future<Map<String, List>> getDailyBackPrices(List<String> markets) async {
+Future<Map<String, List>?> getDailyBackPrices(List<String?> markets) async {
   Uri url = dailyBackPricesURL(markets);
 
   var response = await http.get(
@@ -46,7 +46,7 @@ Future<Map<String, List>> getDailyBackPrices(List<String> markets) async {
   }
 }
 
-Future<Map<String, dynamic>> getcurrentX(String market) async {
+Future<Map<String, dynamic>?> getcurrentX(String? market) async {
   Uri url = currentXURL(market);
 
   var response = await http.get(
@@ -95,7 +95,7 @@ Map<String, List<int>> castHistInt(Map<String, dynamic> hist) {
       ));
 }
 
-Future<Map<String, dynamic>> getHistoricalX(String market) async {
+Future<Map<String, dynamic>?> getHistoricalX(String? market) async {
   Uri url = historicalXURL(market);
 
   var response = await http.get(
@@ -121,7 +121,7 @@ Future<Map<String, dynamic>> getHistoricalX(String market) async {
   }
 }
 
-Future<Map<String, Map>> getMultipleCurrentX(List<String> markets) async {
+Future<Map<String, Map>?> getMultipleCurrentX(List<String> markets) async {
   Uri url = currentMultipleXURL(markets);
 
   if (markets.length == 0) {
@@ -142,8 +142,8 @@ Future<Map<String, Map>> getMultipleCurrentX(List<String> markets) async {
     return Map<String, Map<String, dynamic>>.fromIterables(
       jsonResponse.keys,
       jsonResponse.keys.map((String market) => <String, dynamic>{
-            'x': List<double>.from(jsonResponse[market]['x']),
-            'b': jsonResponse[market]['b'] + 0.0,
+            'x': List<double>.from(jsonResponse[market]!['x']),
+            'b': jsonResponse[market]!['b'] + 0.0,
           }),
     );
   }
@@ -151,7 +151,7 @@ Future<Map<String, Map>> getMultipleCurrentX(List<String> markets) async {
   return null;
 }
 
-Future<Map<String, Map>> getMultipleHistoricalX(List<String> markets) async {
+Future<Map<String, Map>?> getMultipleHistoricalX(List<String?> markets) async {
   Uri url = historicalMultipleXURL(markets);
 
   if (markets.length == 0) {
@@ -171,15 +171,15 @@ Future<Map<String, Map>> getMultipleHistoricalX(List<String> markets) async {
     Map<String, Map<String, dynamic>> jsonResponse = Map<String, Map<String, dynamic>>.from(convert.jsonDecode(response.body));
     return {
       'data': Map<String, Map<String, dynamic>>.fromIterables(
-        jsonResponse['data'].keys,
-        jsonResponse['data'].keys.map(
+        jsonResponse['data']!.keys,
+        jsonResponse['data']!.keys.map(
               (String market) => {
-                'x': castHistArray(jsonResponse['data'][market]['x']),
-                'b': castHistDouble(jsonResponse['data'][market]['b']),
+                'x': castHistArray(jsonResponse['data']![market]['x']),
+                'b': castHistDouble(jsonResponse['data']![market]['b']),
               },
             ),
       ),
-      'time': castHistInt(jsonResponse['time'])
+      'time': castHistInt(jsonResponse['time']!)
     };
   } else {
     print('Request getcurrentX failed with status: ${response.statusCode}.');
@@ -187,11 +187,11 @@ Future<Map<String, Map>> getMultipleHistoricalX(List<String> markets) async {
   }
 }
 
-Future<Map<String, dynamic>> makePurchaseRequest(
-  String market,
-  String portfolio,
+Future<Map<String, dynamic>?> makePurchaseRequest(
+  String? market,
+  String? portfolio,
   List<double> q,
-  double price,
+  double? price,
 ) async {
   print({'market': market, 'portfolioId': portfolio, 'quantity': q.toString(), 'price': price.toString()});
 
@@ -217,11 +217,11 @@ Future<Map<String, dynamic>> makePurchaseRequest(
 
 Future<bool> respondToNewPrice(
   bool accept,
-  String cancelId,
-  String market,
-  String portfolio,
+  String? cancelId,
+  String? market,
+  String? portfolio,
   List<double> q,
-  double price,
+  double? price,
 ) async {
   Uri url = respondToPriceURL();
   var response = await http.post(url, headers: {

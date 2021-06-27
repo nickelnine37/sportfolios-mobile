@@ -6,7 +6,7 @@ import '../market_scroll.dart';
 import '../../../utils/design/colors.dart';
 
 class TeamPlayers extends StatefulWidget {
-  final Market team;
+  final Market? team;
 
   TeamPlayers(this.team);
 
@@ -16,7 +16,7 @@ class TeamPlayers extends StatefulWidget {
 
 class _TeamPlayersState extends State<TeamPlayers> {
 
-  Future<void> getPlayerInfoFuture;
+  Future<void>? getPlayerInfoFuture;
 
   @override
   void initState() { 
@@ -31,8 +31,8 @@ class _TeamPlayersState extends State<TeamPlayers> {
 
   @override
   Widget build(BuildContext context) {
-    Color background = fromHex(widget.team.colours[0]);
-    Color textColor = background.computeLuminance() > 0.5 ? Colors.grey[700] : Colors.white;
+    Color background = fromHex(widget.team!.colours[0]);
+    Color? textColor = background.computeLuminance() > 0.5 ? Colors.grey[700] : Colors.white;
 
     return Scaffold(
       appBar: AppBar(
@@ -62,12 +62,12 @@ class _TeamPlayersState extends State<TeamPlayers> {
                   Navigator.of(context).pop();
                 },
               ),
-              Container(child: CachedNetworkImage(imageUrl: widget.team.imageURL, height: 50)),
+              Container(child: CachedNetworkImage(imageUrl: widget.team!.imageURL!, height: 50)),
               SizedBox(width: 15),
               Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(widget.team.name, style: TextStyle(fontSize: 23.0, color: textColor)),
+                  Text(widget.team!.name!, style: TextStyle(fontSize: 23.0, color: textColor)),
                   SizedBox(height: 2),
                   Text(
                     'Players',
@@ -79,7 +79,7 @@ class _TeamPlayersState extends State<TeamPlayers> {
           ),
         ]),
       ),
-      body: MarketScroll(teamId: int.parse(widget.team.id.split(':')[0])),
+      body: MarketScroll(teamId: int.parse(widget.team!.id!.split(':')[0])),
     );
   }
 }

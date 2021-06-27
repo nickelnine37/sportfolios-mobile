@@ -10,11 +10,11 @@ final selectedAssetProvider = ChangeNotifierProvider<SelectedAssetChangeNotifier
 });
 
 class SelectedAssetChangeNotifier with ChangeNotifier {
-  String _asset;
+  String? _asset;
 
-  String get asset => _asset;
+  String? get asset => _asset;
 
-  void setAsset(String asset) {
+  void setAsset(String? asset) {
     if (_asset != asset) {
       _asset = asset;
       notifyListeners();
@@ -28,7 +28,7 @@ double _pi = 3.1415926535;
 /// creating an animated circle-spin effect. We also calulate some information used in the pie
 /// chart here, such as the value of each asset and where the bin edges start and stop.
 class AnimatedDonutChart extends StatefulWidget {
-  final Portfolio portfolio;
+  final Portfolio? portfolio;
   AnimatedDonutChart(this.portfolio);
 
   @override
@@ -40,16 +40,16 @@ class _AnimatedDonutChartState extends State<AnimatedDonutChart> {
   // unless I keep shifting its end value on each rebuild. So basically, its
   // incremented by one, and then the relevant amount is subtracted off endValue
   double endValue = 0;
-  List<double> binEdges;
+  List<double>? binEdges;
   double radius = 100;
 
   @override
   Widget build(BuildContext context) {
     binEdges = [0];
     double runningTotal = 0;
-    for (double value in widget.portfolio.sortedValues.values) {
+    for (double value in widget.portfolio!.sortedValues.values) {
       runningTotal += value;
-      binEdges.add(runningTotal / widget.portfolio.currentValue);
+      binEdges!.add(runningTotal / widget.portfolio!.currentValue!);
     }
 
     // increment endValue here
@@ -79,16 +79,16 @@ class _AnimatedDonutChartState extends State<AnimatedDonutChart> {
 /// however since the class is being called many times in the opening animation, it's more efficient to
 /// precompute these things and pass them as an argument.
 class PieChart extends StatefulWidget {
-  final Portfolio portfolio;
-  final List<double> edges;
+  final Portfolio? portfolio;
+  final List<double>? edges;
   final double percentComplete;
   final double radius;
 
   PieChart({
-    @required this.portfolio,
-    @required this.edges,
-    @required this.percentComplete,
-    @required this.radius,
+    required this.portfolio,
+    required this.edges,
+    required this.percentComplete,
+    required this.radius,
   });
 
   @override
@@ -96,9 +96,9 @@ class PieChart extends StatefulWidget {
 }
 
 class _PieChartState extends State<PieChart> {
-  double width;
-  double height;
-  int nMarkets;
+  double? width;
+  double? height;
+  int? nMarkets;
 
   // aimation values
   double lowerWidth = 20;
@@ -109,18 +109,18 @@ class _PieChartState extends State<PieChart> {
 
   // initialise this as zero to avoid a null error
   // it takes a bit of time for initState to work
-  double centerText = 0;
+  double? centerText = 0;
   bool spinning = true;
 
-  String portfolioName;
-  int currentSegment;
+  String? portfolioName;
+  int? currentSegment;
 
   @override
   void initState() {
     super.initState();
-    centerText = widget.portfolio.currentValue;
-    nMarkets = widget.portfolio.sortedValues.length;
-    portfolioName = widget.portfolio.name;
+    centerText = widget.portfolio!.currentValue;
+    nMarkets = widget.portfolio!.sortedValues.length;
+    portfolioName = widget.portfolio!.name;
   }
 
   @override
@@ -132,11 +132,11 @@ class _PieChartState extends State<PieChart> {
       height = 1.3 * (widget.radius * 2);
     }
     if (portfolioName != null) {
-      if (portfolioName != widget.portfolio.name) {
+      if (portfolioName != widget.portfolio!.name) {
         spinning = true;
-        centerText = widget.portfolio.currentValue;
-        portfolioName = widget.portfolio.name;
-        nMarkets = widget.portfolio.sortedValues.length;
+        centerText = widget.portfolio!.currentValue;
+        portfolioName = widget.portfolio!.name;
+        nMarkets = widget.portfolio!.sortedValues.length;
       }
     }
 
@@ -147,34 +147,34 @@ class _PieChartState extends State<PieChart> {
     // Container for central text. Change opacity with percentComplete
     Center centralText = currentSegment == null
         ? Center(
-          child: Text(formatCurrency(widget.portfolio.currentValue, 'GBP'),
+          child: Text(formatCurrency(widget.portfolio!.currentValue, 'GBP'),
               style: TextStyle(
                 fontWeight: FontWeight.w300,
                 fontSize: 28,
-                color: Colors.grey[800].withOpacity(widget.percentComplete),
+                color: Colors.grey[800]!.withOpacity(widget.percentComplete),
               )),
         )
         : Center(
             child: Text(
-            '${widget.portfolio.markets[widget.portfolio.sortedValues.keys.toList()[currentSegment]].name}\n${formatCurrency(widget.portfolio.sortedValues.values.toList()[currentSegment], "GBP")}',
+            '${widget.portfolio!.markets[widget.portfolio!.sortedValues.keys.toList()[currentSegment!]]!.name}\n${formatCurrency(widget.portfolio!.sortedValues.values.toList()[currentSegment!], "GBP")}',
             textAlign: TextAlign.center,
             style: TextStyle(
               fontWeight: FontWeight.w300,
               fontSize: 20,
-              color: Colors.grey[800].withOpacity(widget.percentComplete),
+              color: Colors.grey[800]!.withOpacity(widget.percentComplete),
             ),
           ));
 
     return GestureDetector(
       onTapDown: (details) {
         if (widget.percentComplete == 1) {
-          int newSelectedSegment = _getSegmentNumber(details.localPosition);
+          int? newSelectedSegment = _getSegmentNumber(details.localPosition);
 
           if (newSelectedSegment != currentSegment) {
             // change notifier provider!
             context.read(selectedAssetProvider).setAsset(newSelectedSegment == null
                 ? null
-                : widget.portfolio.sortedValues.keys.toList()[newSelectedSegment]);
+                : widget.portfolio!.sortedValues.keys.toList()[newSelectedSegment]);
 
             setState(() {
               currentSegment = newSelectedSegment;
@@ -189,19 +189,19 @@ class _PieChartState extends State<PieChart> {
           child: Stack(
               children: <Widget>[centralText] +
                   range(nMarkets).map((int i) {
-                    String market = widget.portfolio.sortedValues.keys.toList()[i];
+                    String market = widget.portfolio!.sortedValues.keys.toList()[i];
 
-                    Color color = market == 'cash'
+                    Color? color = market == 'cash'
                         ? Colors.green[500]
-                        : fromHex(widget.portfolio.markets[market].colours[0]);
+                        : fromHex(widget.portfolio!.markets[market]!.colours[0]);
 
                     if (spinning) {
                       return Center(
                         child: CustomPaint(
                             size: Size(2 * widget.radius, 2 * widget.radius),
                             painter: DonutSegmentPainter(
-                                start: widget.percentComplete * widget.edges[i],
-                                end: widget.percentComplete * widget.edges[i + 1],
+                                start: widget.percentComplete * widget.edges![i],
+                                end: widget.percentComplete * widget.edges![i + 1],
                                 color: color,
                                 opacity: upperOpacity,
                                 strokeWidth: lowerWidth)),
@@ -225,8 +225,8 @@ class _PieChartState extends State<PieChart> {
                               size: Size(2 * widget.radius + (width - lowerWidth),
                                   2 * widget.radius + (width - lowerWidth)),
                               painter: DonutSegmentPainter(
-                                  start: widget.edges[i],
-                                  end: widget.edges[i + 1],
+                                  start: widget.edges![i],
+                                  end: widget.edges![i + 1],
                                   color: color,
                                   opacity: opacity,
                                   strokeWidth: width)),
@@ -241,9 +241,9 @@ class _PieChartState extends State<PieChart> {
 
   /// Function that takes in an offset, which is the coordinates that have just been tapped
   /// by the user, and then calculates which segment of the donut should be highlighted.
-  int _getSegmentNumber(Offset offset) {
+  int? _getSegmentNumber(Offset offset) {
     // translate coordinates so that the origin is central
-    Offset coords = offset - Offset(width / 2, height / 2);
+    Offset coords = offset - Offset(width! / 2, height! / 2);
 
     // if outside of a given radius, deselect all
     if (coords.distance < 0.7 * widget.radius || coords.distance > 1.3 * widget.radius) {
@@ -257,11 +257,11 @@ class _PieChartState extends State<PieChart> {
     // https://github.com/python/cpython/blob/master/Lib/bisect.py
     int mid;
     int lo = 0;
-    int hi = nMarkets;
+    int hi = nMarkets!;
 
     while (lo < hi) {
       mid = (lo + hi) ~/ 2;
-      if (widget.edges[mid] < turn)
+      if (widget.edges![mid] < turn)
         lo = mid + 1;
       else
         hi = mid;
@@ -274,16 +274,16 @@ class _PieChartState extends State<PieChart> {
 class DonutSegmentPainter extends CustomPainter {
   final double start;
   final double end;
-  final Color color;
+  final Color? color;
   final double opacity;
   final double strokeWidth;
 
   DonutSegmentPainter({
-    @required this.start,
-    @required this.end,
-    @required this.color,
-    @required this.opacity,
-    @required this.strokeWidth,
+    required this.start,
+    required this.end,
+    required this.color,
+    required this.opacity,
+    required this.strokeWidth,
   });
 
   @override
@@ -292,7 +292,7 @@ class DonutSegmentPainter extends CustomPainter {
     double endAngle = 2 * _pi * (end - start);
 
     Paint arcPaint = Paint()
-      ..color = color.withOpacity(opacity)
+      ..color = color!.withOpacity(opacity)
       ..style = PaintingStyle.stroke
       ..strokeWidth = strokeWidth;
 

@@ -17,8 +17,8 @@ import '../../../data/objects/portfolios.dart';
 
 
 class BuyMarket extends StatefulWidget {
-  final Market market;
-  final List<double> quantity;
+  final Market? market;
+  final List<double>? quantity;
 
   BuyMarket(this.market, this.quantity);
 
@@ -27,12 +27,12 @@ class BuyMarket extends StatefulWidget {
 }
 
 class _BuyMarketState extends State<BuyMarket> {
-  Future _portfoliosFuture;
+  Future? _portfoliosFuture;
 
   @override
   void initState() {
     super.initState();
-    _portfoliosFuture = Future.wait([_getPortfolios(), widget.market.lmsr.updateCurrentX()]);
+    _portfoliosFuture = Future.wait([_getPortfolios(), widget.market!.lmsr.updateCurrentX()]);
   }
 
   Future<List<Portfolio>> _getPortfolios() async {
@@ -40,7 +40,7 @@ class _BuyMarketState extends State<BuyMarket> {
     List<Portfolio> out = [];
     DocumentSnapshot userSnapshot =
         await FirebaseFirestore.instance.collection('users').doc(_authService.currentUid).get();
-    List<String> portfolioIds = List<String>.from(userSnapshot.data()['portfolios']);
+    List<String> portfolioIds = List<String>.from(userSnapshot['portfolios']);
     for (String portfolioId in portfolioIds) {
       out.add(await getPortfolioById(portfolioId));
     }
@@ -75,7 +75,7 @@ class _BuyMarketState extends State<BuyMarket> {
                   child: SingleChildScrollView(
                     child: Column(
                       children: [
-                        Text('Buy: ${widget.market.name}',
+                        Text('Buy: ${widget.market!.name}',
                             textAlign: TextAlign.center,
                             style: TextStyle(fontSize: 24, fontWeight: FontWeight.w300)),
                         SizedBox(height: 5),
@@ -85,7 +85,7 @@ class _BuyMarketState extends State<BuyMarket> {
                             crossAxisAlignment: CrossAxisAlignment.center,
                             children: [
                               CachedNetworkImage(
-                                imageUrl: widget.market.imageURL,
+                                imageUrl: widget.market!.imageURL!,
                                 height: 50,
                               ),
                               Column(
@@ -93,7 +93,7 @@ class _BuyMarketState extends State<BuyMarket> {
                                   Text('Per contract'),
                                   SizedBox(height: 3),
                                   Text(
-                                    formatCurrency(widget.market.lmsr.getValue(widget.quantity), 'GBP'),
+                                    formatCurrency(widget.market!.lmsr.getValue(widget.quantity), 'GBP'),
                                     style: TextStyle(fontSize: 18, fontWeight: FontWeight.w300),
                                   ),
                                 ],
@@ -103,7 +103,7 @@ class _BuyMarketState extends State<BuyMarket> {
                                   Text('Payout date'),
                                   SizedBox(height: 3),
                                   Text(
-                                    intl.DateFormat.yMMMd().format(widget.market.endDate),
+                                    intl.DateFormat.yMMMd().format(widget.market!.endDate!),
                                     // TODO: add market expirey date
                                     // DateFormat('d MMM yy').format(widget.league.endDate),
                                     style: TextStyle(fontSize: 17, fontWeight: FontWeight.w300),
@@ -140,9 +140,9 @@ class _BuyMarketState extends State<BuyMarket> {
 }
 
 class BuyForm extends StatefulWidget {
-  final List<Portfolio> portfolios;
-  final Market market;
-  final List<double> quantity;
+  final List<Portfolio>? portfolios;
+  final Market? market;
+  final List<double>? quantity;
 
   BuyForm(this.portfolios, this.market, this.quantity);
 
@@ -154,11 +154,11 @@ class _BuyFormState extends State<BuyForm> {
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
   final TextEditingController _unitController = TextEditingController();
   double units = 0;
-  double price = 0;
+  double? price = 0;
   bool loading = false;
   bool complete = false;
 
-  String _selectedPortfolioId;
+  String? _selectedPortfolioId;
 
   @override
   void dispose() {
@@ -168,10 +168,10 @@ class _BuyFormState extends State<BuyForm> {
 
   @override
   Widget build(BuildContext context) {
-    if (widget.portfolios.length == 0) {
+    if (widget.portfolios!.length == 0) {
       _selectedPortfolioId = 'new';
     } else {
-      _selectedPortfolioId = widget.portfolios[0].id;
+      _selectedPortfolioId = widget.portfolios![0].id;
     }
     return Form(
       key: _formKey,
@@ -195,9 +195,9 @@ class _BuyFormState extends State<BuyForm> {
                   child: Center(
                     child: DropdownButtonFormField(
                       value: _selectedPortfolioId,
-                      items: List<DropdownMenuItem<String>>.from(widget.portfolios.map((portfolio) =>
+                      items: List<DropdownMenuItem<String>>.from(widget.portfolios!.map((portfolio) =>
                               DropdownMenuItem(
-                                  onTap: () {}, value: portfolio.id, child: Text(portfolio.name)))) +
+                                  onTap: () {}, value: portfolio.id, child: Text(portfolio.name!)))) +
                           <DropdownMenuItem<String>>[
                             DropdownMenuItem(
                               value: 'new',
@@ -215,19 +215,19 @@ class _BuyFormState extends State<BuyForm> {
                               },
                             ),
                           ],
-                      onChanged: (String id) {
+                      onChanged: (String? id) {
                         // _selectedPortfolio = widget.portfolios.firstWhere((Portfolio p) => p.id == id);
 
                         setState(() {
                           _selectedPortfolioId = id;
                         });
                       },
-                      onSaved: (String id) {
+                      onSaved: (String? id) {
                         // _selectedPortfolio = widget.portfolios.firstWhere((Portfolio p) => p.id == id);
                         _selectedPortfolioId = id;
                       },
-                      validator: (String value) {
-                        if (widget.portfolios.map((portfolio) => portfolio.id).contains(value) ||
+                      validator: (String? value) {
+                        if (widget.portfolios!.map((portfolio) => portfolio.id).contains(value) ||
                             value == 'new') {
                           // TODO: check whether portfolio has sufficient cash
                           return null;
@@ -271,23 +271,23 @@ class _BuyFormState extends State<BuyForm> {
                       } else {
                         try {
                           units = double.parse(value);
-                          price = validatePrice(widget.market.lmsr.priceTrade(widget.quantity, units));
+                          price = validatePrice(widget.market!.lmsr.priceTrade(widget.quantity!, units));
                           setState(() {});
                         } catch (error) {
                           print(error.toString());
                         }
                       }
                     },
-                    validator: (String value) {
+                    validator: (String? value) {
                       try {
-                        double.parse(value);
+                        double.parse(value!);
                         return null;
                       } catch (error) {
                         return 'Please input valid units';
                       }
                     },
-                    onSaved: (String value) {
-                      units = double.parse(value);
+                    onSaved: (String? value) {
+                      units = double.parse(value!);
                     },
                   ),
                 )
@@ -320,22 +320,33 @@ class _BuyFormState extends State<BuyForm> {
                   color: Colors.blue,
                   onPressed: () async {
                     if (!complete) {
-                      if (_formKey.currentState.validate()) {
-                        _formKey.currentState.save();
+                      if (_formKey.currentState!.validate()) {
+                        _formKey.currentState!.save();
                       }
                       if (!FocusScope.of(context).hasPrimaryFocus) {
-                        FocusManager.instance.primaryFocus.unfocus();
+                        FocusManager.instance.primaryFocus!.unfocus();
                       }
 
                       setState(() {
                         loading = true;
                       });
 
-                      Map<String, dynamic> purchaseRequestResult = await makePurchaseRequest(
-                          widget.market.id,
+                      Map<String, dynamic>? purchaseRequestResult = await makePurchaseRequest(
+                          widget.market!.id,
                           _selectedPortfolioId,
-                          widget.quantity.map((qi) => units * qi).toList(),
+                          widget.quantity!.map((qi) => units * qi).toList(),
                           price);
+
+                      if (purchaseRequestResult == null) {
+                          showDialog(
+                              context: context,
+                              builder: (BuildContext context) {
+                                return ProblemPopup();
+                              });
+                          await Future.delayed(Duration(milliseconds: 600));
+                          Navigator.of(context).pop();
+                          return;
+                      }
 
                       SharedPreferences prefs = await SharedPreferences.getInstance();
 
@@ -356,7 +367,7 @@ class _BuyFormState extends State<BuyForm> {
                         await Future.delayed(Duration(milliseconds: 800));
                         Navigator.of(context).pop();
 
-                        bool done = prefs.getBool('firstPurchaseComplete');
+                        bool? done = prefs.getBool('firstPurchaseComplete');
 
                         if (done == null) {
                           await showDialog(
@@ -387,9 +398,9 @@ class _BuyFormState extends State<BuyForm> {
                         bool ok = await respondToNewPrice(
                           confirm,
                           purchaseRequestResult['cancelId'],
-                          widget.market.id,
+                          widget.market!.id,
                           _selectedPortfolioId,
-                          widget.quantity.map((qi) => units * qi).toList(),
+                          widget.quantity!.map((qi) => units * qi).toList(),
                           purchaseRequestResult['price'],
                         );
 
@@ -408,7 +419,7 @@ class _BuyFormState extends State<BuyForm> {
                             complete = true;
                           });
 
-                          bool done = prefs.getBool('firstPurchaseComplete');
+                          bool? done = prefs.getBool('firstPurchaseComplete');
 
                           if (done == null) {
                             await showDialog(
@@ -438,7 +449,7 @@ class _BuyFormState extends State<BuyForm> {
 }
 
 class PurchaseCompletePopup extends StatelessWidget {
-  const PurchaseCompletePopup({Key key}) : super(key: key);
+  const PurchaseCompletePopup({Key? key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -468,7 +479,7 @@ class PurchaseCompletePopup extends StatelessWidget {
 }
 
 class ProblemPopup extends StatelessWidget {
-  const ProblemPopup({Key key}) : super(key: key);
+  const ProblemPopup({Key? key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -497,19 +508,19 @@ class ProblemPopup extends StatelessWidget {
 }
 
 class ConfirmPurchase extends StatefulWidget {
-  final double oldPrice;
-  final double newPrice;
+  final double? oldPrice;
+  final double? newPrice;
 
   // TODO: implement countdown timer
 
-  ConfirmPurchase({@required this.oldPrice, @required this.newPrice});
+  ConfirmPurchase({required this.oldPrice, required this.newPrice});
 
   @override
   _ConfirmPurchaseState createState() => _ConfirmPurchaseState();
 }
 
 class _ConfirmPurchaseState extends State<ConfirmPurchase> {
-  Widget selectedContent;
+  Widget? selectedContent;
   int contentId = 0;
 
   @override
@@ -539,7 +550,7 @@ class _ConfirmPurchaseState extends State<ConfirmPurchase> {
           ),
           SizedBox(height: 20),
           Text(
-              'Thats a${widget.newPrice > widget.oldPrice ? "n increase" : " decrease"} of ${formatCurrency((widget.newPrice - widget.oldPrice).abs(), 'GBP')}. Would you still like to proceed with this purchase? ',
+              'Thats a${widget.newPrice! > widget.oldPrice! ? "n increase" : " decrease"} of ${formatCurrency((widget.newPrice! - widget.oldPrice!).abs(), 'GBP')}. Would you still like to proceed with this purchase? ',
               style: TextStyle(fontSize: 16.0),
               textAlign: TextAlign.center),
           SizedBox(height: 24.0),
@@ -624,7 +635,7 @@ class CongratualtionsDialogue extends StatefulWidget {
 }
 
 class _CongratualtionsDialogueState extends State<CongratualtionsDialogue> {
-  ConfettiController controllerTopCenter;
+  late ConfettiController controllerTopCenter;
 
   @override
   void initState() {
@@ -738,9 +749,9 @@ class SecondsLinearProgress extends StatefulWidget {
 }
 
 class _SecondsLinearProgressState extends State<SecondsLinearProgress> with SingleTickerProviderStateMixin {
-  AnimationController controller;
-  Animation<double> animation;
-  int _timeout;
+  late AnimationController controller;
+  late Animation<double> animation;
+  int? _timeout;
   int _total;
 
   _SecondsLinearProgressState(this._timeout, this._total);
@@ -748,8 +759,8 @@ class _SecondsLinearProgressState extends State<SecondsLinearProgress> with Sing
   @override
   void initState() {
     super.initState();
-    controller = AnimationController(duration: Duration(seconds: _timeout), vsync: this);
-    animation = Tween(begin: _timeout.toDouble() / _total.toDouble(), end: 0.0).animate(controller)
+    controller = AnimationController(duration: Duration(seconds: _timeout!), vsync: this);
+    animation = Tween(begin: _timeout!.toDouble() / _total.toDouble(), end: 0.0).animate(controller)
       ..addListener(() {
         setState(() {});
       });
