@@ -1,4 +1,4 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
+// import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 
 import '../../data/objects/portfolios.dart';
@@ -56,7 +56,7 @@ class _LeaderboardScrollState extends State<LeaderboardScroll> with AutomaticKee
   Future<List<Portfolio>> getPortfolios() async {
     // run firebase queires here
     // use await and return the portfolio objects
-    late QuerySnapshot results;
+    // late QuerySnapshot results;
 
     if (widget.timeHorizon == 'd') {
       // set results

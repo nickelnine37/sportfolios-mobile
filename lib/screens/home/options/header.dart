@@ -38,25 +38,25 @@ class PageHeader extends StatelessWidget {
             padding: const EdgeInsets.all(8.0),
             child: ButtonTheme(
               minWidth: MediaQuery.of(context).size.width * 0.4,
-              child: RaisedButton(
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(10),
-                ),
+              child: ElevatedButton(
+                style: ButtonStyle(
+                    overlayColor: MaterialStateProperty.all<Color>(Colors.blue[400]!),
+                    shape: MaterialStateProperty.all<OutlinedBorder>(RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(10),
+                    ))),
                 child: Text('BUY', style: TextStyle(color: Colors.white)),
                 onPressed: () {
                   showModalBottomSheet(
                     isScrollControlled: true,
                     elevation: 100,
-                    shape:
-                        RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(25.0))),
+                    shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.vertical(top: Radius.circular(25.0))),
                     context: context,
                     builder: (context) {
                       return BuyMarket(this.market, this.quantity);
                     },
                   );
-                },
-                color: Colors.blue[300],
-                // minWidth: MediaQuery.of(context).size.width * 0.4,
+                }, // minWidth: MediaQuery.of(context).size.width * 0.4,
               ),
             ),
           ),
@@ -64,7 +64,11 @@ class PageHeader extends StatelessWidget {
             width: 80,
             child: Center(
               child: IconButton(
-                icon: Icon(Icons.info_outline, size: 23, color: Colors.grey[600],),
+                icon: Icon(
+                  Icons.info_outline,
+                  size: 23,
+                  color: Colors.grey[600],
+                ),
                 onPressed: () {
                   showDialog(
                       context: context,

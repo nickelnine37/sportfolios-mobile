@@ -173,8 +173,7 @@ class _AccountRegistrationFormState extends State<AccountRegistrationForm> {
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
       minWidth: 300,
       height: 50,
-      child: RaisedButton(
-        elevation: 0,
+      child: ElevatedButton(
         child: Text(
           'REGISTER',
           style: TextStyle(color: Colors.white, fontSize: 18, letterSpacing: 1),

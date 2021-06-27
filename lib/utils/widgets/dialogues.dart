@@ -41,7 +41,7 @@ class BasicDialog extends StatelessWidget {
           SizedBox(height: 24.0),
           Align(
             alignment: Alignment.bottomRight,
-            child: FlatButton(
+            child: TextButton(
               onPressed: () {
                 Navigator.of(context).pop(); // To close the dialog
                 this.action();

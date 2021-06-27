@@ -123,7 +123,7 @@ class MarketScrollState extends State<MarketScroll> with AutomaticKeepAliveClien
                   child: TextField(
                     controller: _textController,
                     onSubmitted: (String value) async {
-                      if (value != null && value.trim() != '') {
+                      if (value.trim() != '') {
                         _searchQueryMarketFetcher = widget.league != null
                             ? LeagueSearchMarketFetcher(
                                 search: value.trim().toLowerCase(),

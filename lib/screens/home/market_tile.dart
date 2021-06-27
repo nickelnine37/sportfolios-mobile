@@ -89,7 +89,7 @@ class MarketTile extends StatelessWidget {
                                       color: (market!.dailyBackValue!.last - market!.dailyBackValue!.first) >= 0 ? Colors.green[300] : Colors.red[300])),
                             ],
                           );
-                        } as Widget Function(BuildContext, T Function<T>(ProviderBase<Object?, T>), Widget?),
+                        },
                       )
                     ],
                   ),

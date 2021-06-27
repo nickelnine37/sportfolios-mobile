@@ -112,8 +112,8 @@ class _PasswordResetFormState extends State<PasswordResetForm> {
                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
                 minWidth: 300,
                 height: 50,
-                child: RaisedButton(
-                  elevation: 0,
+                child: ElevatedButton(
+                  // elevation: 0,
                   child: Text(
                     'SEND RESET LINK',
                     style: TextStyle(color: Colors.white, fontSize: 18, letterSpacing: 1),

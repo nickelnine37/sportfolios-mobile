@@ -203,8 +203,7 @@ class _LoginFormState extends State<LoginForm> {
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
       minWidth: 300,
       height: 50,
-      child: RaisedButton(
-        elevation: 0,
+      child: TextButton(
         child: _isLoading
             ? Container(
                 height: 30,

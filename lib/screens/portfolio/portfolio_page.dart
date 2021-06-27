@@ -61,11 +61,11 @@ class _PortfolioPageState extends State<PortfolioPage> {
   }
 
   Portfolio? getLoadedPortfolioById(String? id) {
-    if (loadedPortfolios != null) {
-      return loadedPortfolios.firstWhere((Portfolio portf) => portf.id == id,
-          orElse: () => loadedPortfolios[0]);
-    }
-    return null;
+    // if (loadedPortfolios != null) {
+    return loadedPortfolios.firstWhere((Portfolio portf) => portf.id == id,
+        orElse: () => loadedPortfolios[0]);
+    // }
+    // return null;
   }
 
   @override
@@ -86,11 +86,13 @@ class _PortfolioPageState extends State<PortfolioPage> {
                   Text('Add a new portfolio to get started',
                       style: TextStyle(fontSize: 18, color: Colors.grey[800])),
                   SizedBox(height: 25),
-                  FlatButton(
-                    minWidth: 150,
-                    height: 40,
-                    color: Colors.blue[300],
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20.0)),
+                  TextButton(
+                    style: ButtonStyle(
+                        fixedSize: MaterialStateProperty.all<Size>(Size(150, 40)),
+                        overlayColor: MaterialStateProperty.all<Color>(Colors.blue[400]!),
+                        shape: MaterialStateProperty.all<OutlinedBorder>(RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(20),
+                        ))),
                     child: Text('New portfolio   +', style: TextStyle(color: Colors.white, fontSize: 16)),
                     onPressed: () async {
                       bool? output = await showDialog(
@@ -144,8 +146,14 @@ class _PortfolioPageState extends State<PortfolioPage> {
                         crossAxisAlignment: CrossAxisAlignment.center,
                         children: [
                           SizedBox(width: 10),
-                          Container(height: 25, width: 25, child: MiniDonutChart(currentPortoflio, strokeWidth: 8,)), 
-                          SizedBox(width: 15), 
+                          Container(
+                              height: 25,
+                              width: 25,
+                              child: MiniDonutChart(
+                                currentPortoflio,
+                                strokeWidth: 8,
+                              )),
+                          SizedBox(width: 15),
                           Text(currentPortoflio!.name!,
                               style: TextStyle(fontSize: 25.0, color: Colors.white)),
                           Container(
@@ -211,10 +219,7 @@ class _PortfolioPageState extends State<PortfolioPage> {
             ),
             body: TabBarView(
               physics: NeverScrollableScrollPhysics(),
-              children: [
-                Holdings(currentPortoflio),
-                Performance(currentPortoflio)
-              ],
+              children: [Holdings(currentPortoflio), Performance(currentPortoflio)],
             ),
           ),
         );
@@ -258,7 +263,13 @@ class PortfolioSelectorDialogue extends StatelessWidget {
                 },
                 itemBuilder: (context, i) {
                   return ListTile(
-                    leading: Container(height: 30, width: 30, child: MiniDonutChart(portfolios[i], strokeWidth: 8,)), 
+                    leading: Container(
+                        height: 30,
+                        width: 30,
+                        child: MiniDonutChart(
+                          portfolios[i],
+                          strokeWidth: 8,
+                        )),
                     trailing: Text(formatCurrency(portfolios[i].currentValue, 'GBP')),
                     title: Text(portfolios[i].name!),
                     onTap: () async {
@@ -368,8 +379,12 @@ class _NewPortfolioDialogueState extends State<NewPortfolioDialogue> {
             SizedBox(height: 15),
             Align(
               alignment: Alignment.bottomRight,
-              child: FlatButton(
-                color: Colors.blue,
+              child: TextButton(
+                style: ButtonStyle(
+                  overlayColor: MaterialStateProperty.all<Color>(Colors.blue[400]!),
+                  shape: MaterialStateProperty.all<OutlinedBorder>(
+                      RoundedRectangleBorder(borderRadius: BorderRadius.circular(20.0))),
+                ),
                 onPressed: () async {
                   if (_formKey.currentState!.validate()) {
                     _formKey.currentState!.save();
@@ -388,7 +403,6 @@ class _NewPortfolioDialogueState extends State<NewPortfolioDialogue> {
                     Navigator.of(context).pop(true);
                   }
                 },
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20.0)),
                 child: loading
                     ? Container(
                         height: 25,
@@ -514,8 +528,12 @@ class _PortfolioSettingsDialogueState extends State<PortfolioSettingsDialogue> {
             SizedBox(height: 15),
             Align(
               alignment: Alignment.bottomRight,
-              child: FlatButton(
-                color: Colors.blue,
+              child: TextButton(
+                style: ButtonStyle(
+                    overlayColor: MaterialStateProperty.all<Color>(Colors.blue[400]!),
+                    shape: MaterialStateProperty.all<OutlinedBorder>(
+                      RoundedRectangleBorder(borderRadius: BorderRadius.circular(20.0)),
+                    )),
                 onPressed: () async {
                   if (_formKey.currentState!.validate()) {
                     _formKey.currentState!.save();
@@ -549,7 +567,6 @@ class _PortfolioSettingsDialogueState extends State<PortfolioSettingsDialogue> {
                     }
                   }
                 },
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20.0)),
                 child: loading
                     ? Container(
                         height: 25,

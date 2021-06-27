@@ -63,7 +63,7 @@ class InfoBox extends StatelessWidget {
               ),
               Align(
                 alignment: Alignment.bottomRight,
-                child: FlatButton(
+                child: TextButton(
                   onPressed: () {
                     Navigator.of(context).pop(); // To close the dialog
                   },

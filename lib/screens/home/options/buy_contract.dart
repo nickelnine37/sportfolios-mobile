@@ -15,7 +15,6 @@ import '../../../utils/strings/number_format.dart';
 import '../../../utils/numerical/numbers.dart';
 import '../../../data/objects/portfolios.dart';
 
-
 class BuyMarket extends StatefulWidget {
   final Market? market;
   final List<double>? quantity;
@@ -267,7 +266,7 @@ class _BuyFormState extends State<BuyForm> {
                     controller: _unitController,
                     decoration: InputDecoration(hintText: '0.00'),
                     onChanged: (String value) {
-                      if (value == null || value == '') {
+                      if (value == '') {
                       } else {
                         try {
                           units = double.parse(value);
@@ -305,7 +304,7 @@ class _BuyFormState extends State<BuyForm> {
                   formatCurrency(price, 'GBP'),
                   style: TextStyle(fontSize: 18, fontWeight: FontWeight.w400),
                 ),
-                FlatButton(
+                TextButton(
                   child: loading
                       ? Container(
                           height: 25,
@@ -317,7 +316,7 @@ class _BuyFormState extends State<BuyForm> {
                       : complete
                           ? Icon(Icons.done, color: Colors.white)
                           : Text('OK', style: TextStyle(color: Colors.white)),
-                  color: Colors.blue,
+                  style: ButtonStyle(overlayColor: MaterialStateProperty.all<Color>(Colors.blue)),
                   onPressed: () async {
                     if (!complete) {
                       if (_formKey.currentState!.validate()) {
@@ -338,14 +337,14 @@ class _BuyFormState extends State<BuyForm> {
                           price);
 
                       if (purchaseRequestResult == null) {
-                          showDialog(
-                              context: context,
-                              builder: (BuildContext context) {
-                                return ProblemPopup();
-                              });
-                          await Future.delayed(Duration(milliseconds: 600));
-                          Navigator.of(context).pop();
-                          return;
+                        showDialog(
+                            context: context,
+                            builder: (BuildContext context) {
+                              return ProblemPopup();
+                            });
+                        await Future.delayed(Duration(milliseconds: 600));
+                        Navigator.of(context).pop();
+                        return;
                       }
 
                       SharedPreferences prefs = await SharedPreferences.getInstance();
@@ -557,8 +556,8 @@ class _ConfirmPurchaseState extends State<ConfirmPurchase> {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
             children: [
-              FlatButton(
-                color: Colors.blue[400],
+              TextButton(
+                style: ButtonStyle(overlayColor: MaterialStateProperty.all<Color>(Colors.blue[400]!)),
                 onPressed: () async {
                   setState(() {
                     contentId = 1;
@@ -571,8 +570,8 @@ class _ConfirmPurchaseState extends State<ConfirmPurchase> {
                   style: TextStyle(color: Colors.white),
                 ),
               ),
-              FlatButton(
-                color: Colors.blue[400],
+              TextButton(
+                style: ButtonStyle(overlayColor: MaterialStateProperty.all<Color>(Colors.blue[400]!)),
                 onPressed: () async {
                   setState(() {
                     contentId = 2;
@@ -699,8 +698,8 @@ class _CongratualtionsDialogueState extends State<CongratualtionsDialogue> {
             SizedBox(height: 24.0),
             Align(
               alignment: Alignment.bottomRight,
-              child: FlatButton(
-                color: Colors.blue[400],
+              child: TextButton(
+                  style: ButtonStyle(overlayColor: MaterialStateProperty.all<Color>(Colors.blue[400]!)),
                 onPressed: () {
                   Navigator.of(context).pop(); // To close the dialog
                 },
@@ -745,7 +744,8 @@ class SecondsLinearProgress extends StatefulWidget {
   SecondsLinearProgress(this._total, {this.timeout});
 
   @override
-  _SecondsLinearProgressState createState() => _SecondsLinearProgressState(timeout != null ? timeout : _total, _total);
+  _SecondsLinearProgressState createState() =>
+      _SecondsLinearProgressState(timeout != null ? timeout : _total, _total);
 }
 
 class _SecondsLinearProgressState extends State<SecondsLinearProgress> with SingleTickerProviderStateMixin {

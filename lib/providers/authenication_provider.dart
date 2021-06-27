@@ -1,6 +1,4 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:riverpod/riverpod.dart';
-import '../data/objects/users.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
 // final AutoDisposeStreamProvider<SportfoliosUser>? authenticationProvider = StreamProvider.autoDispose<SportfoliosUser>((ref) {
@@ -58,7 +56,7 @@ class AuthService {
   }) async {
     try {
       UserCredential result = await _auth.createUserWithEmailAndPassword(email: email, password: password);
-      await result.user!.updateProfile(displayName: username);
+      await result.user!.updateDisplayName(username);
       CollectionReference users = FirebaseFirestore.instance.collection('users');
       users
           .doc(result.user!.uid)

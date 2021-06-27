@@ -260,7 +260,7 @@ class _SellFormState extends State<SellForm> {
                 formatCurrency(payout!.abs(), 'GBP'),
                 style: TextStyle(fontSize: 18, fontWeight: FontWeight.w400),
               ),
-              FlatButton(
+              TextButton(
                 child: loading
                     ? Container(
                         height: 25,
@@ -272,7 +272,7 @@ class _SellFormState extends State<SellForm> {
                     : complete
                         ? Icon(Icons.done, color: Colors.white)
                         : Text('OK', style: TextStyle(color: Colors.white)),
-                color: Colors.blue,
+                style: ButtonStyle(overlayColor: MaterialStateProperty.all<Color>(Colors.blue[400]!)),
                 onPressed: () async {
                   if (!complete) {
                     setState(() {
@@ -494,8 +494,8 @@ class _ConfirmPurchaseState extends State<ConfirmPurchase> {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
             children: [
-              FlatButton(
-                color: Colors.blue[400],
+              TextButton(
+                style: ButtonStyle(overlayColor: MaterialStateProperty.all<Color>(Colors.blue[400]!)),
                 onPressed: () async {
                   setState(() {
                     contentId = 1;
@@ -508,8 +508,8 @@ class _ConfirmPurchaseState extends State<ConfirmPurchase> {
                   style: TextStyle(color: Colors.white),
                 ),
               ),
-              FlatButton(
-                color: Colors.blue[400],
+                TextButton(
+                style: ButtonStyle(overlayColor: MaterialStateProperty.all<Color>(Colors.blue)),
                 onPressed: () async {
                   setState(() {
                     contentId = 2;
@@ -636,8 +636,8 @@ class _CongratualtionsDialogueState extends State<CongratualtionsDialogue> {
             SizedBox(height: 24.0),
             Align(
               alignment: Alignment.bottomRight,
-              child: FlatButton(
-                color: Colors.blue[400],
+              child: TextButton(
+                style: ButtonStyle(overlayColor: MaterialStateProperty.all<Color>(Colors.blue[400]!)),
                 onPressed: () {
                   Navigator.of(context).pop(); // To close the dialog
                 },
