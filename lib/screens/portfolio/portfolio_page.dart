@@ -41,7 +41,7 @@ class _PortfolioPageState extends State<PortfolioPage> {
         await portfolio.updateMarketsCurrentX();
         portfolio.computeCurrentValue();
         await portfolio.updateMarketsHistoricalX();
-        portfolio.computeHistoricalValue();
+        await portfolio.computeHistoricalValue();
         loadedPortfolios.add(portfolio);
         alreadyLoadedPortfolioIds.add(portfolio.id);
       }

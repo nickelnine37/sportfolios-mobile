@@ -1,5 +1,6 @@
 import 'dart:collection';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:flutter/foundation.dart';
 import '../api/requests.dart';
 import '../firebase/markets.dart';
 import 'markets.dart';
@@ -174,44 +175,13 @@ class Portfolio {
   //   }
   // }
 
-  void computeHistoricalValue() {
+  Future<void> computeHistoricalValue() async {
     Stopwatch stopwatch = new Stopwatch()..start();
 
-    bool firstPassComplete = false;
-
-    print(times!['M']);
-
     if (setHistoricalX) {
-      for (Map purchase in purchaseHistory) {
-        //
-        String? market = purchase['market'];
-        double? purchaseTime = purchase['time'] + 0.0;
-        List<double>? quantity = purchase['quantity'];
-        //
-        Map<String, List<double>>? historicalMarketValue = markets[market]!.lmsr.getHistoricalValue(quantity);
-
-        if (historicalMarketValue == null) {
-          continue;
-        }
-
-        for (String th in ['h', 'd', 'w', 'm', 'M']) {
-          if (!firstPassComplete) {
-            historicalValue[th] = List<double>.generate(60, (int i) => 0.0);
-          }
-
-          // step backwards in time, starting with the most recent
-          // when we reach a time that is before our purchase, break
-          for (int i = times![th]!.length - 1; i >= 0; i--) {
-            if (purchaseTime! <= times![th]![i]) {
-              historicalValue[th]![i] += historicalMarketValue[th]![i];
-            } else {
-              break;
-            }
-          }
-        }
-
-        firstPassComplete = true;
-      }
+      print('SPAWNING ISOLATE');
+      historicalValue = await compute(computeHistoricalValueIsolate, [purchaseHistory, markets, times]);
+      print('DONE');
     } else {
       print('Cannot compute historical Value: have not populated historical X');
     }
@@ -222,4 +192,50 @@ class Portfolio {
   String toString() {
     return 'Portfolio(${currentMarketIds.toString()})';
   }
+}
+
+/// This function is to be run exclusively in an isolate
+Map<String, List<double>> computeHistoricalValueIsolate(List args) {
+
+  List<Map<String, dynamic>> purchaseHistory_ = args[0];
+  Map<String?, Market> markets_ = args[1];
+  Map<String, List<int>>? times_ = args[2];
+
+
+  Map<String, List<double>> historicalValue_ = Map<String, List<double>>();
+
+  bool firstPassComplete = false;
+
+  for (Map purchase in purchaseHistory_) {
+    //
+    String? market = purchase['market'];
+    double? purchaseTime = purchase['time'] + 0.0;
+    List<double>? quantity = purchase['quantity'];
+    //
+    Map<String, List<double>>? historicalMarketValue = markets_[market]!.lmsr.getHistoricalValue(quantity);
+
+    if (historicalMarketValue == null) {
+      continue;
+    }
+
+    for (String th in ['h', 'd', 'w', 'm', 'M']) {
+      if (!firstPassComplete) {
+        historicalValue_[th] = List<double>.generate(60, (int i) => 0.0);
+      }
+
+      // step backwards in time, starting with the most recent
+      // when we reach a time that is before our purchase, break
+      for (int i = times_![th]!.length - 1; i >= 0; i--) {
+        if (purchaseTime! <= times_[th]![i]) {
+          historicalValue_[th]![i] += historicalMarketValue[th]![i];
+        } else {
+          break;
+        }
+      }
+    }
+
+    firstPassComplete = true;
+  }
+
+  return historicalValue_;
 }
