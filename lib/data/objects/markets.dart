@@ -93,15 +93,6 @@ class Market {
   void addDocumentSnapshotData(DocumentSnapshot snapshot) {
     assert(id == snapshot.id);
 
-    // Map<String, dynamic>? data = snapshot.data();
-
-    // if (data == null) {
-    //   print('Could not find document snapshot data for ${name}');
-    //   return;
-    // }
-
-    doc = snapshot;
-
     colours = List<String>.from(snapshot['colours']);
     searchTerms = List<String>.from(snapshot['search_terms']);
     imageURL = snapshot['image'];
@@ -137,8 +128,6 @@ class Market {
         name = names.last;
     } else
       name = data['name'];
-    print(data['name']);
-    print(name);
 
     info1 = data['country_flag'] + ' ' + data['position'];
     info2 = "${data['rating']}";

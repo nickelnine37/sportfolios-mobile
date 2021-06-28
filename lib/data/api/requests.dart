@@ -139,6 +139,7 @@ Future<Map<String, Map>?> getMultipleCurrentX(List<String> markets) async {
 
   if (response.statusCode == 200) {
     Map<String, Map> jsonResponse = Map<String, Map>.from(convert.jsonDecode(response.body));
+
     return Map<String, Map<String, dynamic>>.fromIterables(
       jsonResponse.keys,
       jsonResponse.keys.map((String market) => <String, dynamic>{

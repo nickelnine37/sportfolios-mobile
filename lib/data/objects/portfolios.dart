@@ -100,8 +100,7 @@ class Portfolio {
         markets[marketId]!.addDocumentSnapshotData(marketSnapshot);
       }
     }
-    print(
-        'addMarketSnapshotData() executed in ${stopwatch.elapsed.inMilliseconds / 1000}s for ${toString()}');
+    print('addMarketSnapshotData() executed in ${stopwatch.elapsed.inMilliseconds / 1000}s for ${toString()}');
   }
 
   Future<void> updateMarketsCurrentX() async {
@@ -110,7 +109,7 @@ class Portfolio {
       Map<String, dynamic>? currentXs = await getMultipleCurrentX(currentMarketIds);
 
       if (currentXs == null) {
-      print('updateMarketsCurrentX() failed. getMultipleCurrentX() returned null');
+        print('updateMarketsCurrentX() failed. getMultipleCurrentX() returned null');
         return;
       }
 
@@ -120,8 +119,7 @@ class Portfolio {
       lastUpdatedCurrentX = DateTime.now();
       setCurrentX = true;
     }
-    print(
-        'updateMarketsCurrentX() executed in ${stopwatch.elapsed.inMilliseconds / 1000}s for ${toString()}');
+    print('updateMarketsCurrentX() executed in ${stopwatch.elapsed.inMilliseconds / 1000}s for ${toString()}');
   }
 
   Future<void> updateMarketsHistoricalX() async {
@@ -136,14 +134,12 @@ class Portfolio {
 
       times = Map<String, List<int>>.from(historicalXs['time']);
       for (String marketId in historicalXs['data'].keys) {
-        print(marketId);
         markets[marketId]!.lmsr.setHistoricalX(historicalXs['data'][marketId]['x'], historicalXs['data'][marketId]['b']);
       }
       lastUpdatedHistoricalX = DateTime.now();
       setHistoricalX = true;
     }
-    print(
-        'updateMarketsHistoricalX() executed in ${stopwatch.elapsed.inMilliseconds / 1000}s for ${toString()}');
+    print('updateMarketsHistoricalX() executed in ${stopwatch.elapsed.inMilliseconds / 1000}s for ${toString()}');
   }
 
   void computeCurrentValue() {
@@ -151,8 +147,7 @@ class Portfolio {
     double total = 0;
     if (setCurrentX) {
       for (String marketId in currentQuantities.keys) {
-        currentValues[marketId] =
-            markets[marketId]!.lmsr.getValue(List<double>.from(currentQuantities[marketId]!));
+        currentValues[marketId] = markets[marketId]!.lmsr.getValue(List<double>.from(currentQuantities[marketId]!));
         total += currentValues[marketId]!;
       }
       currentValue = total;
@@ -184,6 +179,8 @@ class Portfolio {
 
     bool firstPassComplete = false;
 
+    print(times!['M']);
+
     if (setHistoricalX) {
       for (Map purchase in purchaseHistory) {
         //
@@ -201,28 +198,24 @@ class Portfolio {
           if (!firstPassComplete) {
             historicalValue[th] = List<double>.generate(60, (int i) => 0.0);
           }
-          for (int i=0; i < times![th]!.length; i++) {
-            if (!firstPassComplete) {
-              historicalValue[th]![i] = 0.0;
-              if (purchaseTime! <= times![th]![i]) {
-                historicalValue[th]![i] += historicalMarketValue[th]![i];
-              }
+
+          // step backwards in time, starting with the most recent
+          // when we reach a time that is before our purchase, break
+          for (int i = times![th]!.length - 1; i >= 0; i--) {
+            if (purchaseTime! <= times![th]![i]) {
+              historicalValue[th]![i] += historicalMarketValue[th]![i];
             } else {
-              if (purchaseTime! <= times![th]![i]) {
-                historicalValue[th]![i] += historicalMarketValue[th]![i];
-              } else {
-                break;
-              }
+              break;
             }
           }
         }
+
         firstPassComplete = true;
       }
     } else {
       print('Cannot compute historical Value: have not populated historical X');
     }
-    print(
-        'computeHistoricalValue() executed in ${stopwatch.elapsed.inMilliseconds / 1000}s for ${toString()}');
+    print('computeHistoricalValue() executed in ${stopwatch.elapsed.inMilliseconds / 1000}s for ${toString()}');
   }
 
   @override

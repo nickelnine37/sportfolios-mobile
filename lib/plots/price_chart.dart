@@ -304,15 +304,8 @@ class _PriceGraphState extends State<PriceGraph> {
       dateX = null;
       returns = null;
       dt_t = null;
-      // isConstant = null;
     }
 
-    // if (isConstant == null) {
-    //   isConstant = widget.prices.every((element) => (element - widget.prices[0]).abs() < 1e-5);
-    //   print(widget.prices.map((element) => (element - widget.prices[0]).abs() < 1e-5));
-    // }
-
-    // print(isConstant);
 
     if (pmin == null || widget.prices!.last != lastp) {
       pmin = widget.prices!.reduce(min);
@@ -525,8 +518,6 @@ class PriceGraphPainter extends CustomPainter {
     pmax = prices![xMax];
 
     bool isConstant = ((pmin! - pmax!).abs() < 1e-5);
-
-    // print('${pmin}, ${pmax}');
 
 
     // calculate cut-off index
