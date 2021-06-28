@@ -42,7 +42,7 @@ class LeaderboardScroll extends StatefulWidget {
   _LeaderboardScrollState createState() => _LeaderboardScrollState();
 }
 
-class _LeaderboardScrollState extends State<LeaderboardScroll> with AutomaticKeepAliveClientMixin{
+class _LeaderboardScrollState extends State<LeaderboardScroll> with AutomaticKeepAliveClientMixin {
   Future<List<Portfolio>>? portfoliosFuture;
   List<Portfolio>? portfolios;
 

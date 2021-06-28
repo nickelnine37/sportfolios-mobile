@@ -29,7 +29,11 @@ class _AppMainState extends State<AppMain> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.grey[100],
-      body: _pages[_selectedPage],
+      // body: _pages[_selectedPage],
+      body: IndexedStack(
+        index:_selectedPage,
+        children:_pages
+      ),
       bottomNavigationBar: CupertinoTabBar(
         backgroundColor: Colors.grey[200],
         currentIndex: _selectedPage,

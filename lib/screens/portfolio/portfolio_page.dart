@@ -27,6 +27,7 @@ class _PortfolioPageState extends State<PortfolioPage> {
   void initState() {
     super.initState();
     portfoliosFuture = _getPortfolios();
+    print('initialising portfolio state');
   }
 
   Future<void> _getPortfolios() async {
@@ -222,6 +223,10 @@ class _PortfolioPageState extends State<PortfolioPage> {
       },
     );
   }
+
+  @override
+  // TODO: implement wantKeepAlive
+  bool get wantKeepAlive => true;
 }
 
 class PortfolioSelectorDialogue extends StatelessWidget {
