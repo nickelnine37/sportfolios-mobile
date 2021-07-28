@@ -91,11 +91,15 @@ class _HoldingsState extends State<Holdings> {
                         headerBuilder: (BuildContext context, bool itemIsExpanded) {
                           return ListTile(
                             onTap: () {
-                              // if (marketId != 'cash') {
-                              //   Navigator.of(context).push(MaterialPageRoute<void>(builder: (BuildContext context) {
-                              //     return MarketDetails(market);
-                              //   }));
-                              // }
+                                Navigator.of(context).push(MaterialPageRoute<void>(builder: (BuildContext context) {
+                                  if (market.runtimeType == TeamMarket) {
+                                    return TeamDetails(market);
+                                  }
+                                  else {
+                                    return PlayerDetails(market);
+                                  }
+                                }));
+                              
                             },
                             title: Container(
                               padding: const EdgeInsets.symmetric(vertical: 25),
