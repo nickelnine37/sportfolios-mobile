@@ -550,9 +550,6 @@ class PriceGraphPainter extends CustomPainter {
       List pathpY = prices!.apply((double y) => yToPy(y, size)).toList();
       List pathpX = List<double>.generate(n!, (x) => xToPx(x + 0.0, size));
 
-      // print(pathpY);
-      // print(pathpX);
-
       // single graph
       if (touchX == null) {
         paintPriceGrah(

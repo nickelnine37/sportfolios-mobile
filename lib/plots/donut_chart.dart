@@ -60,9 +60,6 @@ class _AnimatedDonutChartState extends State<AnimatedDonutChart> {
       binEdges!.add(runningTotal / widget.portfolio!.currentValue!);
     }
 
-    print(sortedValues);
-    print(binEdges);
-
     // increment endValue here
     endValue += 1;
 

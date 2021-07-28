@@ -113,7 +113,7 @@ class _PortfolioPageState extends State<PortfolioPage> {
             appBar: AppBar(
               automaticallyImplyLeading: false,
               titleSpacing: 0,
-              toolbarHeight: 100,
+              toolbarHeight: 110,
               title: Column(children: [
                 Row(
                   mainAxisAlignment: MainAxisAlignment.start,
@@ -175,13 +175,11 @@ class _PortfolioPageState extends State<PortfolioPage> {
                         );
                         if (output == 'updated') {
                           setState(() {});
-                        }
-                        else if (output == 'deleted') {
+                        } else if (output == 'deleted') {
                           setState(() {
                             loadedPortfolios.removeWhere((Portfolio pf) => pf.id == currentPortfolio);
                           });
                         }
-
                       }
                     }),
                 IconButton(
@@ -567,10 +565,18 @@ class _PortfolioSettingsDialogueState extends State<PortfolioSettingsDialogue> {
                         Navigator.of(context).pop('deleted');
                       }
                     },
-                    child: deleting ? CircularProgressIndicator(color: Colors.white) : Text(
-                      'Delete',
-                      style: TextStyle(color: Colors.white),
-                    ),
+                    child: deleting
+                        ? Container(
+                            height: 25,
+                            width: 25,
+                            child: CircularProgressIndicator(
+                              strokeWidth: 3,
+                              valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                            ))
+                        : Text(
+                            'Delete',
+                            style: TextStyle(color: Colors.white),
+                          ),
                     style: ButtonStyle(
                       overlayColor: MaterialStateProperty.all<Color>(Colors.red[400]!),
                       backgroundColor: MaterialStateProperty.all<Color>(Colors.red[400]!),
@@ -681,7 +687,7 @@ class DeletePortfolioDiaglogue extends StatelessWidget {
               children: [
                 TextButton(
                   onPressed: () {
-                    Navigator.of(context).pop(false);
+                    Navigator.of(context).pop(true);
                   },
                   child: Text(
                     'Delete',
@@ -690,7 +696,7 @@ class DeletePortfolioDiaglogue extends StatelessWidget {
                 ),
                 TextButton(
                   onPressed: () {
-                    Navigator.of(context).pop(true);
+                    Navigator.of(context).pop(false);
                   },
                   child: Text('Cancel', style: TextStyle(fontSize: 20)),
                 ),

@@ -68,6 +68,7 @@ class Portfolio {
     user = snapshot['user'];
     cash = snapshot['cash'] + 0.0;
 
+    // holdings is a map between marketId and an Asset
     holdings = Map<String, dynamic>.from(snapshot['holdings']).map((String marketName, dynamic value) {
       if (marketName.contains('T')) {
         Array quantity = Array.fromTrueDynamicList(value);
