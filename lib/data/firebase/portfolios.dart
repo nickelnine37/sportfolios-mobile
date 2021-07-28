@@ -3,8 +3,14 @@ import '../objects/portfolios.dart';
 import '../../providers/authenication_provider.dart';
 
 Future<Portfolio> getPortfolioById(String portfoliloId) async {
-  return Portfolio.fromDocumentSnapshot(
-      await FirebaseFirestore.instance.collection('portfolios').doc(portfoliloId).get());
+  return Portfolio.fromDocumentSnapshot(await FirebaseFirestore.instance.collection('portfolios').doc(portfoliloId).get());
+}
+
+Future<void> deletePortfolio(String portfolioId) async {
+  await FirebaseFirestore.instance.collection('portfolios').doc(portfolioId).delete();
+  await FirebaseFirestore.instance.collection('user').doc(AuthService().currentUid).update({
+    'portfolios': FieldValue.arrayRemove([portfolioId])
+  });
 }
 
 Future<void> addNewPortfolio(String? name, bool public) async {
@@ -15,26 +21,14 @@ Future<void> addNewPortfolio(String? name, bool public) async {
       'user': uid,
       'name': name,
       'public': public,
-      'markets': <String>['cash'],
-      'holdings': {
-        'cash': <double>[500.0]
-      },
-      'history': [
-        {
-          'market': 'cash',
-          'time': (DateTime.now().millisecondsSinceEpoch / 1000).floor(),
-          'quantity': <double>[500.0],
-        }
-      ],
-      'weekly_return': 0.0,
-      'monthly_return': 0.0,
-      'maxly_return': 0.0,
-      'weekly_return_updated': DateTime.now(),
-      'monthly_return_updated': DateTime.now(),
-      'maxly_return_updated': DateTime.now(),
-      'weekly_price_history': List<double>.generate(60, (int i) => 500.0),
-      'monthly_price_history': List<double>.generate(60, (int i) => 500.0),
-      'maxly_price_history': List<double>.generate(60, (int i) => 500.0),
+      'cash': 500.0,
+      'current_value': 500.0,
+      'holdings': {},
+      'transactions': [],
+      'returns_d': 0.0,
+      'returns_w': 0.0, 
+      'returns_m': 0.0, 
+      'returns_M': 0.0
     });
 
     print('Added new portfolio: ${newPortfolio.id}');
@@ -74,8 +68,7 @@ class PortfolioFetcher {
 
       if (results.docs.length > 0) {
         loadedResults.addAll(
-          results.docs
-              .map<Portfolio>((DocumentSnapshot snapshot) => Portfolio.fromDocumentSnapshot(snapshot)),
+          results.docs.map<Portfolio>((DocumentSnapshot snapshot) => Portfolio.fromDocumentSnapshot(snapshot)),
         );
       }
     }
@@ -84,28 +77,19 @@ class PortfolioFetcher {
 
 class WeeklyPortfolioFetcher extends PortfolioFetcher {
   WeeklyPortfolioFetcher() {
-    baseQuery = FirebaseFirestore.instance
-        .collection('portfolios')
-        .orderBy('weekly_return', descending: true)
-        .limit(10);
+    baseQuery = FirebaseFirestore.instance.collection('portfolios').orderBy('weekly_return', descending: true).limit(10);
   }
 }
 
 class MonthlyPortfolioFetcher extends PortfolioFetcher {
   WeeklyPortfolioFetcher() {
-    baseQuery = FirebaseFirestore.instance
-        .collection('portfolios')
-        .orderBy('monthly_return', descending: true)
-        .limit(10);
+    baseQuery = FirebaseFirestore.instance.collection('portfolios').orderBy('monthly_return', descending: true).limit(10);
   }
 }
 
 class MaxlyPortfolioFetcher extends PortfolioFetcher {
   WeeklyPortfolioFetcher() {
-    baseQuery = FirebaseFirestore.instance
-        .collection('portfolios')
-        .orderBy('maxly_return', descending: true)
-        .limit(10);
+    baseQuery = FirebaseFirestore.instance.collection('portfolios').orderBy('maxly_return', descending: true).limit(10);
   }
 }
 

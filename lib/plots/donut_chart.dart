@@ -1,3 +1,5 @@
+import 'dart:collection';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../data/objects/portfolios.dart';
@@ -46,10 +48,15 @@ class _AnimatedDonutChartState extends State<AnimatedDonutChart> {
 
   @override
   Widget build(BuildContext context) {
-    binEdges = [0];
-    double runningTotal = 0;
-    for (double value in widget.portfolio!.currentValues.values) {
-      runningTotal += value;
+
+    SplayTreeMap<String, double> sortedValues = SplayTreeMap<String, double>.from(
+        widget.portfolio!.currentValues, (a, b) => widget.portfolio!.currentValues[a]! < widget.portfolio!.currentValues[b]! ? 1 : -1);
+
+
+    binEdges = [0, widget.portfolio!.cash! / widget.portfolio!.currentValue!];
+    double runningTotal = widget.portfolio!.cash!;
+    for (int i in range(sortedValues.length)) {
+      runningTotal += sortedValues.values.toList()[i];
       binEdges!.add(runningTotal / widget.portfolio!.currentValue!);
     }
 
@@ -67,6 +74,7 @@ class _AnimatedDonutChartState extends State<AnimatedDonutChart> {
           edges: binEdges,
           percentComplete: 1 + percentComlpete - endValue,
           radius: 110, // hacky business
+          sortedValues: sortedValues
         );
       },
     );
@@ -84,12 +92,14 @@ class PieChart extends StatefulWidget {
   final List<double>? edges;
   final double percentComplete;
   final double radius;
+  final SplayTreeMap<String, double> sortedValues;
 
   PieChart({
     required this.portfolio,
     required this.edges,
     required this.percentComplete,
     required this.radius,
+    required this.sortedValues
   });
 
   @override
@@ -116,11 +126,15 @@ class _PieChartState extends State<PieChart> {
   String? portfolioName;
   int? currentSegment;
 
+  List<String> marketNames = [];
+  List<double> cashValues = [];
+  List<String> marketIds = [];
+
   @override
   void initState() {
     super.initState();
     centerText = widget.portfolio!.currentValue;
-    nMarkets = widget.portfolio!.currentValues.length;
+    nMarkets = widget.portfolio!.currentValues.length + 1;
     portfolioName = widget.portfolio!.name;
   }
 
@@ -145,6 +159,10 @@ class _PieChartState extends State<PieChart> {
       spinning = false;
     }
 
+    marketNames = ['Cash'] + widget.sortedValues.keys.map((String mid) => widget.portfolio!.markets[mid]!.name!).toList();
+    marketIds = ['cash'] + widget.sortedValues.keys.toList();
+    cashValues = [widget.portfolio!.cash!] + widget.sortedValues.values.toList();
+
     // Container for central text. Change opacity with percentComplete
     Center centralText = currentSegment == null
         ? Center(
@@ -157,7 +175,7 @@ class _PieChartState extends State<PieChart> {
         )
         : Center(
             child: Text(
-            '${widget.portfolio!.markets![currentSegment!]}\n${formatCurrency(widget.portfolio!.currentValues.values.toList()[currentSegment!], "GBP")}',
+            '${marketNames[currentSegment!]}\n${formatCurrency(cashValues[currentSegment!], "GBP")}',
             textAlign: TextAlign.center,
             style: TextStyle(
               fontWeight: FontWeight.w300,
@@ -190,11 +208,11 @@ class _PieChartState extends State<PieChart> {
           child: Stack(
               children: <Widget>[centralText] +
                   range(nMarkets).map((int i) {
-                    String market = widget.portfolio!.currentValues.keys.toList()[i];
+                    String marketId = marketIds[i];
 
-                    Color? color = market == 'cash'
+                    Color? color = marketId == 'cash'
                         ? Colors.green[500]
-                        : fromHex(widget.portfolio!.transactions![i].market.colours![0]);
+                        : fromHex(widget.portfolio!.markets[marketId]!.colours![0]);
 
                     if (spinning) {
                       return Center(

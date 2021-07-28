@@ -34,7 +34,6 @@ class _HoldingsState extends State<Holdings> {
 
   Future<void> refreshHoldings() async {
     await widget.portfolio!.getCurrentValue();
-    // widget.portfolio!.computeCurrentValue();
     await Future.delayed(Duration(milliseconds: 500));
     setState(() {});
   }
@@ -42,7 +41,7 @@ class _HoldingsState extends State<Holdings> {
   @override
   Widget build(BuildContext context) {
     if (isExpanded == null) {
-      isExpanded = range(widget.portfolio!.markets!.length).map((int i) => false).toList();
+      isExpanded = range(widget.portfolio!.markets.length).map((int i) => false).toList();
     }
 
     return FutureBuilder(
@@ -53,7 +52,7 @@ class _HoldingsState extends State<Holdings> {
               onRefresh: refreshHoldings,
               child: SingleChildScrollView(
                 child: Column(children: <Widget>[
-                  // AnimatedDonutChart(widget.portfolio),
+                  AnimatedDonutChart(widget.portfolio),
                   SizedBox(height: 15),
                   // PortfolioItems(widget.portfolio),
                 //   ExpansionPanelList(

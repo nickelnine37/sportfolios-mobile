@@ -1,3 +1,5 @@
+import 'dart:collection';
+
 import 'package:flutter/material.dart';
 
 import '../../data/objects/portfolios.dart';
@@ -14,26 +16,33 @@ class SegmentData {
 
   @override
   String toString() {
-  return 'SegmentData(${this.percentage}, ${this.colour})';
-   }
-
+    return 'SegmentData(${this.percentage}, ${this.colour})';
+  }
 }
 
 class MiniDonutChart extends StatelessWidget {
-  final Portfolio? portfolio;
+  final Portfolio portfolio;
   final double strokeWidth;
 
-  MiniDonutChart(this.portfolio, {this.strokeWidth=10});
+  MiniDonutChart(this.portfolio, {this.strokeWidth = 10});
 
   @override
   Widget build(BuildContext context) {
-    List<SegmentData> pieData = range(portfolio!.markets!.length)
-        .map((int i) => SegmentData(
-            percentage: portfolio!.currentValues.values.toList()[i] / portfolio!.currentValue!,
-            colour: portfolio!.currentValues.keys.toList()[i] == 'cash'
-                        ? Colors.green[500]
-                        : fromHex(portfolio!.transactions![i].market.colours![0])))
-        .toList();
+    SplayTreeMap<String, double> sortedValues = SplayTreeMap<String, double>.from(
+        portfolio.currentValues, (a, b) => portfolio.currentValues[a]! < portfolio.currentValues[b]! ? 1 : -1);
+
+    List<SegmentData> pieData = <SegmentData>[
+          SegmentData(
+            percentage: portfolio.cash! / portfolio.currentValue!,
+            colour: Colors.green,
+          )
+        ] +
+        range(sortedValues.length)
+            .map((int i) => SegmentData(
+                  percentage: sortedValues.values.toList()[i] / portfolio.currentValue!,
+                  colour: fromHex(portfolio.markets[sortedValues.keys.toList()[i]]!.colours![0])
+                ))
+            .toList();
 
     return CustomPaint(painter: MiniDonutChartPainter(pieData, strokeWidth));
   }
@@ -49,7 +58,6 @@ class MiniDonutChartPainter extends CustomPainter {
 
   @override
   void paint(Canvas canvas, Size size) {
-
     for (SegmentData data in pieData) {
       Paint arcPaint = Paint()
         ..color = data.colour!

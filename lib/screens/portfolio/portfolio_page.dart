@@ -21,7 +21,7 @@ class _PortfolioPageState extends State<PortfolioPage> {
   late int nPortfolios;
   List<Portfolio> loadedPortfolios = [];
   List<String?> alreadyLoadedPortfolioIds = [];
-  Portfolio? currentPortoflio;
+  Portfolio? currentPortfolio;
 
   @override
   void initState() {
@@ -31,18 +31,15 @@ class _PortfolioPageState extends State<PortfolioPage> {
   }
 
   Future<void> _getPortfolios() async {
-    DocumentSnapshot result =
-        await FirebaseFirestore.instance.collection('users').doc(AuthService().currentUid).get();
-
+    DocumentSnapshot result = await FirebaseFirestore.instance.collection('users').doc(AuthService().currentUid).get();
 
     for (String portfolioId in result['portfolios']) {
       if (!alreadyLoadedPortfolioIds.contains(portfolioId)) {
         Portfolio portfolio = await getPortfolioById(portfolioId);
         await portfolio.populateMarketsFirebase();
         await portfolio.populateMarketsServer();
+        await portfolio.populateMarketsFirebase();
         portfolio.getCurrentValue();
-        // await portfolio.updateMarketsHistoricalX();
-        // await portfolio.computeHistoricalValue();
         portfolio.getHistoricalValue();
         loadedPortfolios.add(portfolio);
         alreadyLoadedPortfolioIds.add(portfolio.id);
@@ -52,16 +49,15 @@ class _PortfolioPageState extends State<PortfolioPage> {
     nPortfolios = loadedPortfolios.length;
     SharedPreferences prefs = await SharedPreferences.getInstance();
     // this may be null if selectedPortfolio is not set yet
-    currentPortoflio = getLoadedPortfolioById(prefs.getString('selectedPortfolio'));
-    if (currentPortoflio == null && nPortfolios > 0) {
-      currentPortoflio = loadedPortfolios[0];
+    currentPortfolio = getLoadedPortfolioById(prefs.getString('selectedPortfolio'));
+    if (currentPortfolio == null && nPortfolios > 0) {
+      currentPortfolio = loadedPortfolios[0];
     }
   }
 
   Portfolio? getLoadedPortfolioById(String? id) {
     // if (loadedPortfolios != null) {
-    return loadedPortfolios.firstWhere((Portfolio portf) => portf.id == id,
-        orElse: () => loadedPortfolios[0]);
+    return loadedPortfolios.firstWhere((Portfolio portf) => portf.id == id, orElse: () => loadedPortfolios[0]);
     // }
     // return null;
   }
@@ -81,8 +77,7 @@ class _PortfolioPageState extends State<PortfolioPage> {
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Text('Add a new portfolio to get started',
-                      style: TextStyle(fontSize: 18, color: Colors.grey[800])),
+                  Text('Add a new portfolio to get started', style: TextStyle(fontSize: 18, color: Colors.grey[800])),
                   SizedBox(height: 25),
                   TextButton(
                     style: ButtonStyle(
@@ -135,7 +130,7 @@ class _PortfolioPageState extends State<PortfolioPage> {
 
                         if (newlySelectedPortfolioId != null) {
                           setState(() {
-                            currentPortoflio = getLoadedPortfolioById(newlySelectedPortfolioId);
+                            currentPortfolio = getLoadedPortfolioById(newlySelectedPortfolioId);
                           });
                         }
                       },
@@ -148,12 +143,11 @@ class _PortfolioPageState extends State<PortfolioPage> {
                               height: 25,
                               width: 25,
                               child: MiniDonutChart(
-                                currentPortoflio,
+                                currentPortfolio!,
                                 strokeWidth: 8,
                               )),
                           SizedBox(width: 15),
-                          Text(currentPortoflio!.name!,
-                              style: TextStyle(fontSize: 25.0, color: Colors.white)),
+                          Text(currentPortfolio!.name!, style: TextStyle(fontSize: 25.0, color: Colors.white)),
                           Container(
                             padding: EdgeInsets.all(0),
                             width: 30,
@@ -172,14 +166,22 @@ class _PortfolioPageState extends State<PortfolioPage> {
                 IconButton(
                     icon: Icon(Icons.settings, color: Colors.white),
                     onPressed: () async {
-                      bool? output = await showDialog(
-                        context: context,
-                        builder: (context) {
-                          return PortfolioSettingsDialogue(currentPortoflio);
-                        },
-                      );
-                      if (output ?? false) {
-                        setState(() {});
+                      if (currentPortfolio != null) {
+                        String? output = await showDialog(
+                          context: context,
+                          builder: (context) {
+                            return PortfolioSettingsDialogue(currentPortfolio);
+                          },
+                        );
+                        if (output == 'updated') {
+                          setState(() {});
+                        }
+                        else if (output == 'deleted') {
+                          setState(() {
+                            loadedPortfolios.removeWhere((Portfolio pf) => pf.id == currentPortfolio);
+                          });
+                        }
+
                       }
                     }),
                 IconButton(
@@ -217,14 +219,13 @@ class _PortfolioPageState extends State<PortfolioPage> {
             ),
             body: TabBarView(
               physics: NeverScrollableScrollPhysics(),
-              children: [Holdings(currentPortoflio), Performance(currentPortoflio)],
+              children: [Holdings(currentPortfolio), Performance(currentPortfolio)],
             ),
           ),
         );
       },
     );
   }
-
 }
 
 class PortfolioSelectorDialogue extends StatelessWidget {
@@ -251,8 +252,7 @@ class PortfolioSelectorDialogue extends StatelessWidget {
           children: [
             Container(
                 padding: EdgeInsets.only(bottom: 16),
-                child: Text('Select a Portfolio',
-                    style: TextStyle(fontSize: 20.0, fontWeight: FontWeight.w600))),
+                child: Text('Select a Portfolio', style: TextStyle(fontSize: 20.0, fontWeight: FontWeight.w600))),
             Container(
               height: 245,
               child: ListView.separated(
@@ -381,8 +381,7 @@ class _NewPortfolioDialogueState extends State<NewPortfolioDialogue> {
               child: TextButton(
                 style: ButtonStyle(
                   overlayColor: MaterialStateProperty.all<Color>(Colors.blue[400]!),
-                  shape: MaterialStateProperty.all<OutlinedBorder>(
-                      RoundedRectangleBorder(borderRadius: BorderRadius.circular(20.0))),
+                  shape: MaterialStateProperty.all<OutlinedBorder>(RoundedRectangleBorder(borderRadius: BorderRadius.circular(20.0))),
                 ),
                 onPressed: () async {
                   if (_formKey.currentState!.validate()) {
@@ -423,6 +422,9 @@ class _NewPortfolioDialogueState extends State<NewPortfolioDialogue> {
   }
 }
 
+// pop 'updated' if the portfolio was updated
+// pop null if nothing changed
+// pop 'deleted' if the portfolio was deleted
 class PortfolioSettingsDialogue extends StatefulWidget {
   final Portfolio? portfolio;
 
@@ -438,6 +440,7 @@ class _PortfolioSettingsDialogueState extends State<PortfolioSettingsDialogue> {
   late Map<String, dynamic> init_values;
   late Map<String, dynamic> output;
   bool loading = false;
+  bool deleting = false;
 
   @override
   void initState() {
@@ -465,8 +468,7 @@ class _PortfolioSettingsDialogueState extends State<PortfolioSettingsDialogue> {
           children: [
             Container(
                 padding: EdgeInsets.only(bottom: 16),
-                child:
-                    Text('Portfolio Setings', style: TextStyle(fontSize: 20.0, fontWeight: FontWeight.w600))),
+                child: Text('Portfolio Setings', style: TextStyle(fontSize: 20.0, fontWeight: FontWeight.w600))),
             Form(
               key: _formKey,
               child: Padding(
@@ -478,7 +480,7 @@ class _PortfolioSettingsDialogueState extends State<PortfolioSettingsDialogue> {
                       children: [
                         Text('Name', style: TextStyle(fontSize: 16)),
                         Container(
-                          width: 100,
+                          width: 150,
                           height: 40,
                           child: TextFormField(
                             initialValue: widget.portfolio!.name,
@@ -520,65 +522,179 @@ class _PortfolioSettingsDialogueState extends State<PortfolioSettingsDialogue> {
                 ),
               ),
             ),
-            Text(
-              'Public portfolios will be entered into the leaderboard and will be viewable by other users.',
-              style: TextStyle(fontSize: 12),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 12.0),
+              child: Text(
+                'Public portfolios will be entered into the leaderboard and will be viewable by other users.',
+                style: TextStyle(fontSize: 12),
+                textAlign: TextAlign.center,
+              ),
             ),
             SizedBox(height: 15),
-            Align(
-              alignment: Alignment.bottomRight,
-              child: TextButton(
-                style: ButtonStyle(
-                    overlayColor: MaterialStateProperty.all<Color>(Colors.blue[400]!),
-                    shape: MaterialStateProperty.all<OutlinedBorder>(
-                      RoundedRectangleBorder(borderRadius: BorderRadius.circular(20.0)),
-                    )),
-                onPressed: () async {
-                  if (_formKey.currentState!.validate()) {
-                    _formKey.currentState!.save();
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 15),
+              child: Row(
+                // alignment: Alignment.bottomRight,
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  TextButton(
+                    onPressed: () async {
+                      bool? delete = await showDialog(
+                          context: context,
+                          builder: (context) {
+                            return DeletePortfolioDiaglogue(widget.portfolio!.name!);
+                          });
 
-                    if (!FocusScope.of(context).hasPrimaryFocus) {
-                      FocusManager.instance.primaryFocus!.unfocus();
-                    }
+                      // if we want to delete
+                      if (delete ?? false) {
+                        // set the delete wheel spinning
+                        setState(() {
+                          deleting = true;
+                        });
+                        // delete the portfolio and wait some more
+                        await deletePortfolio(widget.portfolio!.id);
+                        await Future.delayed(Duration(seconds: 2));
 
-                    if ((output['name'] == init_values['name']) &&
-                        (output['public'] == init_values['public'])) {
-                      print('Nothing Changed');
-                      // pop bool indicating whether changes were made
-                      Navigator.of(context).pop(false);
-                    } else {
-                      print('Something Changed');
-                      setState(() {
-                        loading = true;
-                      });
-                      await Future.delayed(Duration(seconds: 1));
-                      await FirebaseFirestore.instance
-                          .collection('portfolios')
-                          .doc(widget.portfolio!.id)
-                          .update(output)
-                          .then((value) => print("User Updated"))
-                          .catchError((error) => print("Failed to update user portfolio: $error"));
+                        // stop the wheel spinning
+                        setState(() {
+                          deleting = false;
+                        });
 
-                      widget.portfolio!.name = output['name'];
-                      widget.portfolio!.public = output['public'];
-                      // pop bool indicating whether changes were made
-                      Navigator.of(context).pop(true);
-                    }
-                  }
-                },
-                child: loading
-                    ? Container(
-                        height: 25,
-                        width: 25,
-                        child: CircularProgressIndicator(
-                          strokeWidth: 3,
-                          valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
-                        ))
-                    : Text(
-                        'OK',
-                        style: TextStyle(color: Colors.white),
-                      ),
+                        // pause
+                        await Future.delayed(Duration(milliseconds: 800));
+
+                        // pop 'deleted'
+                        Navigator.of(context).pop('deleted');
+                      }
+                    },
+                    child: deleting ? CircularProgressIndicator(color: Colors.white) : Text(
+                      'Delete',
+                      style: TextStyle(color: Colors.white),
+                    ),
+                    style: ButtonStyle(
+                      overlayColor: MaterialStateProperty.all<Color>(Colors.red[400]!),
+                      backgroundColor: MaterialStateProperty.all<Color>(Colors.red[400]!),
+                      // shape: MaterialStateProperty.all<OutlinedBorder>(
+                      //   RoundedRectangleBorder(borderRadius: BorderRadius.circular(20.0)),
+                      // ),
+                    ),
+                  ),
+                  TextButton(
+                    style: ButtonStyle(
+                      overlayColor: MaterialStateProperty.all<Color>(Colors.blue[400]!),
+                      backgroundColor: MaterialStateProperty.all<Color>(Colors.blue[400]!),
+                      // shape: MaterialStateProperty.all<OutlinedBorder>(
+                      //   RoundedRectangleBorder(borderRadius: BorderRadius.circular(20.0)),
+                      // ),
+                    ),
+                    onPressed: () async {
+                      if (_formKey.currentState!.validate()) {
+                        _formKey.currentState!.save();
+
+                        if (!FocusScope.of(context).hasPrimaryFocus) {
+                          FocusManager.instance.primaryFocus!.unfocus();
+                        }
+
+                        if ((output['name'] == init_values['name']) && (output['public'] == init_values['public'])) {
+                          print('Nothing Changed');
+                          // pop bool indicating whether changes were made
+                          Navigator.of(context).pop(null);
+                        } else {
+                          print('Something Changed');
+                          setState(() {
+                            loading = true;
+                          });
+                          await Future.delayed(Duration(seconds: 1));
+                          await FirebaseFirestore.instance
+                              .collection('portfolios')
+                              .doc(widget.portfolio!.id)
+                              .update(output)
+                              .then((value) => print("User Updated"))
+                              .catchError((error) => print("Failed to update user portfolio: $error"));
+
+                          widget.portfolio!.name = output['name'];
+                          widget.portfolio!.public = output['public'];
+                          // pop bool indicating whether changes were made
+                          Navigator.of(context).pop('updated');
+                        }
+                      }
+                    },
+                    child: loading
+                        ? Container(
+                            height: 25,
+                            width: 25,
+                            child: CircularProgressIndicator(
+                              strokeWidth: 3,
+                              valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                            ))
+                        : Text(
+                            'OK',
+                            style: TextStyle(color: Colors.white),
+                          ),
+                  )
+                ],
               ),
+            )
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+// pop true to delete the portfolio
+// pop false or null to keep it
+class DeletePortfolioDiaglogue extends StatelessWidget {
+  final String portfolioName;
+
+  DeletePortfolioDiaglogue(this.portfolioName);
+
+  @override
+  Widget build(BuildContext context) {
+    return Dialog(
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      elevation: 0.0,
+      backgroundColor: Colors.transparent,
+      child: Container(
+        height: 200,
+        padding: EdgeInsets.only(top: 16, left: 16, right: 16),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          shape: BoxShape.rectangle,
+          borderRadius: BorderRadius.circular(16),
+          boxShadow: [BoxShadow(color: Colors.black26, blurRadius: 10.0, offset: const Offset(0.0, 10.0))],
+        ),
+        child: Column(
+          children: [
+            Container(
+                padding: EdgeInsets.all(16),
+                child: Text('Delete Portfolio', style: TextStyle(fontSize: 20.0, fontWeight: FontWeight.w600))),
+            Padding(
+              padding: const EdgeInsets.all(12.0),
+              child: Text(
+                'Are you sure you want to delete the portfolio ${portfolioName}? This is irreversible',
+                textAlign: TextAlign.center,
+              ),
+            ),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              children: [
+                TextButton(
+                  onPressed: () {
+                    Navigator.of(context).pop(false);
+                  },
+                  child: Text(
+                    'Delete',
+                    style: TextStyle(fontSize: 20),
+                  ),
+                ),
+                TextButton(
+                  onPressed: () {
+                    Navigator.of(context).pop(true);
+                  },
+                  child: Text('Cancel', style: TextStyle(fontSize: 20)),
+                ),
+              ],
             )
           ],
         ),
