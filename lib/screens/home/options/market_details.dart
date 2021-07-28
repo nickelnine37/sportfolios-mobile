@@ -120,7 +120,6 @@ class _TeamDetailsState extends State<TeamDetails> with SingleTickerProviderStat
     updateState = Future.wait(<Future>[
       widget.market.getCurrentHoldings(),
       widget.market.getHistoricalHoldings(),
-      // Future.delayed(Duration(seconds: 3)),
     ]);
 
     _tabController!.addListener(() {
@@ -293,92 +292,104 @@ class _TeamDetailsState extends State<TeamDetails> with SingleTickerProviderStat
           future: updateState,
           builder: (BuildContext context, AsyncSnapshot snapshot) {
             if (snapshot.hasData) {
-              return SingleChildScrollView(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  children: [
-                    SizedBox(height: 10),
-                    TeamPageHeader(qs![selected], widget.market, <InfoBox>[longInfo, shortInfo, binaryInfo, customInfo][selected], <String>['Long', 'Short', 'Binary', 'Custom'][selected]),
-                    GestureDetector(
-                      onVerticalDragStart: (DragStartDetails details) {
-                        _updateBars(details.localPosition);
-                      },
-                      onVerticalDragUpdate: (DragUpdateDetails details) {
-                        _updateBars(details.localPosition);
-                      },
-                      onTapDown: (TapDownDetails details) {
-                        _updateBars(details.localPosition);
-                      },
-                      onPanUpdate: (DragUpdateDetails details) {
-                        _updateBars(details.localPosition);
-                      },
-                      child: AnimatedBuilder(
-                          animation: _tabController!.animation!,
-                          builder: (BuildContext context, Widget? child) {
-                            int g1 = _tabController!.previousIndex;
-                            int g2 = _tabController!.index;
-                            double pcComplete = (g1 == g2) ? 0 : (_tabController!.animation!.value - g1) / (g2 - g1);
-                            Array q = qs![g1].scale(1 - pcComplete) + qs![g2].scale(pcComplete);
+              return RefreshIndicator(
+                onRefresh: () async {
+                  setState(() {
+                    updateState = Future.wait(<Future>[
+                      widget.market.getCurrentHoldings(),
+                      widget.market.getHistoricalHoldings(),
+                      Future.delayed(Duration(seconds: 2))
+                    ]);
+                  });
+                },
+                child: SingleChildScrollView(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: [
+                      SizedBox(height: 10),
+                      TeamPageHeader(qs![selected], widget.market, <InfoBox>[longInfo, shortInfo, binaryInfo, customInfo][selected],
+                          <String>['Long', 'Short', 'Binary', 'Custom'][selected]),
+                      GestureDetector(
+                        onVerticalDragStart: (DragStartDetails details) {
+                          _updateBars(details.localPosition);
+                        },
+                        onVerticalDragUpdate: (DragUpdateDetails details) {
+                          _updateBars(details.localPosition);
+                        },
+                        onTapDown: (TapDownDetails details) {
+                          _updateBars(details.localPosition);
+                        },
+                        onPanUpdate: (DragUpdateDetails details) {
+                          _updateBars(details.localPosition);
+                        },
+                        child: AnimatedBuilder(
+                            animation: _tabController!.animation!,
+                            builder: (BuildContext context, Widget? child) {
+                              int g1 = _tabController!.previousIndex;
+                              int g2 = _tabController!.index;
+                              double pcComplete = (g1 == g2) ? 0 : (_tabController!.animation!.value - g1) / (g2 - g1);
+                              Array q = qs![g1].scale(1 - pcComplete) + qs![g2].scale(pcComplete);
 
-                            return PayoutGraph(q: q, tappable: locked, padding: graphPadding, height: graphHeight);
-                          }),
-                    ),
-                    //                 Row(
-                    Padding(
-                      padding: EdgeInsets.symmetric(horizontal: graphPadding, vertical: 20),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Row(
-                            children: [
-                              Switch(
-                                value: locked,
-                                onChanged: (selected == 0 || selected == 1)
-                                    ? null
-                                    : (bool val) {
-                                        setState(() {
-                                          locked = val;
-                                        });
-                                      },
-                              ),
-                              Text(
-                                'Lock payout',
-                                style: TextStyle(color: (selected == 0 || selected == 1) ? Colors.grey[600] : Colors.grey[850]),
-                              ),
-                            ],
-                          ),
-                          Row(
-                            children: [
-                              IconButton(
-                                icon: Icon(Icons.loop),
-                                onPressed: (selected == 2)
-                                    ? () {
-                                        setState(() {
-                                          reversed = !reversed;
-                                          qs![2] = qs![2].apply((i) => 10 - i);
-                                        });
-                                      }
-                                    : null,
-                              ),
-                              Padding(
-                                padding: const EdgeInsets.only(right: 12.0),
-                                child: Text(
-                                  'Reverse',
-                                  style: TextStyle(color: (selected == 2) ? Colors.grey[850] : Colors.grey[600]),
-                                ),
-                              )
-                            ],
-                          )
-                        ],
+                              return PayoutGraph(q: q, tappable: locked, padding: graphPadding, height: graphHeight);
+                            }),
                       ),
-                    ),
-                    TabbedPriceGraph(
-                      priceHistory: widget.market.historicalLMSR!.getHistoricalValue(Asset.team(qs![selected])),
-                      times: widget.market.historicalLMSR!.ts,
-                    ),
-                    SizedBox(height: 30),
-                    PageFooter(widget.market)
-                  ],
+                      //                 Row(
+                      Padding(
+                        padding: EdgeInsets.symmetric(horizontal: graphPadding, vertical: 20),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Row(
+                              children: [
+                                Switch(
+                                  value: locked,
+                                  onChanged: (selected == 0 || selected == 1)
+                                      ? null
+                                      : (bool val) {
+                                          setState(() {
+                                            locked = val;
+                                          });
+                                        },
+                                ),
+                                Text(
+                                  'Lock payout',
+                                  style: TextStyle(color: (selected == 0 || selected == 1) ? Colors.grey[600] : Colors.grey[850]),
+                                ),
+                              ],
+                            ),
+                            Row(
+                              children: [
+                                IconButton(
+                                  icon: Icon(Icons.loop),
+                                  onPressed: (selected == 2)
+                                      ? () {
+                                          setState(() {
+                                            reversed = !reversed;
+                                            qs![2] = qs![2].apply((i) => 10 - i);
+                                          });
+                                        }
+                                      : null,
+                                ),
+                                Padding(
+                                  padding: const EdgeInsets.only(right: 12.0),
+                                  child: Text(
+                                    'Reverse',
+                                    style: TextStyle(color: (selected == 2) ? Colors.grey[850] : Colors.grey[600]),
+                                  ),
+                                )
+                              ],
+                            )
+                          ],
+                        ),
+                      ),
+                      TabbedPriceGraph(
+                        priceHistory: widget.market.historicalLMSR!.getHistoricalValue(Asset.team(qs![selected])),
+                        times: widget.market.historicalLMSR!.ts,
+                      ),
+                      SizedBox(height: 30),
+                      PageFooter(widget.market)
+                    ],
+                  ),
                 ),
               );
             } else if (snapshot.hasError) {
@@ -581,17 +592,29 @@ class _PlayerDetailsState extends State<PlayerDetails> with SingleTickerProvider
           future: updateState,
           builder: (BuildContext context, AsyncSnapshot snapshot) {
             if (snapshot.hasData) {
-              return SingleChildScrollView(
-                child: Column(
-                  children: [
-                    SizedBox(height: 10),
-                    PlayerPageHeader(selected == 0, widget.market, selected == 0 ? longInfo(context) : shortInfo(context)),
-                    TabbedPriceGraph(
-                        priceHistory: widget.market.historicalLMSR!.getHistoricalValue(Asset.player(selected == 0, 10)),
-                        times: widget.market.historicalLMSR!.ts),
-                    SizedBox(height: 10),
-                    PageFooter(widget.market)
-                  ],
+              return RefreshIndicator(
+                onRefresh: () async {
+                  setState(() {
+                    updateState = Future.wait(<Future>[
+                      widget.market.getCurrentHoldings(),
+                      widget.market.getHistoricalHoldings(),
+                      widget.market.getTeamInfo(),
+                      Future.delayed(Duration(seconds: 2))
+                    ]);
+                  });
+                },
+                child: SingleChildScrollView(
+                  child: Column(
+                    children: [
+                      SizedBox(height: 10),
+                      PlayerPageHeader(selected == 0, widget.market, selected == 0 ? longInfo(context) : shortInfo(context)),
+                      TabbedPriceGraph(
+                          priceHistory: widget.market.historicalLMSR!.getHistoricalValue(Asset.player(selected == 0, 10)),
+                          times: widget.market.historicalLMSR!.ts),
+                      SizedBox(height: 10),
+                      PageFooter(widget.market)
+                    ],
+                  ),
                 ),
               );
             } else if (snapshot.hasError) {
@@ -712,9 +735,6 @@ class PageFooter extends StatelessWidget {
                     ),
                     Divider(thickness: 2)
                   ]
-                : <Widget>[
-                    MarketTile(market: market.team!, returnsPeriod: 'd'),
-                    Divider(thickness: 2)
-                  ]));
+                : <Widget>[MarketTile(market: market.team!, returnsPeriod: 'd'), Divider(thickness: 2)]));
   }
 }
