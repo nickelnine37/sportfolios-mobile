@@ -60,6 +60,9 @@ class _AnimatedDonutChartState extends State<AnimatedDonutChart> {
       binEdges!.add(runningTotal / widget.portfolio!.currentValue!);
     }
 
+    print(sortedValues);
+    print(binEdges);
+
     // increment endValue here
     endValue += 1;
 
@@ -193,7 +196,7 @@ class _PieChartState extends State<PieChart> {
             // change notifier provider!
             context.read(selectedAssetProvider).setAsset(newSelectedSegment == null
                 ? null
-                : widget.portfolio!.currentValues.keys.toList()[newSelectedSegment]);
+                : marketIds[newSelectedSegment]);
 
             setState(() {
               currentSegment = newSelectedSegment;
@@ -261,6 +264,7 @@ class _PieChartState extends State<PieChart> {
   /// Function that takes in an offset, which is the coordinates that have just been tapped
   /// by the user, and then calculates which segment of the donut should be highlighted.
   int? _getSegmentNumber(Offset offset) {
+
     // translate coordinates so that the origin is central
     Offset coords = offset - Offset(width! / 2, height! / 2);
 
