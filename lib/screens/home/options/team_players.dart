@@ -31,7 +31,7 @@ class _TeamPlayersState extends State<TeamPlayers> {
 
   @override
   Widget build(BuildContext context) {
-    Color background = fromHex(widget.team!.colours[0]);
+    Color background = fromHex(widget.team!.colours![0]);
     Color? textColor = background.computeLuminance() > 0.5 ? Colors.grey[700] : Colors.white;
 
     return Scaffold(
@@ -79,7 +79,7 @@ class _TeamPlayersState extends State<TeamPlayers> {
           ),
         ]),
       ),
-      body: MarketScroll(teamId: int.parse(widget.team!.id!.split(':')[0])),
+      body: MarketScroll(teamId: int.parse(widget.team!.id.split(':')[0])),
     );
   }
 }

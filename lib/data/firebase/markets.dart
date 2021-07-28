@@ -1,20 +1,17 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import '../api/requests.dart';
+import 'package:sportfolios_alpha/data/api/requests.dart';
 import '../objects/markets.dart';
 
 Future<Market> getMarketById(String id) async {
-  DocumentSnapshot snapshot = await FirebaseFirestore.instance
-      .collection(id[id.length - 1] == 'T' ? 'teams' : 'players')
-      .doc(id)
-      .get();
-  return Market.fromDocumentSnapshot(snapshot);
+  if (id.contains('T')) {
+    return TeamMarket.fromDocumentSnapshot(await FirebaseFirestore.instance.collection('teams').doc(id).get());
+  } else {
+    return PlayerMarket.fromDocumentSnapshot(await FirebaseFirestore.instance.collection('players').doc(id).get());
+  }
 }
 
 Future<DocumentSnapshot> getMarketSnapshotById(String id) async {
-  DocumentSnapshot snapshot = await FirebaseFirestore.instance
-      .collection(id[id.length - 1] == 'T' ? 'teams' : 'players')
-      .doc(id)
-      .get();
+  DocumentSnapshot snapshot = await FirebaseFirestore.instance.collection(id[id.length - 1] == 'T' ? 'teams' : 'players').doc(id).get();
   return snapshot;
 }
 
@@ -30,16 +27,16 @@ class MarketFetcher {
   void setData({List<Market>? alreadyLoaded = null, String? search = null}) {
     // work out whether this is a player or team market and order by different metric accordingly
 
-    if (marketType == 'players') {
-      baseQuery = baseQuery.orderBy('rating', descending: true).limit(10);
-    } else {
-      baseQuery = baseQuery.orderBy('points', descending: true).limit(10);
-    }
+    // if (marketType == 'players') {
+    //   baseQuery = baseQuery.orderBy('rating', descending: true).limit(10);
+    // } else {
+    //   baseQuery = baseQuery.orderBy('points', descending: true).limit(10);
+    // }
 
     this.alreadyLoaded = alreadyLoaded;
 
     if (alreadyLoaded != null) {
-      loadedResults.addAll(alreadyLoaded.where((Market market) => market.searchTerms.contains(search)));
+      loadedResults.addAll(alreadyLoaded.where((Market market) => market.searchTerms!.contains(search)));
     }
   }
 
@@ -50,7 +47,7 @@ class MarketFetcher {
       if (loadedResults.length == 0) {
         results = await baseQuery.get();
       } else {
-        results = await baseQuery.startAfterDocument(loadedResults.last.doc).get();
+        results = await baseQuery.startAfterDocument(loadedResults.last.doc!).get();
       }
 
       if (results.docs.length < 10) {
@@ -58,14 +55,15 @@ class MarketFetcher {
       }
 
       if (results.docs.length > 0) {
-        Map<String, double>? prices = await getBackPrices(
-            results.docs.map<String>((DocumentSnapshot snapshot) => snapshot.id).toList());
-        Map<String, List>? dailyPrices = await getDailyBackPrices(
-            results.docs.map<String>((DocumentSnapshot snapshot) => snapshot.id).toList());
-        loadedResults.addAll(
-          results.docs.map<Market>((DocumentSnapshot snapshot) => Market.fromDocumentSnapshot(snapshot)
-            ..setBackProperties(prices![snapshot.id], List<double>.from(dailyPrices![snapshot.id]!))),
-        );
+        Map<String, dynamic>? holdings =
+            await getMultipleCurrentHoldings(results.docs.map<String>((DocumentSnapshot snapshot) => snapshot.id).toList());
+        loadedResults.addAll(results.docs.map<Market>((DocumentSnapshot snapshot) {
+          if (snapshot.id.contains('T')) {
+            return TeamMarket.fromDocumentSnapshot(snapshot)..setCurrentHoldings(holdings![snapshot.id]);
+          } else {
+            return PlayerMarket.fromDocumentSnapshot(snapshot)..setCurrentHoldings(holdings![snapshot.id]);
+          }
+        }));
       }
     }
   }
@@ -75,10 +73,21 @@ class MarketFetcher {
 class LeagueMarketFetcher extends MarketFetcher {
   int? leagueID;
   String? marketType;
+  String? sortByField;
+  bool? sortByDescending;
 
-  LeagueMarketFetcher(this.leagueID, this.marketType) {
+  LeagueMarketFetcher({
+    required this.leagueID,
+    required this.marketType,
+    required this.sortByField,
+    required this.sortByDescending,
+  }) {
     // set up basic query structure
-    baseQuery = FirebaseFirestore.instance.collection(marketType!).where('league_id', isEqualTo: leagueID);
+    baseQuery = FirebaseFirestore.instance
+        .collection(marketType!)
+        .where('league_id', isEqualTo: leagueID)
+        .orderBy(sortByField!, descending: sortByDescending!)
+        .limit(10);
     super.setData();
   }
 }
@@ -101,15 +110,24 @@ class LeagueSearchMarketFetcher extends MarketFetcher {
   }
 }
 
-
 /// class for fetching markets when there is no particular serach term associated
 class TeamPlayerMarketFetcher extends MarketFetcher {
-  int? teamId;
-  String? marketType = 'players';
+  int teamId;
+  String sortByField;
+  bool sortByDescending;
 
-  TeamPlayerMarketFetcher(this.teamId) {
+  TeamPlayerMarketFetcher({
+    required this.teamId,
+    required this.sortByField,
+    required this.sortByDescending,
+  }) {
     // set up basic query structure
-    baseQuery = FirebaseFirestore.instance.collection('players').where('team_id', isEqualTo: teamId);
+    baseQuery = FirebaseFirestore.instance
+        .collection('players')
+        .where('team_id', isEqualTo: teamId)
+        .orderBy(sortByField, descending: sortByDescending)
+        .limit(10);
+    ;
     super.setData();
   }
 }
@@ -122,10 +140,8 @@ class TeamPlayerSearchMarketFetcher extends MarketFetcher {
 
   TeamPlayerSearchMarketFetcher({this.search, this.teamId, this.alreadyLoaded}) {
     // set up basic query structure
-    baseQuery = FirebaseFirestore.instance
-        .collection('players')
-        .where('team_id', isEqualTo: teamId)
-        .where('search_terms', arrayContains: search);
+    baseQuery =
+        FirebaseFirestore.instance.collection('players').where('team_id', isEqualTo: teamId).where('search_terms', arrayContains: search);
 
     super.setData(alreadyLoaded: this.alreadyLoaded, search: search);
   }

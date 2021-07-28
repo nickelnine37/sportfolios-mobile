@@ -217,7 +217,18 @@ class LeagueProgressBarPainter extends CustomPainter {
       ..strokeCap = StrokeCap.round
       ..strokeWidth = 5.0;
 
-    int now = DateTime.now().millisecondsSinceEpoch > leagueOrMarket.endDate.millisecondsSinceEpoch ? leagueOrMarket.endDate.millisecondsSinceEpoch : DateTime.now().millisecondsSinceEpoch;
+    int now;
+    
+    if (DateTime.now().millisecondsSinceEpoch > leagueOrMarket.endDate.millisecondsSinceEpoch) {
+      now = leagueOrMarket.endDate.millisecondsSinceEpoch;
+    }
+    else if (DateTime.now().millisecondsSinceEpoch < leagueOrMarket.startDate.millisecondsSinceEpoch) {
+      now = leagueOrMarket.startDate.millisecondsSinceEpoch;
+    }
+    else {
+      now = DateTime.now().millisecondsSinceEpoch;
+    }
+
     double fractionComplete =
         (now - leagueOrMarket.startDate.millisecondsSinceEpoch) /
             (leagueOrMarket.endDate.millisecondsSinceEpoch - leagueOrMarket.startDate.millisecondsSinceEpoch);

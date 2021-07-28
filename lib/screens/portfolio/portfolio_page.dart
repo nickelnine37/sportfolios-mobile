@@ -38,11 +38,12 @@ class _PortfolioPageState extends State<PortfolioPage> {
     for (String portfolioId in result['portfolios']) {
       if (!alreadyLoadedPortfolioIds.contains(portfolioId)) {
         Portfolio portfolio = await getPortfolioById(portfolioId);
-        await portfolio.addMarketSnapshotData();
-        await portfolio.updateMarketsCurrentX();
-        portfolio.computeCurrentValue();
-        await portfolio.updateMarketsHistoricalX();
-        await portfolio.computeHistoricalValue();
+        await portfolio.populateMarketsFirebase();
+        await portfolio.populateMarketsServer();
+        portfolio.getCurrentValue();
+        // await portfolio.updateMarketsHistoricalX();
+        // await portfolio.computeHistoricalValue();
+        portfolio.getHistoricalValue();
         loadedPortfolios.add(portfolio);
         alreadyLoadedPortfolioIds.add(portfolio.id);
       }
@@ -224,9 +225,6 @@ class _PortfolioPageState extends State<PortfolioPage> {
     );
   }
 
-  @override
-  // TODO: implement wantKeepAlive
-  bool get wantKeepAlive => true;
 }
 
 class PortfolioSelectorDialogue extends StatelessWidget {
@@ -275,7 +273,7 @@ class PortfolioSelectorDialogue extends StatelessWidget {
                     title: Text(portfolios[i].name!),
                     onTap: () async {
                       SharedPreferences prefs = await SharedPreferences.getInstance();
-                      prefs.setString('selectedPortfolio', portfolios[i].id!);
+                      prefs.setString('selectedPortfolio', portfolios[i].id);
                       Navigator.of(context).pop(portfolios[i].id);
                     },
                   );

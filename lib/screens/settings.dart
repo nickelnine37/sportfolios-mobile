@@ -4,14 +4,14 @@ import '../providers/settings_provider.dart';
 import 'login/gatekeeper.dart';
 import '../utils/widgets/dialogues.dart';
 
-class Settings extends StatefulWidget {
-  Settings({Key? key}) : super(key: key);
+class SettingsPage extends StatefulWidget {
+  SettingsPage({Key? key}) : super(key: key);
 
   @override
-  _SettingsState createState() => _SettingsState();
+  _SettingsPageState createState() => _SettingsPageState();
 }
 
-class _SettingsState extends State<Settings> {
+class _SettingsPageState extends State<SettingsPage> {
 
   GateKeeper? gateKeeper;
 

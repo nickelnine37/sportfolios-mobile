@@ -5,6 +5,7 @@ import '../utils/numerical/array_operations.dart';
 import '../utils/design/colors.dart';
 import '../utils/strings/number_format.dart';
 
+/// this can be used to notify other widgets that a certian chunk has been selected
 final selectedAssetProvider = ChangeNotifierProvider<SelectedAssetChangeNotifier>((ref) {
   return SelectedAssetChangeNotifier();
 });
@@ -47,7 +48,7 @@ class _AnimatedDonutChartState extends State<AnimatedDonutChart> {
   Widget build(BuildContext context) {
     binEdges = [0];
     double runningTotal = 0;
-    for (double value in widget.portfolio!.sortedValues.values) {
+    for (double value in widget.portfolio!.currentValues.values) {
       runningTotal += value;
       binEdges!.add(runningTotal / widget.portfolio!.currentValue!);
     }
@@ -119,7 +120,7 @@ class _PieChartState extends State<PieChart> {
   void initState() {
     super.initState();
     centerText = widget.portfolio!.currentValue;
-    nMarkets = widget.portfolio!.sortedValues.length;
+    nMarkets = widget.portfolio!.currentValues.length;
     portfolioName = widget.portfolio!.name;
   }
 
@@ -136,7 +137,7 @@ class _PieChartState extends State<PieChart> {
         spinning = true;
         centerText = widget.portfolio!.currentValue;
         portfolioName = widget.portfolio!.name;
-        nMarkets = widget.portfolio!.sortedValues.length;
+        nMarkets = widget.portfolio!.currentValues.length;
       }
     }
 
@@ -156,7 +157,7 @@ class _PieChartState extends State<PieChart> {
         )
         : Center(
             child: Text(
-            '${widget.portfolio!.markets[widget.portfolio!.sortedValues.keys.toList()[currentSegment!]]!.name}\n${formatCurrency(widget.portfolio!.sortedValues.values.toList()[currentSegment!], "GBP")}',
+            '${widget.portfolio!.markets![currentSegment!]}\n${formatCurrency(widget.portfolio!.currentValues.values.toList()[currentSegment!], "GBP")}',
             textAlign: TextAlign.center,
             style: TextStyle(
               fontWeight: FontWeight.w300,
@@ -174,7 +175,7 @@ class _PieChartState extends State<PieChart> {
             // change notifier provider!
             context.read(selectedAssetProvider).setAsset(newSelectedSegment == null
                 ? null
-                : widget.portfolio!.sortedValues.keys.toList()[newSelectedSegment]);
+                : widget.portfolio!.currentValues.keys.toList()[newSelectedSegment]);
 
             setState(() {
               currentSegment = newSelectedSegment;
@@ -189,11 +190,11 @@ class _PieChartState extends State<PieChart> {
           child: Stack(
               children: <Widget>[centralText] +
                   range(nMarkets).map((int i) {
-                    String market = widget.portfolio!.sortedValues.keys.toList()[i];
+                    String market = widget.portfolio!.currentValues.keys.toList()[i];
 
                     Color? color = market == 'cash'
                         ? Colors.green[500]
-                        : fromHex(widget.portfolio!.markets[market]!.colours[0]);
+                        : fromHex(widget.portfolio!.transactions![i].market.colours![0]);
 
                     if (spinning) {
                       return Center(

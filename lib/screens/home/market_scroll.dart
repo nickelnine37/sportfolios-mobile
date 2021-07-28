@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:sportfolios_alpha/utils/widgets/dialogues.dart';
 import '../../data/objects/leagues.dart';
 import '../../data/firebase/markets.dart';
 import 'market_tile.dart';
@@ -38,6 +39,12 @@ class MarketScrollState extends State<MarketScroll> with AutomaticKeepAliveClien
   /// This is just so we can do some basic things with the enterered text like clear it
   TextEditingController _textController = TextEditingController();
 
+  /// What we're sorting by
+  // String sortBy = 'Price';
+  String sortByField = 'long_price_current';
+  bool sortByDescending = true;
+  String returnsPeriod = 'd';
+
   @override
   void initState() {
     super.initState();
@@ -61,8 +68,7 @@ class MarketScrollState extends State<MarketScroll> with AutomaticKeepAliveClien
 
   /// helper function: has the user scrolled to the bottom of the page?
   bool _scrolledToBottom() {
-    return _scrollController.offset >= _scrollController.position.maxScrollExtent &&
-        !_scrollController.position.outOfRange;
+    return _scrollController.offset >= _scrollController.position.maxScrollExtent && !_scrollController.position.outOfRange;
   }
 
   /// listener for scroll controller
@@ -80,8 +86,9 @@ class MarketScrollState extends State<MarketScroll> with AutomaticKeepAliveClien
   /// 'factory reset' our page. Get a new [LeagueMarketFetcher] for the relevant league,
   void _refreshState() {
     _defaultMarketFetcher = widget.league != null
-        ? LeagueMarketFetcher(widget.league!.leagueID, widget.marketType)
-        : TeamPlayerMarketFetcher(widget.teamId);
+        ? LeagueMarketFetcher(
+            leagueID: widget.league!.leagueID, marketType: widget.marketType, sortByField: sortByField, sortByDescending: sortByDescending)
+        : TeamPlayerMarketFetcher(teamId: widget.teamId!, sortByField: sortByField, sortByDescending: sortByDescending);
     _searchQueryMarketFetcher = null;
     _selectedMarketFetcher = _defaultMarketFetcher;
     _marketsFuture = _selectedMarketFetcher!.get10();
@@ -117,48 +124,94 @@ class MarketScrollState extends State<MarketScroll> with AutomaticKeepAliveClien
             itemBuilder: (context, index) {
               if (index == 0) {
                 // the top tile contains the seach bar
-                return Container(
-                  padding: EdgeInsets.only(left: 10, right: 10, bottom: 1),
-                  height: 47,
-                  child: TextField(
-                    controller: _textController,
-                    onSubmitted: (String value) async {
-                      if (value.trim() != '') {
-                        _searchQueryMarketFetcher = widget.league != null
-                            ? LeagueSearchMarketFetcher(
-                                search: value.trim().toLowerCase(),
-                                leagueID: widget.league!.leagueID,
-                                marketType: widget.marketType,
-                                alreadyLoaded: _defaultMarketFetcher!.loadedResults)
-                            : TeamPlayerSearchMarketFetcher(
-                                search: value.trim().toLowerCase(),
-                                teamId: widget.teamId,
-                                alreadyLoaded: _defaultMarketFetcher!.loadedResults
-                              );
-                        await _searchQueryMarketFetcher!.get10();
-                        _selectedMarketFetcher = _searchQueryMarketFetcher;
-                        setState(() {});
-                      }
-                    },
-                    decoration: InputDecoration(
-                      focusedBorder: InputBorder.none,
-                      enabledBorder: InputBorder.none,
-                      hintText: formatTitle('Search'),
-                      icon: Icon(Icons.search),
-                      suffixIcon: IconButton(
-                        icon: Icon(Icons.clear),
-                        onPressed: () {
-                          _textController.clear();
-                          _selectedMarketFetcher = _defaultMarketFetcher;
-                          // close keyboard - not sure exactly what's going on here...
-                          if (!FocusScope.of(context).hasPrimaryFocus) {
-                            FocusManager.instance.primaryFocus!.unfocus();
-                          }
-                          setState(() {});
-                        },
+                return Row(
+                  children: [
+                    Expanded(
+                      child: Container(
+                        padding: EdgeInsets.only(left: 10, right: 10, bottom: 1),
+                        height: 47,
+                        child: TextField(
+                          controller: _textController,
+                          onSubmitted: (String value) async {
+                            if (value.trim() != '') {
+                              _searchQueryMarketFetcher = widget.league != null
+                                  ? LeagueSearchMarketFetcher(
+                                      search: value.trim().toLowerCase(),
+                                      leagueID: widget.league!.leagueID,
+                                      marketType: widget.marketType,
+                                      alreadyLoaded: _defaultMarketFetcher!.loadedResults)
+                                  : TeamPlayerSearchMarketFetcher(
+                                      search: value.trim().toLowerCase(),
+                                      teamId: widget.teamId,
+                                      alreadyLoaded: _defaultMarketFetcher!.loadedResults);
+                              await _searchQueryMarketFetcher!.get10();
+                              _selectedMarketFetcher = _searchQueryMarketFetcher;
+                              setState(() {});
+                            }
+                          },
+                          decoration: InputDecoration(
+                            focusedBorder: InputBorder.none,
+                            enabledBorder: InputBorder.none,
+                            hintText: formatTitle('Search'),
+                            icon: Icon(Icons.search),
+                            suffixIcon: IconButton(
+                              icon: Icon(Icons.clear),
+                              onPressed: () {
+                                _textController.clear();
+                                _selectedMarketFetcher = _defaultMarketFetcher;
+                                // close keyboard - not sure exactly what's going on here...
+                                if (!FocusScope.of(context).hasPrimaryFocus) {
+                                  FocusManager.instance.primaryFocus!.unfocus();
+                                }
+                                setState(() {});
+                              },
+                            ),
+                          ),
+                        ),
                       ),
                     ),
-                  ),
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 8),
+                      child: OutlinedButton(
+                        onPressed: () async {
+                          List<dynamic>? sortBy = await showDialog(
+                              context: context,
+                              builder: (BuildContext context) {
+                                return SortByDialogue();
+                              });
+
+                          if (sortBy != null) {
+                            setState(() {
+                              sortByField = sortBy[0];
+                              sortByDescending = sortBy[1];
+                              if (sortByField != 'long_price_current') {
+                                returnsPeriod = sortByField[sortByField.length - 1];
+                              }
+                              else{
+                                returnsPeriod = 'd';
+                              }
+                              _refreshState();
+                            });
+                          }
+                        },
+                        child: Row(
+                          children: [
+                            Icon(Icons.sort_sharp, color: Colors.grey[700]),
+                            SizedBox(width: 8),
+                            Text(
+                              'Sort',
+                              style: TextStyle(color: Colors.grey[700]),
+                            ),
+                          ],
+                        ),
+                        style: ButtonStyle(
+                          padding: MaterialStateProperty.all<EdgeInsets>(
+                            EdgeInsets.symmetric(vertical: 3, horizontal: 8),
+                          ),
+                        ),
+                      ),
+                    )
+                  ],
                 );
               } else if (index == nTiles - 1) {
                 // final tile contains the loading spinner
@@ -178,7 +231,7 @@ class MarketScrollState extends State<MarketScroll> with AutomaticKeepAliveClien
                   child: Center(child: Text("Sorry, no results :'(")),
                 );
               } else {
-                return MarketTile(market: _selectedMarketFetcher!.loadedResults[index - 1]);
+                return MarketTile(market: _selectedMarketFetcher!.loadedResults[index - 1], returnsPeriod: returnsPeriod);
               }
             },
             separatorBuilder: (context, index) => Divider(

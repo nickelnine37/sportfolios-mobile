@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:sportfolios_alpha/utils/numerical/arrays.dart';
 import '../utils/numerical/array_operations.dart';
-import 'dart:math';
 import 'dart:ui' as ui;
 import '../utils/strings/number_format.dart';
 import 'package:intl/intl.dart' as intl;
 
 class TabbedPriceGraph extends StatefulWidget {
-  final Map<String, List<double>>? priceHistory;
+  final Map<String, Array>? priceHistory;
   final Map<String, List<int>>? times;
   final Color color1;
   final Color color2;
@@ -20,7 +20,6 @@ class TabbedPriceGraph extends StatefulWidget {
     this.height = 300,
   });
 
-
   @override
   _TabbedPriceGraphState createState() => _TabbedPriceGraphState();
 }
@@ -29,10 +28,16 @@ class _TabbedPriceGraphState extends State<TabbedPriceGraph> with SingleTickerPr
   TabController? _tabController;
   final double horizontalPadding = 15;
   final double veritcalPadding = 10;
+  int selected = 0;
 
   @override
   void initState() {
     _tabController = TabController(length: 5, vsync: this);
+    _tabController!.addListener(() {
+      setState(() {
+        selected = _tabController!.index;
+      });
+    });
     super.initState();
   }
 
@@ -44,7 +49,21 @@ class _TabbedPriceGraphState extends State<TabbedPriceGraph> with SingleTickerPr
 
   @override
   Widget build(BuildContext context) {
+    List<Array> ps = [
+      widget.priceHistory!['M']!,
+      widget.priceHistory!['m']!,
+      widget.priceHistory!['w']!,
+      widget.priceHistory!['d']!,
+      widget.priceHistory!['h']!,
+    ];
 
+    List<List<int>> ts = [
+      widget.times!['M']!,
+      widget.times!['m']!,
+      widget.times!['w']!,
+      widget.times!['d']!,
+      widget.times!['h']!,
+    ];
 
     return DefaultTabController(
       length: 5,
@@ -55,39 +74,16 @@ class _TabbedPriceGraphState extends State<TabbedPriceGraph> with SingleTickerPr
           Container(
             padding: EdgeInsets.symmetric(vertical: veritcalPadding, horizontal: horizontalPadding),
             height: widget.height,
-            child: AnimatedBuilder(
-              animation: _tabController!.animation!,
-              builder: (BuildContext context, snapshot) {
-                int g1 = _tabController!.previousIndex;
-                int g2 = _tabController!.index;
-                double pcComplete = (g1 == g2) ? 0 : (_tabController!.animation!.value - g1) / (g2 - g1);
-
-                List<List<double>?> ps = [
-                  widget.priceHistory!['M'],
-                  widget.priceHistory!['m'],
-                  widget.priceHistory!['w'],
-                  widget.priceHistory!['d'],
-                  widget.priceHistory!['h'],
-                ];
-
-                List<List<int>?> ts = [
-                  widget.times!['M'],
-                  widget.times!['m'],
-                  widget.times!['w'],
-                  widget.times!['d'],
-                  widget.times!['h'],
-                ];
-
-                return PriceGraph(
-                  prices: matrixMultiplyDoubleDouble([ps[g1], ps[g2]], [1 - pcComplete, pcComplete]),
-                  // times: matrixMultiplyIntDouble([ts[g1], ts[g2]], [1 - pcComplete, pcComplete]),
-                  times: ts[g2],
-                  horizontalPaddingParent: horizontalPadding,
-                  moving: _tabController!.indexIsChanging,
-                  lineColor: widget.color1,
-                  shadeColor: widget.color2,
-                );
-              },
+            child: PriceGraph(
+              prices: ps[selected],
+              times: ts[selected],
+              horizontalPaddingParent: horizontalPadding,
+              moving: _tabController!.indexIsChanging,
+              // moving: false,
+              lineColor: widget.color1,
+              shadeColor: widget.color2,
+              // pmin: pmin,
+              // pmax: pmax
             ),
           ),
           Container(
@@ -98,7 +94,7 @@ class _TabbedPriceGraphState extends State<TabbedPriceGraph> with SingleTickerPr
                 height: 30,
                 padding: EdgeInsets.only(bottom: 5, top: 2, left: 3, right: 3),
                 child: TabBar(
-                  labelColor: Colors.grey[900],
+                  labelColor: Colors.grey[800],
                   unselectedLabelColor: Colors.grey[400],
                   indicatorColor: Colors.grey[600],
                   indicatorWeight: 1,
@@ -123,8 +119,8 @@ class _TabbedPriceGraphState extends State<TabbedPriceGraph> with SingleTickerPr
 }
 
 class PriceGraph extends StatefulWidget {
-  final List<double>? prices;
-  final List<int>? times;
+  final Array prices;
+  final List<int> times;
   final bool? moving;
   final Color? lineColor;
   final Color? shadeColor;
@@ -135,13 +131,18 @@ class PriceGraph extends StatefulWidget {
   final double lPad = 0.05;
   final double rPad = 0.05;
 
+  final double? pmin;
+  final double? pmax;
+
   PriceGraph({
-    this.prices,
-    this.times,
+    required this.prices,
+    required this.times,
     this.horizontalPaddingParent,
     this.moving,
     this.lineColor,
     this.shadeColor,
+    this.pmin,
+    this.pmax,
   });
 
   @override
@@ -197,32 +198,29 @@ class _PriceGraphState extends State<PriceGraph> {
   /// given an x-coordinate in pixels, return an interpolated y-coordinate in currency
   double _pxToY(double? px) {
     if ((pmax! - pmin!).abs() < 1e-5) {
-      return widget.prices!.first;
+      return widget.prices.first;
     } else {
       // double equivelant of index number
-      double i =
-          (widget.prices!.length - 1) * (px! / graphWidth! - widget.lPad) / (1 - widget.lPad - widget.rPad);
-      if (i > (widget.prices!.length - 1)) {
+      double i = (widget.prices.length - 1) * (px! / graphWidth! - widget.lPad) / (1 - widget.lPad - widget.rPad);
+      if (i > (widget.prices.length - 1)) {
         // return last price
-        return widget.prices!.last;
+        return widget.prices.last;
       } else if (i < 0) {
         // return first price
-        return widget.prices!.first;
+        return widget.prices.first;
       } else {
         // interpolate
-        return (1 - (i % 1)) * widget.prices![i.floor()] + (i % 1) * widget.prices![i.ceil()];
+        return (1 - (i % 1)) * widget.prices[i.floor()] + (i % 1) * widget.prices[i.ceil()];
       }
     }
   }
 
   /// given an x-coordinate in pixels, return an interpolated y-coordinate in pixels
   double _pxToPy(double? px) {
-
     if ((pmax! - pmin!).abs() < 1e-5) {
       return graphHeight * ((1 - widget.tPad - widget.bPad) * 0.5 + widget.tPad);
     } else {
-      return graphHeight *
-          ((1 - widget.tPad - widget.bPad) * (1 - (_pxToY(px) - pmin!) / (pmax! - pmin!)) + widget.tPad);
+      return graphHeight * ((1 - widget.tPad - widget.bPad) * (1 - (_pxToY(px) - pmin!) / (pmax! - pmin!)) + widget.tPad);
     }
   }
 
@@ -231,15 +229,13 @@ class _PriceGraphState extends State<PriceGraph> {
   }
 
   String _pxToDateX(double px) {
-    double i =
-        ((widget.prices!.length - 1) * (px / graphWidth! - widget.lPad)) / (1 - widget.lPad - widget.rPad);
-    if (i > (widget.prices!.length - 1)) {
-      return unixToDateString(widget.times!.last);
+    double i = ((widget.prices.length - 1) * (px / graphWidth! - widget.lPad)) / (1 - widget.lPad - widget.rPad);
+    if (i > (widget.prices.length - 1)) {
+      return unixToDateString(widget.times.last);
     } else if (i < 0) {
-      return unixToDateString(widget.times!.first);
+      return unixToDateString(widget.times.first);
     } else {
-      return unixToDateString(
-          ((1 - (i % 1)) * widget.times![i.floor()] + (i % 1) * widget.times![i.ceil()]).floor());
+      return unixToDateString(((1 - (i % 1)) * widget.times[i.floor()] + (i % 1) * widget.times[i.ceil()]).floor());
     }
   }
 
@@ -291,7 +287,7 @@ class _PriceGraphState extends State<PriceGraph> {
     // check if all values in the price array are the same
 
     if (dt_t == null) {
-      setDateFormat(widget.times![1] - widget.times![0]);
+      setDateFormat(widget.times[1] - widget.times[0]);
     }
 
     // we're switching tabs so reset some variables
@@ -306,18 +302,22 @@ class _PriceGraphState extends State<PriceGraph> {
       dt_t = null;
     }
 
+    if (pmin == null || widget.prices.last != lastp) {
+      pmin = widget.prices.min;
+      pmax = widget.prices.max;
+      lastp = widget.prices.last;
+    }
 
-    if (pmin == null || widget.prices!.last != lastp) {
-      pmin = widget.prices!.reduce(min);
-      pmax = widget.prices!.reduce(max);
-      lastp = widget.prices!.last;
+    if (widget.pmin != null) {
+      pmin = widget.pmin;
+      pmax = widget.pmax;
     }
 
     if (dateX == null) {
       dateX = unixToDateString((DateTime.now().millisecondsSinceEpoch / 1000).floor());
     }
 
-    returns = (priceY ?? widget.prices!.last) / widget.prices!.first - 1;
+    returns = (priceY ?? widget.prices.last) / widget.prices.first - 1;
 
     return Column(
       children: [
@@ -328,14 +328,14 @@ class _PriceGraphState extends State<PriceGraph> {
                   mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                   children: [
                     Text(
-                      '${unixToDateString(widget.times!.first)} – \n$dateX',
+                      '${unixToDateString(widget.times.first)} – \n$dateX',
                       textAlign: TextAlign.start,
                       style: TextStyle(fontWeight: FontWeight.w300, fontSize: 15, color: Colors.grey[800]),
                     ),
                     // SizedBox(width: 15),
                     Center(
                         child: Text(
-                      '${formatCurrency(widget.prices!.first, 'GBP')} – ${formatCurrency(priceY ?? widget.prices!.last, 'GBP')}',
+                      '${formatCurrency(widget.prices.first, 'GBP')} – ${formatCurrency(priceY ?? widget.prices.last, 'GBP')}',
                       style: TextStyle(fontWeight: FontWeight.w300, fontSize: 20, color: Colors.grey[800]),
                     )),
                     // SizedBox(width: 15),
@@ -372,6 +372,8 @@ class _PriceGraphState extends State<PriceGraph> {
               bPad: widget.bPad,
               lPad: widget.lPad,
               rPad: widget.rPad,
+              pmin: pmin,
+              pmax: pmax,
             ),
           ),
         ),
@@ -381,7 +383,7 @@ class _PriceGraphState extends State<PriceGraph> {
 }
 
 class PriceGraphPainter extends CustomPainter {
-  final List<double>? prices;
+  final Array? prices;
   // final bool isConstant;
   final bool? moving;
   final Color? lineColor;
@@ -412,18 +414,19 @@ class PriceGraphPainter extends CustomPainter {
     this.bPad,
     this.lPad,
     this.rPad,
+    this.pmin,
+    this.pmax,
   });
 
-  double? yToPy(y, size) {
-    return size.height * ((1 - tPad! - bPad!) * (1 - (y - pmin) / (pmax! - pmin!)) + tPad!);
+  double yToPy(double y, Size size) {
+    return size.height * ((1 - tPad! - bPad!) * (1 - (y - pmin!) / (pmax! - pmin!)) + tPad!);
   }
 
-  double? xToPx(x, size) {
-    return x * ((1 - lPad! - rPad!) * size.width / (n! - 1)) + size.width * lPad;
+  double xToPx(double x, Size size) {
+    return x * ((1 - lPad! - rPad!) * size.width / (n! - 1)) + size.width * lPad!;
   }
 
-  void paintPriceGrah(
-      Size size, Canvas canvas, List<double?> pathX, List<double?> pathY, double opacityMultiple) {
+  void paintPriceGrah(Size size, Canvas canvas, List<double?> pathX, List<double> pathY, double opacityMultiple) {
     Paint linePaint = Paint()
       ..color = lineColor!.withOpacity(opacityMultiple)
       ..style = PaintingStyle.stroke
@@ -447,14 +450,14 @@ class PriceGraphPainter extends CustomPainter {
 
     int pathLength = pathX.length;
 
-    graphLine.moveTo(pathX[0]!, pathY[0]!);
-    shading.moveTo(pathX[0]!, pathY[0]!);
+    graphLine.moveTo(pathX[0]!, pathY[0]);
+    shading.moveTo(pathX[0]!, pathY[0]);
 
     for (int i = 1; i < pathLength; i++) {
       if (i < pathLength - 3) {
-        graphLine.lineTo(pathX[i]!, pathY[i]!);
+        graphLine.lineTo(pathX[i]!, pathY[i]);
       }
-      shading.lineTo(pathX[i]!, pathY[i]!);
+      shading.lineTo(pathX[i]!, pathY[i]);
     }
 
     canvas.drawPath(graphLine, linePaint);
@@ -487,8 +490,7 @@ class PriceGraphPainter extends CustomPainter {
       style: TextStyle(color: Colors.grey[850], fontSize: 12, fontWeight: FontWeight.w400),
     );
 
-    TextPainter pricePainter =
-        TextPainter(text: priceText, textDirection: TextDirection.ltr, textAlign: TextAlign.center);
+    TextPainter pricePainter = TextPainter(text: priceText, textDirection: TextDirection.ltr, textAlign: TextAlign.center);
 
     pricePainter.layout(minWidth: 0, maxWidth: 60);
 
@@ -496,12 +498,12 @@ class PriceGraphPainter extends CustomPainter {
         canvas,
         minOrMax == 'min'
             ? Offset(
-                xToPx(xMin, size)! - pricePainter.width / 2,
-                yToPy(pmin, size)! + 5,
+                xToPx(xMin + 0.0, size) - pricePainter.width / 2,
+                yToPy(pmin!, size) + 5,
               )
             : Offset(
-                xToPx(xMax, size)! - pricePainter.width / 2,
-                yToPy(pmax, size)! - pricePainter.height - 2,
+                xToPx(xMax + 0.0, size) - pricePainter.width / 2,
+                yToPy(pmax!, size) - pricePainter.height - 2,
               ));
   }
 
@@ -509,16 +511,15 @@ class PriceGraphPainter extends CustomPainter {
   void paint(Canvas canvas, Size size) {
     //
 
-
-
     n = prices!.length;
     xMax = range(n).reduce((prev, cur) => prices![prev] > prices![cur] ? prev : cur);
     xMin = range(n).reduce((prev, cur) => prices![prev] < prices![cur] ? prev : cur);
-    pmin = prices![xMin];
-    pmax = prices![xMax];
+    if (pmin == null) {
+      pmin = prices![xMin];
+      pmax = prices![xMax];
+    }
 
     bool isConstant = ((pmin! - pmax!).abs() < 1e-5);
-
 
     // calculate cut-off index
     if (touchX != null) {
@@ -539,23 +540,26 @@ class PriceGraphPainter extends CustomPainter {
       }
       // two halves
       else {
-        paintPriceGrah(size, canvas, [x0, touchX, touchX, x0, x0], [y1, y1, y0, y0, y1], 1);
-        paintPriceGrah(size, canvas, [touchX, x1, x1, touchX, touchX], [y1, y1, y0, y0, y1], 0.3);
+        paintPriceGrah(size, canvas, <double>[x0, touchX!, touchX!, x0, x0], <double>[y1, y1, y0, y0, y1], 1);
+        paintPriceGrah(size, canvas, <double>[touchX!, x1, x1, touchX!, touchX!], <double>[y1, y1, y0, y0, y1], 0.3);
       }
     }
     // normal graph
     else {
       // basic x-y coordinates
-      List pathpY = List<double?>.from(prices!.map((y) => yToPy(y, size)));
-      List pathpX = List<double?>.generate(n!, (x) => xToPx(x, size));
+      List pathpY = prices!.apply((double y) => yToPy(y, size)).toList();
+      List pathpX = List<double>.generate(n!, (x) => xToPx(x + 0.0, size));
+
+      // print(pathpY);
+      // print(pathpX);
 
       // single graph
       if (touchX == null) {
         paintPriceGrah(
           size,
           canvas,
-          pathpX + <double>[x1, x0, x0] as List<double?>,
-          pathpY + <double?>[y0, y0, pathpY.first] as List<double?>,
+          pathpX + <double>[x1, x0, x0] as List<double>,
+          pathpY + <double>[y0, y0, pathpY.first] as List<double>,
           1,
         );
       }
@@ -565,16 +569,16 @@ class PriceGraphPainter extends CustomPainter {
         paintPriceGrah(
           size,
           canvas,
-          pathpX.sublist(0, cutOffIndex) + <double?>[touchX, touchX, x0, x0] as List<double?>,
-          pathpY.sublist(0, cutOffIndex) + <double?>[touchY, y0, y0, pathpY.first] as List<double?>,
+          pathpX.sublist(0, cutOffIndex) + <double>[touchX!, touchX!, x0, x0] as List<double>,
+          pathpY.sublist(0, cutOffIndex) + <double>[touchY!, y0, y0, pathpY.first] as List<double>,
           1,
         );
         // second half
         paintPriceGrah(
           size,
           canvas,
-          <double?>[touchX] + (pathpX.sublist(cutOffIndex!) as List<double?>) + <double?>[x1, touchX, touchX],
-          <double?>[touchY] + (pathpY.sublist(cutOffIndex!) as List<double?>) + <double?>[y0, y0, touchY],
+          <double>[touchX!] + (pathpX.sublist(cutOffIndex!) as List<double>) + <double>[x1, touchX!, touchX!],
+          <double>[touchY!] + (pathpY.sublist(cutOffIndex!) as List<double>) + <double>[y0, y0, touchY!],
           0.3,
         );
       }

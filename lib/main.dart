@@ -59,12 +59,16 @@ class _MyAppState extends State<MyApp> {
           if (snapshot.connectionState == ConnectionState.done) {
 
             /// user is verified
-            if (userIsVerified)
+            if (userIsVerified){
+              print('User verified - continuing to app');
               return AppMain();
+            }
 
             /// user is not verified
-            else
+            else{
+              print('User not verified - logging in');
               return LoginPage();
+            }
           }
 
           /// if we have an error

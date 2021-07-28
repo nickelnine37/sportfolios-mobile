@@ -65,7 +65,7 @@ class PortfolioFetcher {
       if (loadedResults.length == 0) {
         results = await baseQuery.get();
       } else {
-        results = await baseQuery.startAfterDocument(loadedResults.last.doc).get();
+        results = await baseQuery.startAfterDocument(loadedResults.last.doc!).get();
       }
 
       if (results.docs.length < 10) {

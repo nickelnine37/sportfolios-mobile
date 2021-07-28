@@ -5,6 +5,8 @@ import 'package:flutter/services.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:confetti/confetti.dart';
 import 'package:intl/intl.dart' as intl;
+import 'package:sportfolios_alpha/data/lmsr/lmsr.dart';
+import 'package:sportfolios_alpha/utils/numerical/arrays.dart';
 
 import '../../../data/api/requests.dart';
 import '../../../data/firebase/portfolios.dart';
@@ -16,8 +18,8 @@ import '../../../utils/numerical/numbers.dart';
 import '../../../data/objects/portfolios.dart';
 
 class BuyMarket extends StatefulWidget {
-  final Market? market;
-  final List<double>? quantity;
+  final Market market;
+  final Asset quantity;
 
   BuyMarket(this.market, this.quantity);
 
@@ -31,14 +33,13 @@ class _BuyMarketState extends State<BuyMarket> {
   @override
   void initState() {
     super.initState();
-    _portfoliosFuture = Future.wait([_getPortfolios(), widget.market!.lmsr.updateCurrentX()]);
+    _portfoliosFuture = Future.wait(<Future>[_getPortfolios(), widget.market.getCurrentHoldings()]);
   }
 
   Future<List<Portfolio>> _getPortfolios() async {
     AuthService _authService = AuthService();
     List<Portfolio> out = [];
-    DocumentSnapshot userSnapshot =
-        await FirebaseFirestore.instance.collection('users').doc(_authService.currentUid).get();
+    DocumentSnapshot userSnapshot = await FirebaseFirestore.instance.collection('users').doc(_authService.currentUid).get();
     List<String> portfolioIds = List<String>.from(userSnapshot['portfolios']);
     for (String portfolioId in portfolioIds) {
       out.add(await getPortfolioById(portfolioId));
@@ -66,52 +67,46 @@ class _BuyMarketState extends State<BuyMarket> {
               // mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 Container(
-                    height: 20,
-                    width: MediaQuery.of(context).size.width * 0.35,
-                    child: CustomPaint(painter: SwipeDownTopBarPainter())),
+                    height: 20, width: MediaQuery.of(context).size.width * 0.35, child: CustomPaint(painter: SwipeDownTopBarPainter())),
                 SizedBox(height: 5),
                 Expanded(
                   child: SingleChildScrollView(
                     child: Column(
                       children: [
-                        Text('Buy: ${widget.market!.name}',
-                            textAlign: TextAlign.center,
-                            style: TextStyle(fontSize: 24, fontWeight: FontWeight.w300)),
+                        Text('Buy: ${widget.market.name}',
+                            textAlign: TextAlign.center, style: TextStyle(fontSize: 24, fontWeight: FontWeight.w300)),
                         SizedBox(height: 5),
                         Divider(thickness: 2, height: 25),
-                        Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            crossAxisAlignment: CrossAxisAlignment.center,
+                        Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, crossAxisAlignment: CrossAxisAlignment.center, children: [
+                          CachedNetworkImage(
+                            imageUrl: widget.market.imageURL!,
+                            height: 50,
+                          ),
+                          Column(
                             children: [
-                              CachedNetworkImage(
-                                imageUrl: widget.market!.imageURL!,
-                                height: 50,
+                              Text('Per contract'),
+                              SizedBox(height: 3),
+                              Text(
+                                formatCurrency(widget.market.currentLMSR!.getValue(widget.quantity), 'GBP'),
+                                style: TextStyle(fontSize: 18, fontWeight: FontWeight.w300),
                               ),
-                              Column(
-                                children: [
-                                  Text('Per contract'),
-                                  SizedBox(height: 3),
-                                  Text(
-                                    formatCurrency(widget.market!.lmsr.getValue(widget.quantity), 'GBP'),
-                                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.w300),
-                                  ),
-                                ],
+                            ],
+                          ),
+                          Column(
+                            children: [
+                              Text('Payout date'),
+                              SizedBox(height: 3),
+                              Text(
+                                intl.DateFormat.yMMMd().format(widget.market.endDate!),
+                                // TODO: add market expirey date
+                                // DateFormat('d MMM yy').format(widget.league.endDate),
+                                style: TextStyle(fontSize: 17, fontWeight: FontWeight.w300),
                               ),
-                              Column(
-                                children: [
-                                  Text('Payout date'),
-                                  SizedBox(height: 3),
-                                  Text(
-                                    intl.DateFormat.yMMMd().format(widget.market!.endDate!),
-                                    // TODO: add market expirey date
-                                    // DateFormat('d MMM yy').format(widget.league.endDate),
-                                    style: TextStyle(fontSize: 17, fontWeight: FontWeight.w300),
-                                  ),
-                                ],
-                              ),
-                            ]),
+                            ],
+                          ),
+                        ]),
                         Divider(thickness: 2, height: 25),
-                        TrueStaticPayoutGraph(widget.quantity, Colors.blue, 35, 150, true),
+                        // TrueStaticPayoutGraph(widget.quantity, Colors.blue, 35, 150, true),
                         SizedBox(height: 25),
                         FutureBuilder(
                             future: _portfoliosFuture,
@@ -140,8 +135,8 @@ class _BuyMarketState extends State<BuyMarket> {
 
 class BuyForm extends StatefulWidget {
   final List<Portfolio>? portfolios;
-  final Market? market;
-  final List<double>? quantity;
+  final Market market;
+  final Asset quantity;
 
   BuyForm(this.portfolios, this.market, this.quantity);
 
@@ -194,9 +189,8 @@ class _BuyFormState extends State<BuyForm> {
                   child: Center(
                     child: DropdownButtonFormField(
                       value: _selectedPortfolioId,
-                      items: List<DropdownMenuItem<String>>.from(widget.portfolios!.map((portfolio) =>
-                              DropdownMenuItem(
-                                  onTap: () {}, value: portfolio.id, child: Text(portfolio.name!)))) +
+                      items: List<DropdownMenuItem<String>>.from(widget.portfolios!
+                              .map((portfolio) => DropdownMenuItem(onTap: () {}, value: portfolio.id, child: Text(portfolio.name!)))) +
                           <DropdownMenuItem<String>>[
                             DropdownMenuItem(
                               value: 'new',
@@ -226,8 +220,7 @@ class _BuyFormState extends State<BuyForm> {
                         _selectedPortfolioId = id;
                       },
                       validator: (String? value) {
-                        if (widget.portfolios!.map((portfolio) => portfolio.id).contains(value) ||
-                            value == 'new') {
+                        if (widget.portfolios!.map((portfolio) => portfolio.id).contains(value) || value == 'new') {
                           // TODO: check whether portfolio has sufficient cash
                           return null;
                         } else {
@@ -259,9 +252,7 @@ class _BuyFormState extends State<BuyForm> {
                   height: 50,
                   child: TextFormField(
                     keyboardType: TextInputType.numberWithOptions(signed: false, decimal: true),
-                    inputFormatters: <TextInputFormatter>[
-                      FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d{0,2}$'))
-                    ],
+                    inputFormatters: <TextInputFormatter>[FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d{0,2}$'))],
                     // maxLength: 5,
                     controller: _unitController,
                     decoration: InputDecoration(hintText: '0.00'),
@@ -270,7 +261,10 @@ class _BuyFormState extends State<BuyForm> {
                       } else {
                         try {
                           units = double.parse(value);
-                          price = validatePrice(widget.market!.lmsr.priceTrade(widget.quantity!, units));
+                          widget.quantity.k = units;
+                          price = validatePrice(widget.market.currentLMSR!.priceTrade(
+                            widget.quantity,
+                          ));
                           setState(() {});
                         } catch (error) {
                           print(error.toString());
@@ -330,11 +324,10 @@ class _BuyFormState extends State<BuyForm> {
                         loading = true;
                       });
 
-                      Map<String, dynamic>? purchaseRequestResult = await makePurchaseRequest(
-                          widget.market!.id,
-                          _selectedPortfolioId,
-                          widget.quantity!.map((qi) => units * qi).toList(),
-                          price);
+                      widget.quantity.k = units;
+
+                      Map<String, dynamic>? purchaseRequestResult =
+                          await makePurchaseRequest(widget.market.id, _selectedPortfolioId!, widget.quantity, price!);
 
                       if (purchaseRequestResult == null) {
                         showDialog(
@@ -389,18 +382,13 @@ class _BuyFormState extends State<BuyForm> {
                         bool confirm = await showDialog(
                                 context: context,
                                 builder: (BuildContext context) {
-                                  return ConfirmPurchase(
-                                      oldPrice: price, newPrice: purchaseRequestResult['price']);
+                                  return ConfirmPurchase(oldPrice: price, newPrice: purchaseRequestResult['price']);
                                 }) ??
                             false;
 
                         bool ok = await respondToNewPrice(
                           confirm,
-                          purchaseRequestResult['cancelId'],
-                          widget.market!.id,
-                          _selectedPortfolioId,
-                          widget.quantity!.map((qi) => units * qi).toList(),
-                          purchaseRequestResult['price'],
+                          purchaseRequestResult['cancelId']
                         );
 
                         if (confirm && !ok) {
@@ -470,8 +458,7 @@ class PurchaseCompletePopup extends StatelessWidget {
             boxShadow: [BoxShadow(color: Colors.black26, blurRadius: 10.0, offset: const Offset(0.0, 10.0))],
           ),
           child: Center(
-            child: Text('Purchase complete',
-                style: TextStyle(fontSize: 24.0, fontWeight: FontWeight.w700), textAlign: TextAlign.center),
+            child: Text('Purchase complete', style: TextStyle(fontSize: 24.0, fontWeight: FontWeight.w700), textAlign: TextAlign.center),
           )),
     );
   }
@@ -699,7 +686,7 @@ class _CongratualtionsDialogueState extends State<CongratualtionsDialogue> {
             Align(
               alignment: Alignment.bottomRight,
               child: TextButton(
-                  style: ButtonStyle(overlayColor: MaterialStateProperty.all<Color>(Colors.blue[400]!)),
+                style: ButtonStyle(overlayColor: MaterialStateProperty.all<Color>(Colors.blue[400]!)),
                 onPressed: () {
                   Navigator.of(context).pop(); // To close the dialog
                 },
@@ -744,8 +731,7 @@ class SecondsLinearProgress extends StatefulWidget {
   SecondsLinearProgress(this._total, {this.timeout});
 
   @override
-  _SecondsLinearProgressState createState() =>
-      _SecondsLinearProgressState(timeout != null ? timeout : _total, _total);
+  _SecondsLinearProgressState createState() => _SecondsLinearProgressState(timeout != null ? timeout : _total, _total);
 }
 
 class _SecondsLinearProgressState extends State<SecondsLinearProgress> with SingleTickerProviderStateMixin {

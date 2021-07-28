@@ -14,6 +14,10 @@ class Array {
   }
 
   Array.fromDynamicList(List l) {
+    a = Float64List.fromList(List<double>.from(l));
+  }
+
+  Array.fromTrueDynamicList(List l) {
     a = Float64List.fromList(List<double>.from(l.map((i) => i + 0.0)));
   }
 
@@ -70,6 +74,17 @@ class Array {
     return min;
   }
   
+  double get last {
+    return a.last;
+  }
+
+  double get first {
+    return a.first;
+  }
+  
+  double get mean {
+    return sum / length;
+  }
   /// ------- Operators -------
 
   double operator [](int index) => a[index];
@@ -114,6 +129,14 @@ class Array {
     return Array.from(c);
   }
 
+  bool operator ==(dynamic b) {
+    if (b.runtimeType != Array) {
+      return false;
+    }
+    else {
+      return b.a == a;
+    }
+  }
   /// -------- Methods -------
 
   Array apply(double Function(double) fun) {
@@ -150,14 +173,18 @@ class Array {
     return true;
   }
 
-  double dotProduct(Array? b) {
+  double dotProduct(Array b) {
     double out = 0.0;
     for (int i = 0; i < length; i++) {
-      out += a[i] * b![i];
+      out += a[i] * b[i];
     }
     return out;
   }
 
+  Array extend(List<double> l) {
+    return Array.fromList(a + l);
+  }
+  
   void _checkArray(Array b) {
     if (length != b.length) {
       throw ('both arrays need have the same dimension');

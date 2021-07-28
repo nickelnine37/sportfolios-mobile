@@ -1,55 +1,33 @@
-import 'dart:math';
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shimmer/shimmer.dart';
-import '../providers/settings_provider.dart';
+import 'package:sportfolios_alpha/utils/numerical/arrays.dart';
 import '../utils/numerical/array_operations.dart';
 import '../utils/strings/number_format.dart';
 import '../utils/strings/string_utils.dart';
 
-
-
-class TrueStaticPayoutGraph extends StatefulWidget {
-  final List<double>? payouts;
-  final Color color;
-  final double lrPadding;
+class PayoutGraph extends StatefulWidget {
+  final Array q;
+  final double padding;
   final double height;
-  final bool lock;
-  final double? pmax;
+  final bool tappable;
 
-  TrueStaticPayoutGraph(this.payouts, this.color, this.lrPadding, [this.height=200, this.lock=false, this.pmax]);
+  PayoutGraph({required this.q, required this.tappable, this.padding = 25, this.height = 150});
 
   @override
-  _TrueStaticPayoutGraphState createState() => _TrueStaticPayoutGraphState();
+  _PayoutGraphState createState() => _PayoutGraphState();
 }
 
-class _TrueStaticPayoutGraphState extends State<TrueStaticPayoutGraph> {
-  double? width;
+class _PayoutGraphState extends State<PayoutGraph> {
   int? selectedBar;
-  double? pmax;
   int? n;
+  double? width;
 
-  int? _selectedBar(Offset touchLocation) {
-    int selected = (n! * touchLocation.dx / width!).floor();
-
-    if (touchLocation.dy + 20 > widget.height - widget.height * widget.payouts![selected] / pmax!)
-      return selected;
-    else
-      return null;
-  }
-
-  List<CustomPaint> _rereshPainters(double percentComplete) {
+  List<CustomPaint> _rereshPainters() {
     if (selectedBar == null) {
       return range(n)
           .map(
             (int i) => CustomPaint(
-              painter: Bar(
-                  payouts: widget.payouts,
-                  index: i,
-                  opacity: 1,
-                  percentComplete: percentComplete,
-                  color: widget.color, 
-                  pmax: pmax),
+              painter: SimpleBar(payouts: widget.q, index: i, opacity: 1),
               size: Size(width!, widget.height),
             ),
           )
@@ -58,12 +36,7 @@ class _TrueStaticPayoutGraphState extends State<TrueStaticPayoutGraph> {
       return range(n)
           .map(
             (int i) => CustomPaint(
-              painter: Bar(
-                  payouts: widget.payouts,
-                  index: i,
-                  opacity: (i == selectedBar) ? 1 : 0.5,
-                  color: widget.color, 
-                  pmax: pmax),
+              painter: SimpleBar(payouts: widget.q, index: i, opacity: (i == selectedBar) ? 1 : 0.5),
               size: Size(width!, widget.height),
             ),
           )
@@ -71,47 +44,47 @@ class _TrueStaticPayoutGraphState extends State<TrueStaticPayoutGraph> {
     }
   }
 
+  int? _selectedBar(Offset touchLocation) {
+    int selected = (n! * touchLocation.dx / width!).floor();
+
+    if (touchLocation.dy + 20 > widget.height - widget.height * widget.q[selected] / 10)
+      return selected;
+    else
+      return null;
+  }
+
   @override
   Widget build(BuildContext context) {
+    if (n == null) {
+      n = widget.q.length;
+    }
 
     if (width == null) {
-    width = MediaQuery.of(context).size.width - 2 * widget.lrPadding;
-
+      width = MediaQuery.of(context).size.width - 2 * widget.padding;
     }
 
-    if (widget.pmax == null) {
-    pmax = widget.payouts!.reduce(max);
-
-    }
-    else {
-      pmax = widget.pmax;
+    if (!widget.tappable) {
+      selectedBar = null;
     }
 
-    if (n == null) {
-    n = widget.payouts!.length;
-
-    }
-
-    return Column(
-      children: [
-        Padding(
-          padding: EdgeInsets.symmetric(vertical: 8.0),
-          child: Container(
-            height: 20,
-            child: Text(
-              selectedBar != null
-                  ? '${widget.payouts!.length - selectedBar!}${formatOrdinal(widget.payouts!.length - selectedBar!)} place payout: ${formatCurrency(widget.payouts![selectedBar!], 'GBP')}'
-                  : 'Payout Structure',
-              style: TextStyle(fontSize: 15),
+    return Container(
+      width: double.infinity,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          Padding(
+            padding: EdgeInsets.symmetric(vertical: 8.0),
+            child: Container(
+              height: 20,
+              child: Text(
+                selectedBar != null
+                    ? '${widget.q.length - selectedBar!}${formatOrdinal(widget.q.length - selectedBar!)} place payout: ${formatCurrency(widget.q[selectedBar!], 'GBP')}'
+                    : 'Payout Structure',
+                style: TextStyle(fontSize: 15, color: Colors.grey[800]),
+              ),
             ),
           ),
-        ),
-        Shimmer.fromColors(
-          baseColor: widget.color,
-          highlightColor: widget.color.withAlpha(200),
-          period: Duration(milliseconds: 3000),
-          enabled: !widget.lock,
-          child: widget.lock
+          widget.tappable
               ? GestureDetector(
                   onTapDown: (TapDownDetails details) {
                     int? newSelectedBar = _selectedBar(details.localPosition);
@@ -126,172 +99,57 @@ class _TrueStaticPayoutGraphState extends State<TrueStaticPayoutGraph> {
                     width: width,
                     height: widget.height,
                     child: Stack(
-                      children: _rereshPainters(1),
+                      children: _rereshPainters(),
                     ),
                   ),
                 )
-              : Container(
-                  alignment: Alignment.topRight,
-                  width: width,
-                  height: widget.height,
-                  child: Stack(
-                    children: _rereshPainters(1),
+              : Shimmer.fromColors(
+                  baseColor: Colors.blue,
+                  highlightColor: Colors.blue.withAlpha(150),
+                  period: Duration(milliseconds: 3000),
+                  enabled: !widget.tappable,
+                  child: Container(
+                    alignment: Alignment.topRight,
+                    width: width,
+                    height: widget.height,
+                    child: Stack(
+                      children: _rereshPainters(),
+                    ),
                   ),
                 ),
-        )
-      ],
+        ],
+      ),
     );
-  } // decoration: BoxDecoration(
-}
-
-class StaticPayoutGraph extends StatefulWidget {
-  final List<double> payouts;
-  final Color color;
-  StaticPayoutGraph(this.payouts, this.color);
-
-  @override
-  _StaticPayoutGraphState createState() => _StaticPayoutGraphState();
-}
-
-class _StaticPayoutGraphState extends State<StaticPayoutGraph> {
-  double? width;
-  double height = 200;
-  int? selectedBar;
-  late double pmax;
-  int? n;
-
-  List<CustomPaint> _rereshPainters(double percentComplete) {
-    if (selectedBar == null) {
-      return range(n)
-          .map(
-            (int i) => CustomPaint(
-              painter: Bar(
-                  payouts: widget.payouts,
-                  index: i,
-                  opacity: 1,
-                  percentComplete: percentComplete,
-                  color: widget.color),
-              size: Size(width!, height),
-            ),
-          )
-          .toList();
-    } else {
-      return range(n)
-          .map(
-            (int i) => CustomPaint(
-              painter: Bar(
-                  payouts: widget.payouts,
-                  index: i,
-                  opacity: (i == selectedBar) ? 1 : 0.5,
-                  color: widget.color),
-              size: Size(width!, height),
-            ),
-          )
-          .toList();
-    }
   }
-
-  int? _selectedBar(Offset touchLocation) {
-    int selected = (n! * touchLocation.dx / width!).floor();
-
-    if (touchLocation.dy + 20 > height - height * widget.payouts[selected] / pmax)
-      return selected;
-    else
-      return null;
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    width = MediaQuery.of(context).size.width * 0.9;
-    pmax = widget.payouts.reduce(max);
-    n = widget.payouts.length;
-    return Column(
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: [
-        Text('Market Payout Structure', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w400)),
-        SizedBox(height: 15),
-        GestureDetector(
-          onTapDown: (TapDownDetails details) {
-            int? newSelectedBar = _selectedBar(details.localPosition);
-            if (newSelectedBar != selectedBar) {
-              setState(() {
-                selectedBar = newSelectedBar;
-              });
-            }
-          },
-          child: TweenAnimationBuilder(
-              curve: Curves.easeOutSine,
-              duration: Duration(milliseconds: 1000),
-              tween: Tween<double>(begin: 0, end: 1),
-              child: Consumer(builder: (context, watch, child) {
-                String? currency = watch(settingsProvider).currency;
-                return Container(
-                    padding: EdgeInsets.all(20),
-                    child: (selectedBar == null)
-                        ? null
-                        : Column(
-                            children: [
-                              Text(
-                                '${widget.payouts.length - selectedBar!}${formatOrdinal(widget.payouts.length - selectedBar!)} place payout:',
-                                style: TextStyle(fontSize: 15),
-                              ),
-                              Text(formatCurrency(widget.payouts[selectedBar!], currency),
-                                  style: TextStyle(
-                                    fontSize: 20,
-                                    fontWeight: FontWeight.w300,
-                                  ))
-                            ],
-                          ));
-              }),
-              builder: (BuildContext context, double percentComlpete, Widget? child) {
-                return Container(
-                  alignment: Alignment.topRight,
-                  width: width,
-                  height: height,
-                  child: Stack(
-                    children: [child] + _rereshPainters(percentComlpete) as List<Widget>,
-                  ),
-                );
-              }),
-        ),
-      ],
-    );
-  } 
 }
 
-class Bar extends CustomPainter {
-  List<double>? payouts;
-  int? index;
-  double percentComplete;
+class SimpleBar extends CustomPainter {
+  Array payouts;
+  int index;
   double opacity;
-  Color color;
-  double? pmax;
+  double pmax;
 
-  Bar({this.payouts, this.index, this.percentComplete = 1, this.opacity = 1, this.color = Colors.blue, this.pmax=10});
+  SimpleBar({required this.payouts, required this.index, this.opacity = 1, this.pmax = 10});
 
   @override
   void paint(Canvas canvas, Size size) {
-    int n = payouts!.length;
+    int n = payouts.length;
     double barWidth = 0.95 * size.width / n;
-    double barHeight = percentComplete * payouts![index!] * size.height / pmax!;
+    double barHeight = payouts[index] * size.height / pmax;
 
-    Paint paint = Paint()..color = color.withOpacity(opacity * (0.4 + 0.6 * payouts![index!] / pmax!));
+    Paint paint = Paint()..color = Colors.blue.withOpacity(opacity * (0.4 + 0.6 * payouts[index] / pmax));
 
     TextSpan positionText = TextSpan(
-        text: (payouts!.length - index!).toString(),
-        style: TextStyle(
-            color: Colors.grey[850]!.withOpacity(opacity), fontSize: 11, fontWeight: FontWeight.w400));
+        text: (payouts.length - index).toString(),
+        style: TextStyle(color: Colors.grey[850]!.withOpacity(opacity), fontSize: 11, fontWeight: FontWeight.w400));
 
-    TextPainter positionTextPainter =
-        TextPainter(text: positionText, textDirection: TextDirection.ltr, textAlign: TextAlign.center);
+    TextPainter positionTextPainter = TextPainter(text: positionText, textDirection: TextDirection.ltr, textAlign: TextAlign.center);
 
     positionTextPainter.layout(minWidth: 0, maxWidth: 60);
 
-    positionTextPainter.paint(
-        canvas, Offset((index! + 0.5) * size.width / n - positionTextPainter.width / 2, size.height));
+    positionTextPainter.paint(canvas, Offset((index + 0.5) * size.width / n - positionTextPainter.width / 2, size.height));
 
-    canvas.drawRect(
-        Rect.fromLTWH(index! * size.width / n, size.height - barHeight, barWidth, barHeight), paint);
+    canvas.drawRect(Rect.fromLTWH(index * size.width / n, size.height - barHeight, barWidth, barHeight), paint);
   }
 
   @override

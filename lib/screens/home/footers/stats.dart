@@ -22,10 +22,10 @@ class _StatsShowState extends State<StatsShow> {
   @override
   void initState() {
     super.initState();
-    statsFuture = Future.wait([
-      widget.market!.getStats(),
-      Future.delayed(Duration(seconds: 2)),
-    ]);
+    // statsFuture = Future.wait([
+    //   widget.market!.getStats(),
+    //   Future.delayed(Duration(seconds: 2)),
+    // ]);
   }
 
   @override

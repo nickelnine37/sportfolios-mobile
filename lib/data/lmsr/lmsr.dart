@@ -1,179 +1,265 @@
 import 'dart:math' as math;
-import '../api/requests.dart';
+import 'dart:math';
+import '../../utils/numerical/array_operations.dart';
 import '../../utils/numerical/arrays.dart';
 
-class ArrayLMSR {
-  final double? b;
-  final Array? x;
-  final bool? cash;
+/// Used as the argument for any pricing-type method. Represents a holding of
+/// some asset, either a classic LMSR vector with optional scaling constant,
+/// or an amount of longs/shorts.
+class Asset {
+  Array? q;
+  double? k;
+  bool? long;
 
-  late double xMax;
-  late double expSum;
-  Array? expX;
-
-  ArrayLMSR({this.x, this.b, this.cash}) {
-    if (!cash!) {
-      xMax = x!.max;
-      expX = x!.apply((double xi) => math.exp((xi - xMax) / b!));
-      expSum = expX!.sum;
-    } else {
-      if (x!.length != 1) {
-        throw 'market is cash, but array is not length 1';
-      }
-    }
+  /// for team-type methods. [qq] is the quantity vector, [kk] is a scaling constant
+  Asset.team(Array qq, [double? kk]) {
+    q = qq;
+    k = kk;
   }
 
-  double getValue(Array q, [double? k]) {
-    if (cash!) {
-      return k == null ? q[0] : q[0] * k;
-    }
-    return k == null ? q.dotProduct(expX) / expSum : k * (q.dotProduct(expX) / expSum);
+  /// for player-type methods. [llong] represents the long/short contract. [kk] is the number
+  /// of longs/shorts
+  Asset.player(bool llong, [double? kk]) {
+    long = llong;
+    k = kk;
+  }
+}
+
+/// Base class for one-off LMSR calculations
+abstract class LMSR {
+  int? vecLen;
+  double getValue(Asset asset);
+  double getLongValue();
+  double priceTrade(Asset asset);
+}
+
+/// Team class for one-off LMSR calculations. Implements classic LMSR scheme.
+/// Initialised with Array x and double b
+class TeamLMSR extends LMSR {
+  late double b;
+  late Array x;
+  late Array qLong;
+
+  late double _xMax;
+  late double _expSum;
+  late Array _expX;
+
+  TeamLMSR({required Array this.x, required double this.b}) {
+    qLong = qLong = Array.fromList(range(x.length).map((int i) => math.exp(-i / 6)).toList().reversed.toList());
+    _xMax = x.max;
+    _expX = x.apply((double xi) => math.exp((xi - _xMax) / b));
+    _expSum = _expX.sum;
+    vecLen = x.length;
+  }
+
+  @override
+  double getLongValue() {
+    return getValue(Asset.team(qLong, 10.0));
+  }
+
+  @override
+  double getValue(Asset asset) {
+    return asset.k == null ? asset.q!.dotProduct(_expX) / _expSum : asset.k! * (asset.q!.dotProduct(_expX) / _expSum);
   }
 
   double _c(Array x_) {
-    double xmax = x!.max;
-    return xmax + b! * math.log(x_.apply((double xi) => math.exp((xi - xmax) / b!)).sum);
+    double xmax = x.max;
+    return xmax + b * math.log(x_.apply((double xi) => math.exp((xi - xmax) / b)).sum);
   }
 
-  double priceTrade(Array q, [double? k]) {
-    if (cash!) {
-      return k == null ? q[0] : q[0] * k;
+  @override
+  double priceTrade(Asset asset) {
+    if (asset.k != null) {
+      asset.q = asset.q!.scale(asset.k!);
+    }
+    double out = _c(asset.q! + x) - _xMax - b * math.log(_expSum);
+    
+    if (out > 0) {
+      return max(out, 0.01);
+    }
+    else {
+      return out;
     }
 
-    if (k != null) {
-      q = q.scale(k);
-    }
-    return _c(q + x!) - xMax - b! * math.log(expSum);
   }
 }
 
-class MatrixLMSR {
-  final Array? b;
-  final Matrix? x;
-  final bool? cash;
+/// Player class for one-off LMSR calculations. Implements Long/Short LMSR scheme.
+/// Initialised with  double N and  double b
+class PlayerLMSR extends LMSR {
+  late double n;
+  late double b;
 
-  late Array xMax;
-  late Array expSum;
-  late Matrix expX;
+  PlayerLMSR({required double this.n, required double this.b});
 
-  MatrixLMSR({this.x, this.b, this.cash}) {
-    if (b!.length != x!.length) {
-      throw ('Number of matrix rows need to be the same as length of b');
-    }
-
-    xMax = x!.max(1);
-    expX = x!.subtractVertical(xMax).divideVertical(b!).apply(math.exp);
-    expSum = expX.sum(1);
+  @override
+  double getLongValue() {
+    return getValue(Asset.player(true, 10));
   }
 
-  Array getValue(Array q, [double? k]) {
-    if (cash!) {
-      return k == null ? Array.fill(x!.length, q[0]) : Array.fill(x!.length, q[0] * k);
+  @override
+  double getValue(Asset asset) {
+    if (asset.k == null) {
+      asset.k = 1.0;
     }
-    return k == null
-        ? expX.multiplyHorizontal(q).sum(1) / expSum
-        : (expX.multiplyHorizontal(q).sum(1) / expSum).scale(k);
+
+    if (!asset.long!) {
+      return asset.k! - getValue(Asset.player(true, asset.k));
+    }
+
+    double c = n / b;
+
+    if (c == 0) return 0.5;
+
+    if (c > 0)
+      return asset.k! * ((c - 1) + math.exp(-c)) / (c * (1 - math.exp(-c)));
+    else
+      return asset.k! * (math.exp(c) * (c - 1) + 1) / (c * (math.exp(c) - 1));
+  }
+
+  @override
+  double priceTrade(Asset asset) {
+    if (asset.k == null) {
+      asset.k = 1.0;
+    }
+
+    if (!asset.long!) return asset.k! + priceTrade(Asset.player(true, -asset.k!));
+
+    if (asset.k! == 0)
+      return 0;
+    else if (n == 0) {
+      if (asset.k! < 0)
+        return b * math.log(b * (math.exp(asset.k! / b) - 1) / asset.k!);
+      else
+        return b * math.log(b * (1 - math.exp(-asset.k! / b)) / (asset.k! * math.exp(-n / b)));
+    } else if (n < 0) {
+      if (n == -asset.k!)
+        return b * math.log(n / (b * (math.exp(n / b) - 1)));
+      else
+        return b * math.log(n / (n + asset.k!) * (math.exp((n + asset.k!) / b) - 1) / (math.exp(n / b) - 1));
+    } else {
+      if (n == -asset.k!)
+        return b * math.log(n * math.exp(-n / b) / (b * (1 - math.exp(-n / b))));
+      else
+        return b * math.log(n / (n + asset.k!) * (math.exp(asset.k! / b) - math.exp(-n / b)) / (1 - math.exp(-n / b)));
+    }
   }
 }
 
-class MarketLMSR {
-  String? market;
-  bool? cash;
-  int? n;
+/// Base class for vector LMSR calculations. This class and derivatives
+/// are not aware of their associated time, and never exist independently of
+/// a historicalLMSR class
+abstract class MultiLMSR {
+  Array getValue(Asset asset);
+}
 
-  ArrayLMSR? currentLMSR;
-  DateTime? currentLatUpdated;
+/// Team class for vector LMSR calculations. Implements classic LMSR scheme.
+/// Initialised with Matrix x and Array b
+class TeamMultiLMSR extends MultiLMSR {
+  late Matrix x;
+  late Array b;
 
-  Map<String, MatrixLMSR> historicalLMSR = Map<String, MatrixLMSR>();
-  DateTime? historicalLastUpdated;
-  Map<String, List<int>>? times;
+  late Array _xMax;
+  late Array _expSum;
+  late Matrix _expX;
 
-  int updateInterval = 30;
-
-  MarketLMSR(this.market) {
-    cash = market == 'cash';
+  TeamMultiLMSR({required this.x, required this.b}) {
+    _xMax = x.max(1);
+    _expX = x.subtractVertical(_xMax).divideVertical(b).apply(math.exp);
+    _expSum = _expX.sum(1);
   }
 
-  Future<void> updateCurrentX() async {
-    if (currentLatUpdated == null ||
-        DateTime.now().difference(currentLatUpdated!).inSeconds > updateInterval) {
-      Map<String, dynamic>? holdings = await getcurrentX(market);
+  @override
+  Array getValue(Asset asset) {
+    return asset.k == null
+        ? _expX.multiplyHorizontal(asset.q!).sum(1) / _expSum
+        : (_expX.multiplyHorizontal(asset.q!).sum(1) / _expSum).scale(asset.k!);
+  }
+}
 
-      if (holdings == null) {
-        return;
-      }
+/// Player class for vector LMSR calculations. Implements Long/Short LMSR scheme.
+/// Initialised with Array N and Array b
+class PlayerMultiLMSR extends MultiLMSR {
+  late Array n;
+  late Array b;
+  late Array c;
 
-      currentLatUpdated = DateTime.now();
-      currentLMSR = ArrayLMSR(
-        x: Array.fromList(List<double>.from(holdings['x'])),
-        b: holdings['b'] + 0.0,
-        cash: cash,
-      );
-      n = holdings['x'].length;
-    }
+  PlayerMultiLMSR({required this.n, required this.b}) {
+    c = n / b;
   }
 
-  void setCurrentX(List x, double? b) {
-    currentLatUpdated = DateTime.now();
-    currentLMSR = ArrayLMSR(
-      x: Array.fromList(List<double>.from(x)),
-      b: b,
-      cash: cash,
+  double longShortPrice(double cc) {
+    if (cc == 0) return 0.5;
+
+    if (cc > 0)
+      return ((cc - 1) + math.exp(-cc)) / (cc * (1 - math.exp(-cc)));
+    else
+      return (math.exp(cc) * (cc - 1) + 1) / (cc * (math.exp(cc) - 1));
+  }
+
+  @override
+  Array getValue(Asset asset) {
+    if (asset.k == null) asset.k = 1.0;
+
+    if (!asset.long!)
+      return Array.fill(n.length, asset.k!) - getValue(Asset.player(true, asset.k!));
+    else
+      return c.apply(longShortPrice).scale(asset.k!);
+  }
+}
+
+/// Base class for historical LMSR calculations. This amounts to a series
+/// of vector calculations for different time horizons. Must also come
+/// with assoicated time stamps
+abstract class HistoricalLMSR {
+  late Map<String, MultiLMSR> lmsrMap;
+  late Map<String, List<int>> ts;
+  Map<String, Array> getHistoricalValue(Asset asset);
+}
+
+/// Team class for historical LMSR calculations. Initialied with Map<String, Matrix>
+/// xhist, Map<String, Array> bhist and Map<String, List<int>> thist. 
+class TeamHistoricalLMSR extends HistoricalLMSR {
+  TeamHistoricalLMSR({
+    required Map<String, Matrix> xhist,
+    required Map<String, Array> bhist,
+    required Map<String, List<int>> thist,
+  }) {
+    lmsrMap = Map<String, TeamMultiLMSR>.fromIterables(
+      xhist.keys,
+      xhist.keys.map(
+        (String th) => TeamMultiLMSR(x: xhist[th]!, b: bhist[th]!),
+      ),
+    );
+    ts = thist;
+  }
+
+  @override
+  Map<String, Array> getHistoricalValue(Asset asset) {
+    return Map<String, Array>.fromIterables(
+      lmsrMap.keys,
+      lmsrMap.keys.map(
+        (String th) => lmsrMap[th]!.getValue(asset),
+      ),
     );
   }
+}
 
-  Future<void> updateHistoricalX() async {
-    if (historicalLastUpdated == null ||
-        DateTime.now().difference(historicalLastUpdated!).inSeconds > updateInterval) {
-      Map<String, dynamic>? historicalHoldings = await getHistoricalX(market);
-
-      if (historicalHoldings == null) {
-        return;
-      }
-
-      historicalLastUpdated = DateTime.now();
-      Map<String, dynamic> xhist = historicalHoldings['data']['x'];
-      Map<String, dynamic>? bhist = historicalHoldings['data']['b'];
-      times = historicalHoldings['time'];
-
-      for (String th in xhist.keys) {
-        historicalLMSR[th] =
-            MatrixLMSR(x: Matrix.fromLists(xhist[th]), b: Array.fromList(bhist![th]), cash: cash);
-      }
-    }
+/// Player class for histrical LMSR calculations Initialied with Map<String, Array>
+/// nhist, Map<String, Array> bhist and Map<String, List<int>> thist.
+class PlayerHisoricalLMSR extends HistoricalLMSR {
+  PlayerHisoricalLMSR({
+    required Map<String, Array> nhist,
+    required Map<String, Array> bhist,
+    required Map<String, List<int>> thist,
+  }) {
+    lmsrMap = Map<String, PlayerMultiLMSR>.fromIterables(
+        nhist.keys, nhist.keys.map((String th) => PlayerMultiLMSR(n: nhist[th]!, b: bhist[th]!)));
+    ts = thist;
   }
 
-  void setHistoricalX(Map<String, dynamic> x, Map<String, dynamic> b) {
-    Map<String, List<List<double>>> xhist = Map<String, List<List<double>>>.from(x);
-    Map<String, List<double>> bhist = Map<String, List<double>>.from(b);
-      for (String th in xhist.keys) {
-        historicalLMSR[th] =
-            MatrixLMSR(x: Matrix.fromLists(xhist[th]!), b: Array.fromList(bhist[th]!), cash: cash);
-      }
-  }
-
-  double? getValue(List<double>? q, [double? k]) {
-    if (currentLMSR == null) {
-      print('Cannot getValue : currentLMSR has not been set (try calling updateCurrentX)');
-      return null;
-    }
-
-    return currentLMSR!.getValue(Array.fromList(q!), k);
-  }
-
-  Map<String, List<double>>? getHistoricalValue(List<double>? q, [double? k]) {
-    if (historicalLMSR == {}) {
-      print('Cannot getValue : historicalLMSR has not been set (try calling updateHistoricalX)');
-      return null;
-    }
-
-    return Map<String, List<double>>.fromIterables(
-      historicalLMSR.keys,
-      historicalLMSR.keys.map((String th) => historicalLMSR[th]!.getValue(Array.fromList(q!), k).toList()),
-    );
-  }
-
-  double priceTrade(List<double> q, [double? k]) {
-    return currentLMSR!.priceTrade(Array.fromList(q), k);
+  @override
+  Map<String, Array> getHistoricalValue(Asset asset) {
+    return Map<String, Array>.fromIterables(lmsrMap.keys, lmsrMap.keys.map((String th) => lmsrMap[th]!.getValue(asset)));
   }
 }

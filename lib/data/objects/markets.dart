@@ -1,158 +1,256 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import '../../utils/numerical/arrays.dart';
+import '../../data/utils/casting.dart';
 import '../api/requests.dart';
-import '../firebase/markets.dart';
 import '../lmsr/lmsr.dart';
 
 
-class Market {
+abstract class Market {
+  // ----- core attributes -----
+  late String id;
+  DocumentSnapshot? doc;
+
   // ----- basic attributes -----
-  String? id;
   String? name;
-  late DocumentSnapshot doc;
-  late List<String> searchTerms;
+  List<String>? searchTerms;
   DateTime? startDate;
   DateTime? endDate;
-  String? type;
-
-  // stats
-  Map<String, dynamic>? stats;
-
-  // -----  Link attributes -----
-  String? team_id; // null for teams
-  Market? team;
-
-  List<String>? players; // null for players
 
   // ----- Visual attributes -----
   String? info1;
   String? info2;
   String? info3;
-  late List<String> colours;
+  List<String>? colours;
   String? imageURL;
 
-  // ----- LMSR attributes ------
-  // length of quantity vector
-  // int n;
+  // stats
+  Map<String, dynamic>? stats;
 
-  // back attributes
-  double? currentBackValue;
-  List<double>? dailyBackValue;
+  // ----- price attributes -----
+  double? longPriceCurrent;
+  Map<String, Array>? longPriceHist;
+  Map<String, double>? longPriceReturnsHist;
 
-  // lmsr
-  late MarketLMSR lmsr;
+  // ----- LMSR -----
+  LMSR? currentLMSR;
+  HistoricalLMSR? historicalLMSR;
 
-  /// initialise market from id
-  Market(this.id) {
-    if (id == 'cash') {
-      name = 'Cash';
-    }
-    else {
-      type = id![id!.length - 1] == 'T' ? 'team' : 'player';
-    }
-    lmsr = MarketLMSR(id);
-  }
+  // ---- Players only ---- 
+  TeamMarket? team;
 
-  /// initialise a market from a firebase snapshot
-  Market.fromDocumentSnapshot(DocumentSnapshot snapshot) {
-    Map<String, dynamic> data = snapshot.data() as Map<String, dynamic>;
-
-    id = snapshot.id;
+  void addSnapshotInfo(DocumentSnapshot snapshot) {
     doc = snapshot;
-    lmsr = MarketLMSR(id);
-    type = id![id!.length - 1] == 'T' ? 'team' : 'player';
+    id = snapshot.id;
+    name = snapshot['name'];
 
-    colours = List<String>.from(data['colours']);
-    searchTerms = List<String>.from(data['search_terms']);
-    imageURL = data['image'];
-    startDate = data['start_date'].toDate();
-    endDate = data['end_date'].toDate();
-
-    if (snapshot.id[snapshot.id.length - 1] == 'P') {
-      initPlayerInfo(snapshot);
+    if (snapshot['colours'] == null) {
+      colours = ['#1544B8', '#1544B8', '#183690', '#183690', '#183690', '#183690', '#1544B8'];
     } else {
-      initTeamInfo(snapshot);
+      colours = List<String>.from(snapshot['colours']);
     }
-  }
 
-  Future<void> getTeamSnapshot() async {
-    team = await getMarketById(team_id!);
-    await team!.getBackProperties();
-  }
-
-  // get statistics for team and player
-  Future<void> getStats() async {
-    String idStats = id!.split(':')[0] + id![id!.length - 1];
-    DocumentSnapshot snapshot = await FirebaseFirestore.instance
-      .collection('stats')
-      .doc(idStats)
-      .get();
-    stats = snapshot.data() as Map<String, dynamic>?;
-  }
-
-
-  void addDocumentSnapshotData(DocumentSnapshot snapshot) {
-    assert(id == snapshot.id);
-
-    colours = List<String>.from(snapshot['colours']);
     searchTerms = List<String>.from(snapshot['search_terms']);
     imageURL = snapshot['image'];
     startDate = snapshot['start_date'].toDate();
     endDate = snapshot['end_date'].toDate();
 
-    if (snapshot.id[snapshot.id.length - 1] == 'P') {
-      initPlayerInfo(snapshot);
-    } else {
-      initTeamInfo(snapshot);
-    }
+    longPriceCurrent = 10.0 * snapshot['long_price_current']!;
+    longPriceHist = castHistArray(snapshot['long_price_hist']);
+    longPriceReturnsHist = <String, double>{
+      'd': snapshot['long_price_returns_d'],
+      'w': snapshot['long_price_returns_w'],
+      'm': snapshot['long_price_returns_m'],
+      'M': snapshot['long_price_returns_M']
+    };
+
   }
 
-  /// helper function for setting some back properties which are required
-  /// to display the mini graph and scroll prices
-  void setBackProperties(double? currentBValue, List<double> dailyBValue) {
-    currentBackValue = currentBValue;
-    dailyBackValue = dailyBValue;
+  Future<void> getSnapshotInfo();
+
+  Future<void> getCurrentHoldings();
+
+  void setCurrentHoldings(Map<String, dynamic> currentHoldings);
+
+  Future<void> getHistoricalHoldings();
+
+  void setHistoricalHoldings(Map<String, dynamic> data, Map<String, List<int>> time);
+
+  Future<void> getTeamInfo();
+}
+
+class PlayerMarket extends Market {
+  String? team_id;
+
+  PlayerMarket(String idd) {
+    id = idd;
   }
 
-  Future<void> getBackProperties() async {
-    currentBackValue = (await getBackPrices([id]))![id!];
-    dailyBackValue = await List<double>.from((await getDailyBackPrices([id]))![id!]!);
+  PlayerMarket.fromDocumentSnapshot(DocumentSnapshot snapshot) {
+    addSnapshotInfo(snapshot);
   }
 
-  /// initialise player info from firebase data
-  void initPlayerInfo(DocumentSnapshot data) {
-    if (data['name'].length > 20) {
-      List names = data['name'].split(" ");
+  @override
+  void addSnapshotInfo(DocumentSnapshot snapshot) {
+    super.addSnapshotInfo(snapshot);
+    if (snapshot['name'].length > 20) {
+      List names = snapshot['name'].split(" ");
       if (names.length > 2)
         name = names.first + ' ' + names.last;
       else
         name = names.last;
     } else
-      name = data['name'];
+      name = snapshot['name'];
 
-    info1 = data['country_flag'] + ' ' + data['position'];
-    info2 = "${data['rating']}";
+    info1 = snapshot['country_flag'] + ' ' + snapshot['position'];
+    info2 = "Hey";
 
-    if (data['team_name'].length > 20)
-      info3 = data['team_name'].split(" ")[0];
+    if (snapshot['team_name'].length > 20)
+      info3 = snapshot['team_name'].split(" ")[0];
     else
-      info3 = data['team_name'];
-    team_id = '${data['team_id']}:${data['league_id']}:${data['season_id']}T' ;
-    team = Market(team_id);
+      info3 = snapshot['team_name'];
+
+    team_id = '${snapshot['team_id']}:${snapshot['league_id']}:${snapshot['season_id']}T';
+
   }
 
-  /// initialise team info from firebase data
-  void initTeamInfo(DocumentSnapshot data) {
+  Future<void> getSnapshotInfo() async {
+    DocumentSnapshot snapshot = await FirebaseFirestore.instance.collection('players').doc(id).get();
+    addSnapshotInfo(snapshot);
+  }
 
-    name = data['name'];
-    info1 = "P ${data['played']}";
-    info2 = "GD ${data['goal_difference'] > 0 ? '+' : '-'}${data['goal_difference'].abs()}";
-    info3 = "PTS ${data['points']}";
-    players = List<String>.from(
-        data['players'].map((playerId) => '$playerId:${data['league_id']}:${data['season_id']}}P'));
+  @override
+  Future<void> getCurrentHoldings() async {
+    Map<String, dynamic>? currentHoldings = await getCurrentHoldingsFromServer(id);
+    if (currentHoldings != null) {
+      currentLMSR = PlayerLMSR(n: currentHoldings['N'], b: currentHoldings['b']);
+      longPriceCurrent = currentLMSR!.getLongValue();
+    } else {
+      print('Error: getCurrentHoldings(${id}) returned null');
+    }
+  }
+
+  @override
+  void setCurrentHoldings(Map<String, dynamic> currentHoldings) {
+    currentLMSR = PlayerLMSR(n: currentHoldings['N'], b: currentHoldings['b']);
+    longPriceCurrent = currentLMSR!.getLongValue();
+  }
+
+  @override
+  Future<void> getHistoricalHoldings() async {
+    Map<String, dynamic>? historicalHoldings = await getHistoricalHoldingsFromServer(id);
+    if (historicalHoldings != null) {
+      historicalLMSR = PlayerHisoricalLMSR(
+          nhist: historicalHoldings['data']['N'], bhist: historicalHoldings['data']['b'], thist: historicalHoldings['time']);
+    } else {
+      print('Error: getCurrentHoldings(${id}) returned null');
+    }
+  }
+
+  @override
+  void setHistoricalHoldings(Map<String, dynamic> data, Map<String, List<int>> time) {
+    historicalLMSR = PlayerHisoricalLMSR(nhist: data['N'], bhist: data['b'], thist: time);
   }
 
   @override
   String toString() {
-    return 'Market($id)';
+    return 'PlayerMarket(${id})';
+  }
+
+  @override
+  Future<void> getTeamInfo() async {
+    DocumentSnapshot snapshot = await FirebaseFirestore.instance.collection('teams').doc(team_id).get();
+    team = TeamMarket.fromDocumentSnapshot(snapshot);
   }
 }
+
+class TeamMarket extends Market {
+  List<String>? players;
+
+  TeamMarket(String idd) {
+    id = idd;
+  }
+
+  TeamMarket.fromDocumentSnapshot(DocumentSnapshot snapshot) {
+    addSnapshotInfo(snapshot);
+  }
+
+  @override
+  void addSnapshotInfo(DocumentSnapshot snapshot) {
+    super.addSnapshotInfo(snapshot);
+    name = snapshot['name'];
+    info1 = "P ${snapshot['played']}";
+    info2 = "GD ${snapshot['goal_difference'] > 0 ? '+' : '-'}${snapshot['goal_difference'].abs()}";
+    info3 = "PTS ${snapshot['points']}";
+    players = List<String>.from(snapshot['players'].map((playerId) => '$playerId:${snapshot['league_id']}:${snapshot['season_id']}}P'));
+  }
+
+  Future<void> getSnapshotInfo() async {
+    DocumentSnapshot snapshot = await FirebaseFirestore.instance.collection('teams').doc(id).get();
+    addSnapshotInfo(snapshot);
+  }
+
+  @override
+  String toString() {
+    return 'TeamMarket(${id})';
+  }
+
+  @override
+  Future<void> getCurrentHoldings() async {
+    Map<String, dynamic>? currentHoldings = await getCurrentHoldingsFromServer(id);
+    if (currentHoldings != null) {
+      currentLMSR = TeamLMSR(x: currentHoldings['x'], b: currentHoldings['b']);
+      longPriceCurrent = currentLMSR!.getLongValue();
+    } else {
+      print('Error: getCurrentHoldings(${id}) returned null');
+    }
+  }
+
+  @override
+  void setCurrentHoldings(Map<String, dynamic> currentHoldings) {
+    currentLMSR = TeamLMSR(x: currentHoldings['x'], b: currentHoldings['b']);
+    longPriceCurrent = currentLMSR!.getLongValue();
+  }
+
+  @override
+  Future<void> getHistoricalHoldings() async {
+    Map<String, dynamic>? historicalHoldings = await getHistoricalHoldingsFromServer(id);
+    if (historicalHoldings != null) {
+      historicalLMSR = TeamHistoricalLMSR(
+          xhist: historicalHoldings['data']['x'], bhist: historicalHoldings['data']['b'], thist: historicalHoldings['time']);
+    } else {
+      print('Error: getCurrentHoldings(${id}) returned null');
+    }
+  }
+
+  @override
+  void setHistoricalHoldings(Map<String, dynamic> data, Map<String, List<int>> time) {
+    historicalLMSR = TeamHistoricalLMSR(xhist: data['x'], bhist: data['b'], thist: time);
+  }
+
+  @override
+  Future<TeamMarket?> getTeamInfo() async {
+    return null;
+  }
+}
+
+// class TeamMarket extends Market {
+//   void initInfo() {
+//     name = doc['name'];
+//     info1 = "P ${doc['played']}";
+//     info2 = "GD ${doc['goal_difference'] > 0 ? '+' : '-'}${doc['goal_difference'].abs()}";
+//     info3 = "PTS ${doc['points']}";
+//     players = List<String>.from(doc['players'].map((playerId) => '$playerId:${doc['league_id']}:${doc['season_id']}}P'));
+//   }
+
+//   @override
+//   String toString() {
+//     return 'TeamMarket($id)';
+//   }
+// }
+
+
+// class PlayerMarket extends Market {
+
+
+
+// }

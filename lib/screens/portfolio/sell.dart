@@ -2,6 +2,8 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart' as intl;
 import 'package:confetti/confetti.dart';
+import 'package:sportfolios_alpha/data/lmsr/lmsr.dart';
+import 'package:sportfolios_alpha/utils/numerical/arrays.dart';
 
 import '../../data/api/requests.dart';
 import '../../data/objects/markets.dart';
@@ -12,7 +14,7 @@ import '../../data/objects/portfolios.dart';
 
 class SellMarket extends StatefulWidget {
   final Market market;
-  final List<double> quantityHeld;
+  final Array quantityHeld;
   final Portfolio? portfolio;
 
   SellMarket(this.portfolio, this.market, this.quantityHeld);
@@ -23,7 +25,7 @@ class SellMarket extends StatefulWidget {
 
 class _SellMarketState extends State<SellMarket> {
   Future<void>? _marketFuture;
-  List<double>? qHeldNew;
+  Array? qHeldNew;
   bool locked = false;
   double lrPadding = 25;
   double? graphWidth;
@@ -33,7 +35,7 @@ class _SellMarketState extends State<SellMarket> {
   @override
   void initState() {
     super.initState();
-    _marketFuture = widget.market.lmsr.updateCurrentX();
+    _marketFuture = widget.market.getCurrentHoldings();
   }
 
   void updateHistory() {
@@ -41,11 +43,11 @@ class _SellMarketState extends State<SellMarket> {
   }
 
   void _makeSelection(Offset touchLocation) {
-    int x = (widget.market.lmsr.n! * touchLocation.dx / graphWidth!).floor();
+    int x = (widget.market.currentLMSR!.vecLen! * touchLocation.dx / graphWidth!).floor();
     if (x < 0) {
       x = 0;
-    } else if (x > widget.market.lmsr.n! - 1) {
-      x = widget.market.lmsr.n! - 1;
+    } else if (x > widget.market.currentLMSR!.vecLen! - 1) {
+      x = widget.market.currentLMSR!.vecLen! - 1;
     }
     double y = pmax! * (1 - (touchLocation.dy - 20) / (graphHeight + 20));
 
@@ -55,7 +57,7 @@ class _SellMarketState extends State<SellMarket> {
     if (y > widget.quantityHeld[x]) {
       y = widget.quantityHeld[x];
     }
-    List<double> qHeldNew_ = range(widget.market.lmsr.n).map((int i) => i == x ? y : qHeldNew![i]).toList();
+    Array qHeldNew_ = Array.fromList(range(widget.market.currentLMSR!.vecLen!).map((int i) => i == x ? y : qHeldNew![i]).toList());
 
     if (qHeldNew != qHeldNew_) {
       setState(() {
@@ -71,7 +73,7 @@ class _SellMarketState extends State<SellMarket> {
     }
 
     if (pmax == null) {
-      pmax = getMax(widget.quantityHeld);
+      pmax = widget.quantityHeld.max;
     }
 
     if (qHeldNew == null) {
@@ -96,50 +98,44 @@ class _SellMarketState extends State<SellMarket> {
               // mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 Container(
-                    height: 20,
-                    width: MediaQuery.of(context).size.width * 0.35,
-                    child: CustomPaint(painter: SwipeDownTopBarPainter())),
+                    height: 20, width: MediaQuery.of(context).size.width * 0.35, child: CustomPaint(painter: SwipeDownTopBarPainter())),
                 SizedBox(height: 5),
                 Expanded(
                   child: SingleChildScrollView(
                     child: Column(
                       children: [
                         Text('Sell: ${widget.market.name}',
-                            textAlign: TextAlign.center,
-                            style: TextStyle(fontSize: 24, fontWeight: FontWeight.w300)),
+                            textAlign: TextAlign.center, style: TextStyle(fontSize: 24, fontWeight: FontWeight.w300)),
                         SizedBox(height: 5),
                         Divider(thickness: 2, height: 25),
-                        Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            crossAxisAlignment: CrossAxisAlignment.center,
+                        Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, crossAxisAlignment: CrossAxisAlignment.center, children: [
+                          CachedNetworkImage(
+                            imageUrl: widget.market.imageURL!,
+                            height: 50,
+                          ),
+                          Column(
                             children: [
-                              CachedNetworkImage(
-                                imageUrl: widget.market.imageURL!,
-                                height: 50,
+                              Text('Total value'),
+                              SizedBox(height: 3),
+                              Text(
+                                formatCurrency(-widget.market.currentLMSR!.priceTrade(Asset.team(widget.quantityHeld, -1)), 'GBP'),
+                                style: TextStyle(fontSize: 18, fontWeight: FontWeight.w300),
                               ),
-                              Column(
-                                children: [
-                                  Text('Total value'),
-                                  SizedBox(height: 3),
-                                  Text(
-                                    formatCurrency(-widget.market.lmsr.priceTrade(widget.quantityHeld, -1), 'GBP'),
-                                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.w300),
-                                  ),
-                                ],
+                            ],
+                          ),
+                          Column(
+                            children: [
+                              Text('Payout date'),
+                              SizedBox(height: 3),
+                              Text(
+                                intl.DateFormat.yMMMd().format(widget.market.endDate!),
+                                // TODO: add market expirey date
+                                // DateFormat('d MMM yy').format(widget.league.endDate),
+                                style: TextStyle(fontSize: 17, fontWeight: FontWeight.w300),
                               ),
-                              Column(
-                                children: [
-                                  Text('Payout date'),
-                                  SizedBox(height: 3),
-                                  Text(
-                                    intl.DateFormat.yMMMd().format(widget.market.endDate!),
-                                    // TODO: add market expirey date
-                                    // DateFormat('d MMM yy').format(widget.league.endDate),
-                                    style: TextStyle(fontSize: 17, fontWeight: FontWeight.w300),
-                                  ),
-                                ],
-                              ),
-                            ]),
+                            ],
+                          ),
+                        ]),
                         Divider(thickness: 2, height: 25),
                         Row(
                           children: [
@@ -154,50 +150,55 @@ class _SellMarketState extends State<SellMarket> {
                             Text('Lock payout')
                           ],
                         ),
-                        locked
-                            ? TrueStaticPayoutGraph(qHeldNew, Colors.blue, lrPadding, graphHeight, true, pmax)
-                            : GestureDetector(
-                                child: TrueStaticPayoutGraph(
-                                    qHeldNew, Colors.blue, lrPadding, graphHeight, false, pmax),
-                                onVerticalDragStart: (DragStartDetails details) {
-                                  _makeSelection(details.localPosition);
-                                },
-                                onVerticalDragUpdate: (DragUpdateDetails details) {
-                                  _makeSelection(details.localPosition);
-                                },
-                                onTapDown: (TapDownDetails details) {
-                                  _makeSelection(details.localPosition);
-                                },
-                                onPanUpdate: (DragUpdateDetails details) {
-                                  _makeSelection(details.localPosition);
-                                },
-                                onPanEnd: (DragEndDetails details) {
-                                  setState(() {
-                                    updateHistory();
-                                  });
-                                },
-                                onTapUp: (TapUpDetails details) {
-                                  setState(() {
-                                    updateHistory();
-                                  });
-                                },
-                                onVerticalDragEnd: (DragEndDetails details) {
-                                  setState(() {
-                                    updateHistory();
-                                  });
-                                },
-                              ),
+                        // locked
+                        //     ? TrueStaticPayoutGraph(qHeldNew!, Colors.blue, lrPadding, graphHeight, true, pmax)
+                        //     : GestureDetector(
+                        //         child: TrueStaticPayoutGraph(
+                        //             qHeldNew!, Colors.blue, lrPadding, graphHeight, false, pmax),
+                        //         onVerticalDragStart: (DragStartDetails details) {
+                        //           _makeSelection(details.localPosition);
+                        //         },
+                        //         onVerticalDragUpdate: (DragUpdateDetails details) {
+                        //           _makeSelection(details.localPosition);
+                        //         },
+                        //         onTapDown: (TapDownDetails details) {
+                        //           _makeSelection(details.localPosition);
+                        //         },
+                        //         onPanUpdate: (DragUpdateDetails details) {
+                        //           _makeSelection(details.localPosition);
+                        //         },
+                        //         onPanEnd: (DragEndDetails details) {
+                        //           setState(() {
+                        //             updateHistory();
+                        //           });
+                        //         },
+                        //         onTapUp: (TapUpDetails details) {
+                        //           setState(() {
+                        //             updateHistory();
+                        //           });
+                        //         },
+                        //         onVerticalDragEnd: (DragEndDetails details) {
+                        //           setState(() {
+                        //             updateHistory();
+                        //           });
+                        //         },
+                        //       ),
                         SizedBox(height: 25),
                         FutureBuilder(
                           future: _marketFuture,
                           builder: (BuildContext context, AsyncSnapshot snapshot) {
                             if (snapshot.connectionState == ConnectionState.done) {
                               return SellForm(
-                                  widget.portfolio,
-                                  widget.market,
-                                  range(widget.market.lmsr.n)
-                                      .map((int i) => qHeldNew![i] - widget.quantityHeld[i])
-                                      .toList());
+                                widget.portfolio,
+                                widget.market,
+                                Asset.team(
+                                  Array.fromList(
+                                    range(widget.market.currentLMSR!.vecLen!)
+                                        .map((int i) => qHeldNew![i] - widget.quantityHeld[i])
+                                        .toList(),
+                                  ),
+                                ),
+                              );
                             } else if (snapshot.hasError) {
                               print(snapshot.error);
                               return Center(child: Text('Error'));
@@ -222,7 +223,7 @@ class _SellMarketState extends State<SellMarket> {
 class SellForm extends StatefulWidget {
   final Portfolio? portfolio;
   final Market market;
-  final List<double> quantity;
+  final Asset quantity;
 
   SellForm(this.portfolio, this.market, this.quantity);
 
@@ -242,7 +243,7 @@ class _SellFormState extends State<SellForm> {
 
   @override
   Widget build(BuildContext context) {
-    payout = widget.market.lmsr.priceTrade(widget.quantity, 1);
+    payout = widget.market.currentLMSR!.priceTrade(widget.quantity);
 
     return Padding(
       padding: EdgeInsets.symmetric(horizontal: 5),
@@ -279,8 +280,8 @@ class _SellFormState extends State<SellForm> {
                       loading = true;
                     });
 
-                    Map<String, dynamic>? purchaseRequestResult = await makePurchaseRequest(
-                        widget.market.id, widget.portfolio!.id, widget.quantity, payout! + 1);
+                    Map<String, dynamic>? purchaseRequestResult =
+                        await makePurchaseRequest(widget.market.id, widget.portfolio!.id, widget.quantity, payout! + 1);
 
                     if (purchaseRequestResult == null) {
                       Navigator.of(context).pop(false);
@@ -307,7 +308,6 @@ class _SellFormState extends State<SellForm> {
                       await Future.delayed(Duration(milliseconds: 500));
 
                       Navigator.of(context).pop(true);
-
                     } else {
                       setState(() {
                         loading = false;
@@ -317,18 +317,13 @@ class _SellFormState extends State<SellForm> {
                       bool confirm = await showDialog(
                               context: context,
                               builder: (BuildContext context) {
-                                return ConfirmPurchase(
-                                    oldPrice: payout, newPrice: purchaseRequestResult['price']);
+                                return ConfirmPurchase(oldPrice: payout, newPrice: purchaseRequestResult['price']);
                               }) ??
                           false;
 
                       bool ok = await respondToNewPrice(
                         confirm,
-                        purchaseRequestResult['cancelId'],
-                        widget.market.id,
-                        widget.portfolio!.id,
-                        widget.quantity,
-                        purchaseRequestResult['price'],
+                        purchaseRequestResult['cancelId']
                       );
 
                       if (confirm && !ok) {
@@ -387,8 +382,7 @@ class PurchaseCompletePopup extends StatelessWidget {
             boxShadow: [BoxShadow(color: Colors.black26, blurRadius: 10.0, offset: const Offset(0.0, 10.0))],
           ),
           child: Center(
-            child: Text('Purchase complete',
-                style: TextStyle(fontSize: 24.0, fontWeight: FontWeight.w700), textAlign: TextAlign.center),
+            child: Text('Purchase complete', style: TextStyle(fontSize: 24.0, fontWeight: FontWeight.w700), textAlign: TextAlign.center),
           )),
     );
   }
@@ -453,10 +447,8 @@ class _ConfirmPurchaseState extends State<ConfirmPurchase> {
             textAlign: TextAlign.center,
           ),
           SizedBox(height: 16.0),
-          Text(
-              'Since you last synchronised prices with the server, the payout for this sale has changed from',
-              textAlign: TextAlign.center,
-              style: TextStyle(fontSize: 16.0)),
+          Text('Since you last synchronised prices with the server, the payout for this sale has changed from',
+              textAlign: TextAlign.center, style: TextStyle(fontSize: 16.0)),
           SizedBox(height: 20),
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
@@ -508,7 +500,7 @@ class _ConfirmPurchaseState extends State<ConfirmPurchase> {
                   style: TextStyle(color: Colors.white),
                 ),
               ),
-                TextButton(
+              TextButton(
                 style: ButtonStyle(overlayColor: MaterialStateProperty.all<Color>(Colors.blue)),
                 onPressed: () async {
                   setState(() {
@@ -682,8 +674,7 @@ class SecondsLinearProgress extends StatefulWidget {
   SecondsLinearProgress(this._total, {this.timeout});
 
   @override
-  _SecondsLinearProgressState createState() =>
-      _SecondsLinearProgressState(timeout != null ? timeout : _total, _total);
+  _SecondsLinearProgressState createState() => _SecondsLinearProgressState(timeout != null ? timeout : _total, _total);
 }
 
 class _SecondsLinearProgressState extends State<SecondsLinearProgress> with SingleTickerProviderStateMixin {
