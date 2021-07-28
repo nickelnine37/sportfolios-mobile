@@ -23,6 +23,10 @@ class Asset {
     long = llong;
     k = kk;
   }
+  @override
+  String toString() {
+    return 'Asset(q=${q}, long=${long}, k=${k})';
+  }
 }
 
 /// Base class for one-off LMSR calculations
@@ -73,14 +77,12 @@ class TeamLMSR extends LMSR {
       asset.q = asset.q!.scale(asset.k!);
     }
     double out = _c(asset.q! + x) - _xMax - b * math.log(_expSum);
-    
+
     if (out > 0) {
       return max(out, 0.01);
-    }
-    else {
+    } else {
       return out;
     }
-
   }
 }
 
@@ -218,7 +220,7 @@ abstract class HistoricalLMSR {
 }
 
 /// Team class for historical LMSR calculations. Initialied with Map<String, Matrix>
-/// xhist, Map<String, Array> bhist and Map<String, List<int>> thist. 
+/// xhist, Map<String, Array> bhist and Map<String, List<int>> thist.
 class TeamHistoricalLMSR extends HistoricalLMSR {
   TeamHistoricalLMSR({
     required Map<String, Matrix> xhist,

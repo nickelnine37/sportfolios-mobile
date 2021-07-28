@@ -298,7 +298,7 @@ class _TeamDetailsState extends State<TeamDetails> with SingleTickerProviderStat
                   crossAxisAlignment: CrossAxisAlignment.center,
                   children: [
                     SizedBox(height: 10),
-                    TeamPageHeader(qs![selected], widget.market, <InfoBox>[longInfo, shortInfo, binaryInfo, customInfo][selected]),
+                    TeamPageHeader(qs![selected], widget.market, <InfoBox>[longInfo, shortInfo, binaryInfo, customInfo][selected], <String>['Long', 'Short', 'Binary', 'Custom'][selected]),
                     GestureDetector(
                       onVerticalDragStart: (DragStartDetails details) {
                         _updateBars(details.localPosition);

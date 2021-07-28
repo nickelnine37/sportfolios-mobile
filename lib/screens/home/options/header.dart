@@ -10,8 +10,9 @@ class TeamPageHeader extends StatelessWidget {
   final Array quantity;
   final Market market;
   final Widget infoBox;
+  final String contract_type;
 
-  TeamPageHeader(this.quantity, this.market, this.infoBox);
+  TeamPageHeader(this.quantity, this.market, this.infoBox, this.contract_type);
 
   @override
   Widget build(BuildContext context) {
@@ -56,7 +57,7 @@ class TeamPageHeader extends StatelessWidget {
                         borderRadius: BorderRadius.vertical(top: Radius.circular(25.0))),
                     context: context,
                     builder: (context) {
-                      return BuyMarket(this.market, Asset.team(this.quantity, 10));
+                      return BuyMarket(this.market, Asset.team(this.quantity, 1.0), contract_type);
                     },
                   );
                 }, // minWidth: MediaQuery.of(context).size.width * 0.4,
@@ -137,7 +138,7 @@ class PlayerPageHeader extends StatelessWidget {
                         borderRadius: BorderRadius.vertical(top: Radius.circular(25.0))),
                     context: context,
                     builder: (context) {
-                      return BuyMarket(this.market, Asset.player(long, 10));
+                      return BuyMarket(this.market, Asset.player(long, 10), long ? 'Long' : 'Short');
                     },
                   );
                 }, // minWidth: MediaQuery.of(context).size.width * 0.4,

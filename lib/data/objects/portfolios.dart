@@ -56,6 +56,7 @@ class Portfolio {
   String? user;
   List<Transaction>? transactions;
   Map<String, Array>? historicalValue;
+  double? cash;
 
   Portfolio(this.id);
 
@@ -68,16 +69,17 @@ class Portfolio {
     returnHist = {'d': snapshot['returns_d'], 'w': snapshot['returns_w'], 'm': snapshot['returns_m'], 'M': snapshot['returns_M']};
     public = snapshot['public'];
     user = snapshot['user'];
+    cash = snapshot['cash'] + 0.0;
 
     transactions = snapshot['transactions'].map<Transaction>((transaction) {
       String marketName = transaction['market'];
-      double price = transaction['price'];
-      double time = transaction['time'];
+      double price = transaction['price'] + 0.0;
+      double time = transaction['time'] + 0.0;
       Market market;
       Asset quantity;
 
       if (marketName.contains('T')) {
-        quantity = Asset.team(Array.fromDynamicList(transaction['quantity']));
+        quantity = Asset.team(Array.fromTrueDynamicList(transaction['quantity']));
         market = TeamMarket(marketName);
       } else {
         quantity = Asset.player(marketName.contains('L'), transaction['quantity']);

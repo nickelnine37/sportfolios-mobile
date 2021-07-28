@@ -6,12 +6,11 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:confetti/confetti.dart';
 import 'package:intl/intl.dart' as intl;
 import 'package:sportfolios_alpha/data/lmsr/lmsr.dart';
-import 'package:sportfolios_alpha/utils/numerical/arrays.dart';
+import 'package:sportfolios_alpha/plots/payout_graph.dart';
 
 import '../../../data/api/requests.dart';
 import '../../../data/firebase/portfolios.dart';
 import '../../../data/objects/markets.dart';
-import '../../../plots/payout_graph.dart';
 import '../../../providers/authenication_provider.dart';
 import '../../../utils/strings/number_format.dart';
 import '../../../utils/numerical/numbers.dart';
@@ -20,8 +19,9 @@ import '../../../data/objects/portfolios.dart';
 class BuyMarket extends StatefulWidget {
   final Market market;
   final Asset quantity;
+  final String contract_type;
 
-  BuyMarket(this.market, this.quantity);
+  BuyMarket(this.market, this.quantity, this.contract_type);
 
   @override
   _BuyMarketState createState() => _BuyMarketState();
@@ -52,7 +52,7 @@ class _BuyMarketState extends State<BuyMarket> {
     return Padding(
       padding: EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom),
       child: Container(
-        height: 570,
+        height: widget.market.id.contains('T') ? 610 : 450, 
         decoration: BoxDecoration(
           color: Theme.of(context).canvasColor,
           borderRadius: BorderRadius.only(
@@ -73,8 +73,13 @@ class _BuyMarketState extends State<BuyMarket> {
                   child: SingleChildScrollView(
                     child: Column(
                       children: [
-                        Text('Buy: ${widget.market.name}',
-                            textAlign: TextAlign.center, style: TextStyle(fontSize: 24, fontWeight: FontWeight.w300)),
+                        Text(
+                          '${widget.market.name}',
+                          textAlign: TextAlign.center,
+                          style: TextStyle(fontSize: 24, fontWeight: FontWeight.w300),
+                        ),
+                        SizedBox(height: 3),
+                        Text('Contract type: ${widget.contract_type}'),
                         SizedBox(height: 5),
                         Divider(thickness: 2, height: 25),
                         Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, crossAxisAlignment: CrossAxisAlignment.center, children: [
@@ -106,8 +111,8 @@ class _BuyMarketState extends State<BuyMarket> {
                           ),
                         ]),
                         Divider(thickness: 2, height: 25),
-                        // TrueStaticPayoutGraph(widget.quantity, Colors.blue, 35, 150, true),
-                        SizedBox(height: 25),
+                        widget.market.id.contains('T') ? PayoutGraph(q:  widget.quantity.q!, tappable: true) : Container(),
+                        SizedBox(height: 0),
                         FutureBuilder(
                             future: _portfoliosFuture,
                             builder: (BuildContext context, AsyncSnapshot snapshot) {
@@ -148,9 +153,10 @@ class _BuyFormState extends State<BuyForm> {
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
   final TextEditingController _unitController = TextEditingController();
   double units = 0;
-  double? price = 0;
+  double price = 0;
   bool loading = false;
   bool complete = false;
+  bool team = false;
 
   String? _selectedPortfolioId;
 
@@ -167,6 +173,8 @@ class _BuyFormState extends State<BuyForm> {
     } else {
       _selectedPortfolioId = widget.portfolios![0].id;
     }
+    team = widget.market.id.contains('T');
+    
     return Form(
       key: _formKey,
       child: Padding(
@@ -179,24 +187,27 @@ class _BuyFormState extends State<BuyForm> {
               children: [
                 Row(
                   children: [
-                    Text('Portfolio', style: TextStyle(fontSize: 17)),
-                    IconButton(icon: Icon(Icons.info_outline), onPressed: () {}, iconSize: 20)
+                    Text('Portfolio', style: TextStyle(fontSize: 17, color: Colors.grey[850])),
+                    IconButton(icon: Icon(Icons.info_outline), onPressed: () {
+                      print('Portfolio Info ');
+                    }, iconSize: 20)
                   ],
                 ),
                 Container(
-                  width: 100,
-                  height: 50,
+                  width: 150,
+                  height: 100,
                   child: Center(
                     child: DropdownButtonFormField(
+                      itemHeight: 100,
                       value: _selectedPortfolioId,
                       items: List<DropdownMenuItem<String>>.from(widget.portfolios!
-                              .map((portfolio) => DropdownMenuItem(onTap: () {}, value: portfolio.id, child: Text(portfolio.name!)))) +
+                              .map((portfolio) => DropdownMenuItem(onTap: () {}, value: portfolio.id, child: Text(portfolio.name!, style: TextStyle(color: Colors.grey[850]),)))) +
                           <DropdownMenuItem<String>>[
                             DropdownMenuItem(
                               value: 'new',
                               child: Row(
                                 children: [
-                                  Text('New'),
+                                  Text('New', style: TextStyle(color: Colors.grey[850])),
                                   Icon(
                                     Icons.add,
                                     size: 20,
@@ -215,6 +226,7 @@ class _BuyFormState extends State<BuyForm> {
                           _selectedPortfolioId = id;
                         });
                       },
+
                       onSaved: (String? id) {
                         // _selectedPortfolio = widget.portfolios.firstWhere((Portfolio p) => p.id == id);
                         _selectedPortfolioId = id;
@@ -238,7 +250,7 @@ class _BuyFormState extends State<BuyForm> {
               children: [
                 Row(
                   children: [
-                    Text('Units', style: TextStyle(fontSize: 17)),
+                    Text('Units', style: TextStyle(fontSize: 17, color: Colors.grey[850])),
                     IconButton(
                         icon: Icon(Icons.info_outline),
                         onPressed: () {
@@ -248,7 +260,7 @@ class _BuyFormState extends State<BuyForm> {
                   ],
                 ),
                 Container(
-                  width: 100,
+                  width: 150,
                   height: 50,
                   child: TextFormField(
                     keyboardType: TextInputType.numberWithOptions(signed: false, decimal: true),
@@ -274,6 +286,9 @@ class _BuyFormState extends State<BuyForm> {
                     validator: (String? value) {
                       try {
                         double.parse(value!);
+                        if (price >= widget.portfolios!.firstWhere((portfolio) => portfolio.id == _selectedPortfolioId).cash!) {
+                          return 'Insufficient funds';
+                        }
                         return null;
                       } catch (error) {
                         return 'Please input valid units';
@@ -292,7 +307,7 @@ class _BuyFormState extends State<BuyForm> {
               children: [
                 Text(
                   'Price:',
-                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.w400),
+                   style: TextStyle(fontSize: 17, color: Colors.grey[850]),
                 ),
                 Text(
                   formatCurrency(price, 'GBP'),
@@ -310,12 +325,16 @@ class _BuyFormState extends State<BuyForm> {
                       : complete
                           ? Icon(Icons.done, color: Colors.white)
                           : Text('OK', style: TextStyle(color: Colors.white)),
-                  style: ButtonStyle(overlayColor: MaterialStateProperty.all<Color>(Colors.blue)),
+                  style: ButtonStyle(overlayColor: MaterialStateProperty.all<Color>(Colors.blue), backgroundColor: MaterialStateProperty.all<Color>(Colors.blue)),
                   onPressed: () async {
                     if (!complete) {
                       if (_formKey.currentState!.validate()) {
                         _formKey.currentState!.save();
                       }
+                      else {
+                        return;
+                      }
+
                       if (!FocusScope.of(context).hasPrimaryFocus) {
                         FocusManager.instance.primaryFocus!.unfocus();
                       }
@@ -327,7 +346,7 @@ class _BuyFormState extends State<BuyForm> {
                       widget.quantity.k = units;
 
                       Map<String, dynamic>? purchaseRequestResult =
-                          await makePurchaseRequest(widget.market.id, _selectedPortfolioId!, widget.quantity, price!);
+                          await makePurchaseRequest(widget.market.id, _selectedPortfolioId!, widget.quantity, price);
 
                       if (purchaseRequestResult == null) {
                         showDialog(
@@ -386,10 +405,7 @@ class _BuyFormState extends State<BuyForm> {
                                 }) ??
                             false;
 
-                        bool ok = await respondToNewPrice(
-                          confirm,
-                          purchaseRequestResult['cancelId']
-                        );
+                        bool ok = await respondToNewPrice(confirm, purchaseRequestResult['cancelId']);
 
                         if (confirm && !ok) {
                           showDialog(
