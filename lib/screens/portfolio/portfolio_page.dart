@@ -40,6 +40,7 @@ class _PortfolioPageState extends State<PortfolioPage> {
     portfolio.getHistoricalValue();
     loadedPortfolios.add(portfolio);
     alreadyLoadedPortfolioIds.add(portfolio.id);
+    currentPortfolio = getLoadedPortfolioById(portfolio.id);
   }
 
   Future<void> _getAllPortfolios() async {
@@ -83,6 +84,7 @@ class _PortfolioPageState extends State<PortfolioPage> {
           return Scaffold(body: Center(child: CircularProgressIndicator()));
         }
 
+        // create first portfolio page
         if (loadedPortfolios.length == 0) {
           return Scaffold(
             body: Center(
@@ -230,7 +232,10 @@ class _PortfolioPageState extends State<PortfolioPage> {
             ),
             body: TabBarView(
               physics: NeverScrollableScrollPhysics(),
-              children: [Holdings(currentPortfolio), Performance(currentPortfolio)],
+              children: [
+                Holdings(currentPortfolio),
+                Performance(currentPortfolio),
+              ],
             ),
           ),
         );

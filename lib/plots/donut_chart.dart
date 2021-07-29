@@ -66,7 +66,6 @@ class _AnimatedDonutChartState extends State<AnimatedDonutChart> {
     return TweenAnimationBuilder(
       curve: Curves.easeOutSine,
       duration: Duration(milliseconds: 600),
-      // insert endValue here
       tween: Tween<double>(begin: 0, end: endValue),
       builder: (_, double percentComlpete, __) {
         return PieChart(
@@ -151,7 +150,7 @@ class _PieChartState extends State<PieChart> {
         spinning = true;
         centerText = widget.portfolio!.currentValue;
         portfolioName = widget.portfolio!.name;
-        nMarkets = widget.portfolio!.currentValues.length;
+        nMarkets = widget.portfolio!.currentValues.length + 1;
       }
     }
 
@@ -265,6 +264,7 @@ class _PieChartState extends State<PieChart> {
     // translate coordinates so that the origin is central
     Offset coords = offset - Offset(width! / 2, height! / 2);
 
+
     // if outside of a given radius, deselect all
     if (coords.distance < 0.7 * widget.radius || coords.distance > 1.3 * widget.radius) {
       return null;
@@ -286,6 +286,7 @@ class _PieChartState extends State<PieChart> {
       else
         hi = mid;
     }
+
 
     return lo - 1;
   }
