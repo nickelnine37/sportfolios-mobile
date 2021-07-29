@@ -18,7 +18,7 @@ void main() async {
 
 /// Main widget for the whole app
 /// For now it is Stateful, as we need to use a FutureBuilder in the State to determine whether a user is logged in
-/// Maybe a stream would be better, but as of yet I have no way to build a stream that also accounts for 
+/// Maybe a stream would be better, but as of yet I haven't fouond a way to build a stream that also accounts for 
 /// whether a user has their email verified
 class MyApp extends StatefulWidget {
   @override

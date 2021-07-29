@@ -11,6 +11,8 @@ class Transaction {
   late double price;
   late Asset quantity;
 
+  Map<String, Array>? transactionValue;
+
   Transaction(this.market, this.time, this.price, this.quantity);
 
   double? getCurrentValue() {
@@ -24,7 +26,7 @@ class Transaction {
     if (market.historicalLMSR == null)
       print('Cannt get historical value for transaction as historical lmsr for ${market} has not been set');
     else
-      return market.historicalLMSR!.getHistoricalValue(quantity).map((String th, Array valueHist) => MapEntry(
+      transactionValue =  market.historicalLMSR!.getHistoricalValue(quantity).map((String th, Array valueHist) => MapEntry(
           th,
           Array.fromDynamicList(range(valueHist.length).map((int i) {
             if (market.historicalLMSR!.ts[th]![i] < time) {
@@ -33,6 +35,7 @@ class Transaction {
               return valueHist[i] - price;
             }
           }).toList())));
+      return transactionValue;
   }
 
   @override
@@ -109,6 +112,16 @@ class Portfolio {
 
       return Transaction(market, time, price, quantity);
     }).toList();
+  }
+
+  Future<bool> checkForUpdates() async {
+    DocumentSnapshot new_doc = await FirebaseFirestore.instance.collection('portfolios').doc(id).get();
+    if (new_doc['transactions'].length != transactions!.length) {
+      return true;
+    }
+    else {
+      return false;
+    }
   }
 
   double? getCurrentValue() {

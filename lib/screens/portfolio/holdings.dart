@@ -85,18 +85,17 @@ class _HoldingsState extends State<Holdings> {
                       ],
                     ),
                   ),
-                  SizedBox(
-                    height: 25
-                  ),
+                  SizedBox(height: 25),
                   Text(
                     'Holdings',
                     style: TextStyle(fontSize: 19, color: Colors.grey[800], fontWeight: FontWeight.w400),
                   ),
-                  SizedBox(
-                    height: 15
-                  ),
+                  SizedBox(height: 15),
                   widget.portfolio!.currentValues.length == 0
-                      ? Text('  Nothing to see here yet...', style: TextStyle(fontStyle: FontStyle.italic, color: Colors.grey[800]),)
+                      ? Text(
+                          '  Nothing to see here yet...',
+                          style: TextStyle(fontStyle: FontStyle.italic, color: Colors.grey[800]),
+                        )
                       : ExpansionPanelList(
                           elevation: 2,
                           animationDuration: Duration(milliseconds: 600),
@@ -159,31 +158,21 @@ class _HoldingsState extends State<Holdings> {
                                                                 height: imageHeight,
                                                               ),
                                                             )
-                                                          : (market.id == 'cash'
-                                                              ? Container(
-                                                                  height: imageHeight,
-                                                                  width: 50,
-                                                                  child: Text(
-                                                                    '💸',
-                                                                    style: TextStyle(fontSize: 40),
-                                                                  ))
-                                                              : Container(height: imageHeight)),
+                                                          : Container(height: imageHeight),
                                                       SizedBox(width: 15),
                                                       Column(
                                                         crossAxisAlignment: CrossAxisAlignment.start,
                                                         children: [
                                                           Text(market.name!, style: TextStyle(fontSize: 16)),
                                                           SizedBox(height: 3),
-                                                          marketId == 'cash'
-                                                              ? Container()
-                                                              : Text(
-                                                                  'Hey',
-                                                                  // '${sign}${formatPercentage(percentChange.abs(), 'GBP')}  (${sign}${formatCurrency(valueChange.abs(), 'GBP')})',
-                                                                  style: TextStyle(
-                                                                    fontSize: 13,
-                                                                    // color: valueChange >= 0 ? Colors.green[300] : Colors.red[300]),
-                                                                  ),
-                                                                )
+                                                          Text(
+                                                            'Hey',
+                                                            // '${sign}${formatPercentage(percentChange.abs(), 'GBP')}  (${sign}${formatCurrency(valueChange.abs(), 'GBP')})',
+                                                            style: TextStyle(
+                                                              fontSize: 13,
+                                                              // color: valueChange >= 0 ? Colors.green[300] : Colors.red[300]),
+                                                            ),
+                                                          )
                                                         ],
                                                       ),
                                                     ],
