@@ -1,10 +1,3 @@
-Uri currentBackPricesURL(List markets) {
-  return Uri.https('engine.sportfolios.co.uk', '_current_back_prices', {'markets': markets.join(',')});
-}
-
-Uri dailyBackPricesURL(List markets) {
-  return Uri.https('engine.sportfolios.co.uk', '_daily_back_prices', {'markets': markets.join(',')});
-}
 
 Uri currentHoldingsURL(String market) {
   return Uri.https('engine.sportfolios.co.uk', 'current_holdings', {'market': market});
@@ -29,3 +22,8 @@ Uri attemptPurchaseURL() {
 Uri respondToPriceURL() {
   return Uri.https('engine.sportfolios.co.uk', 'confirm_order');
 }
+
+Uri createPortfolioURL() {
+  return Uri.https('engine.sportfolios.co.uk', 'create_portfolio');
+}
+

@@ -55,6 +55,7 @@ class Portfolio {
   List<Transaction>? transactions;
   Map<String, Array>? historicalValue;
   double? cash;
+  Map<String, List<int>>? times;
 
   Portfolio(this.id);
 
@@ -113,7 +114,7 @@ class Portfolio {
   double? getCurrentValue() {
     if (holdings != null) {
       double total = cash!;
-      holdings!.forEach((String marketName, Asset asset) { 
+      holdings!.forEach((String marketName, Asset asset) {
         double value = markets[marketName]!.currentLMSR!.getValue(asset);
         total += value;
         currentValues[marketName] = value;
@@ -128,11 +129,11 @@ class Portfolio {
     Stopwatch stopwatch = new Stopwatch()..start();
 
     historicalValue = {
-      'h': Array.fill(transactions![0].market.historicalLMSR!.ts['h']!.length, 500.0),
-      'd': Array.fill(transactions![0].market.historicalLMSR!.ts['d']!.length, 500.0),
-      'w': Array.fill(transactions![0].market.historicalLMSR!.ts['w']!.length, 500.0),
-      'm': Array.fill(transactions![0].market.historicalLMSR!.ts['m']!.length, 500.0),
-      'M': Array.fill(transactions![0].market.historicalLMSR!.ts['M']!.length, 500.0)
+      'h': Array.fill(times!['h']!.length, 500.0),
+      'd': Array.fill(times!['d']!.length, 500.0),
+      'w': Array.fill(times!['w']!.length, 500.0),
+      'm': Array.fill(times!['m']!.length, 500.0),
+      'M': Array.fill(times!['M']!.length, 500.0)
     };
 
     for (Transaction transaction in transactions!) {
@@ -162,11 +163,11 @@ class Portfolio {
       Map<String, Map<String, dynamic>>? historicalHoldings = await getMultipleHistoricalHoldings(markets.keys.toList());
 
       if ((currentHoldings != null) && (historicalHoldings != null)) {
-        Map<String, List<int>> times = Map<String, List<int>>.from(historicalHoldings['time']!);
+        times = Map<String, List<int>>.from(historicalHoldings['time']!);
 
         for (Transaction transaction in transactions!) {
           transaction.market.setCurrentHoldings(currentHoldings[transaction.market.id]!);
-          transaction.market.setHistoricalHoldings(historicalHoldings['data']![transaction.market.id], times);
+          transaction.market.setHistoricalHoldings(historicalHoldings['data']![transaction.market.id], times!);
         }
       } else {
         print('Unable to populateMarketsServer. Current or historical holdings failed');

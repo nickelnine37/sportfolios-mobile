@@ -9,44 +9,26 @@ import '../../providers/authenication_provider.dart';
 
 String __version__ = '0.0';
 
-Future<Map<String, double>?> getBackPrices(List<String?> markets) async {
-  Uri url = currentBackPricesURL(markets);
+Future<String?> createNewPortfolio(String name, bool public) async {
 
-  var response = await http.get(
-    url,
-    headers: {
-      'Authorization': await AuthService().getJWTToken(),
-      'Version': __version__,
-    },
-  );
+  Uri url = createPortfolioURL();
 
-  if (response.statusCode == 200) {
-    Map<String, double> jsonResponse = Map<String, double>.from(convert.jsonDecode(response.body));
-    return jsonResponse;
-  } else {
-    print('Request getBackPrices failed with status: ${response.statusCode}.');
-    return null;
-  }
-}
-
-Future<Map<String, List>?> getDailyBackPrices(List<String?> markets) async {
-  Uri url = dailyBackPricesURL(markets);
-
-  var response = await http.get(
-    url,
-    headers: {
-      'Authorization': await AuthService().getJWTToken(),
-      'Version': __version__,
-    },
-  );
+  var response = await http.post(url, headers: {
+    'Authorization': await AuthService().getJWTToken(),
+    'Version': __version__,
+  }, body: {
+    'name': name,
+    'public': public ? 'true' : 'false',
+  });
 
   if (response.statusCode == 200) {
-    Map<String, List> jsonResponse = Map<String, List>.from(convert.jsonDecode(response.body));
-    return jsonResponse;
+    Map<String, dynamic> jsonResponse = Map<String, dynamic>.from(convert.jsonDecode(response.body));
+    return jsonResponse['portfolioId'];
   } else {
-    print('Request getDailyBackPrices failed with status: ${response.statusCode}.');
+    print('Request createNewPortfolio failed with status: ${response.statusCode}: ${response.body}');
     return null;
   }
+
 }
 
 Future<Map<String, dynamic>?> getCurrentHoldingsFromServer(String market) async {
@@ -69,7 +51,7 @@ Future<Map<String, dynamic>?> getCurrentHoldingsFromServer(String market) async 
       return {'N': jsonResponse['N'] + 0.0, 'b': jsonResponse['b'] + 0.0};
     }
   } else {
-    print('Request getcurrentX failed with status: ${response.statusCode}.');
+    print('Request getcurrentX failed with status: ${response.statusCode}. : ${response.body}');
     return null;
   }
 }
@@ -105,7 +87,7 @@ Future<Map<String, dynamic>?> getHistoricalHoldingsFromServer(String market) asy
       };
     }
   } else {
-    print('Request getcurrentX failed with status: ${response.statusCode}.');
+    print('Request getcurrentX failed with status: ${response.statusCode}. : ${response.body}');
     return null;
   }
 }
@@ -115,7 +97,7 @@ Future<Map<String, Map<String, dynamic>>?> getMultipleCurrentHoldings(List<Strin
 
   if (markets.length == 0) {
     print('getMultipleCurrentX: No markets passed!');
-    return null;
+    return {};
   }
 
   var response = await http.get(
@@ -146,17 +128,17 @@ Future<Map<String, Map<String, dynamic>>?> getMultipleCurrentHoldings(List<Strin
       }),
     );
   }
-  print('Request getcurrentX failed with status: ${response.statusCode}.');
+  print('Request getcurrentX failed with status: ${response.statusCode}. : ${response.body}');
   return null;
 }
 
 Future<Map<String, Map<String, dynamic>>?> getMultipleHistoricalHoldings(List<String?> markets) async {
   Uri url = historicalMultipleHoldingsURL(markets);
 
-  if (markets.length == 0) {
-    print('getMultipleHistoricalX: No markets passed!');
-    return null;
-  }
+  // if (markets.length == 0) {
+  //   print('getMultipleHistoricalX: No markets passed!');
+  //   return null;
+  // }
 
   var response = await http.get(
     url,
@@ -189,7 +171,7 @@ Future<Map<String, Map<String, dynamic>>?> getMultipleHistoricalHoldings(List<St
       'time': castHistListInt(jsonResponse['time']!)
     };
   } else {
-    print('Request getcurrentX failed with status: ${response.statusCode}.');
+    print('Request getcurrentX failed with status: ${response.statusCode}. : ${response.body}');
     return null;
   }
 }
@@ -217,7 +199,7 @@ Future<Map<String, dynamic>?> makePurchaseRequest(
     Map<String, dynamic> jsonResponse = Map<String, dynamic>.from(convert.jsonDecode(response.body));
     return jsonResponse;
   } else {
-    print('Request makePurchaseRequest failed with status: ${response.statusCode}.');
+    print('Request makePurchaseRequest failed with status: ${response.statusCode}. : ${response.body}');
     return null;
   }
 }
@@ -238,7 +220,7 @@ Future<bool> respondToNewPrice(
   if (response.statusCode == 200) {
     return true;
   } else {
-    print('Request getcurrentX failed with status: ${response.statusCode}.');
+    print('Request getcurrentX failed with status: ${response.statusCode}. : ${response.body}');
     return false;
   }
 }

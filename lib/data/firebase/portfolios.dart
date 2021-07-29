@@ -7,44 +7,44 @@ Future<Portfolio> getPortfolioById(String portfoliloId) async {
 }
 
 Future<void> deletePortfolio(String portfolioId) async {
-  await FirebaseFirestore.instance.collection('portfolios').doc(portfolioId).delete();
+  await FirebaseFirestore.instance.collection('portfolios').doc(portfolioId).update({'active': false});
   await FirebaseFirestore.instance.collection('user').doc(AuthService().currentUid).update({
     'portfolios': FieldValue.arrayRemove([portfolioId])
   });
 }
 
-Future<void> addNewPortfolio(String? name, bool public) async {
-  String uid = AuthService().currentUid;
-  CollectionReference portfoliosCollection = FirebaseFirestore.instance.collection('portfolios');
-  try {
-    DocumentReference newPortfolio = await portfoliosCollection.add({
-      'user': uid,
-      'name': name,
-      'public': public,
-      'cash': 500.0,
-      'current_value': 500.0,
-      'holdings': {},
-      'transactions': [],
-      'returns_d': 0.0,
-      'returns_w': 0.0, 
-      'returns_m': 0.0, 
-      'returns_M': 0.0
-    });
+// Future<void> addNewPortfolio(String? name, bool public) async {
+//   String uid = AuthService().currentUid;
+  // CollectionReference portfoliosCollection = FirebaseFirestore.instance.collection('portfolios');
+  // try {
+  //   DocumentReference newPortfolio = await portfoliosCollection.add({
+  //     'user': uid,
+  //     'name': name,
+  //     'public': public,
+  //     'cash': 500.0,
+  //     'current_value': 500.0,
+  //     'holdings': {},
+  //     'transactions': [],
+  //     'returns_d': 0.0,
+  //     'returns_w': 0.0, 
+  //     'returns_m': 0.0, 
+  //     'returns_M': 0.0
+  //   });
 
-    print('Added new portfolio: ${newPortfolio.id}');
+  //   print('Added new portfolio: ${newPortfolio.id}');
 
-    try {
-      FirebaseFirestore.instance.collection('users').doc(uid).update({
-        'portfolios': FieldValue.arrayUnion([newPortfolio.id])
-      });
-      print('Successfully updated user portfolio list');
-    } on Exception catch (e) {
-      print('Error updaing user portfolio list: $e');
-    }
-  } on Exception catch (e) {
-    print('Error adding new portfolio: $e');
-  }
-}
+  //   try {
+  //     FirebaseFirestore.instance.collection('users').doc(uid).update({
+  //       'portfolios': FieldValue.arrayUnion([newPortfolio.id])
+  //     });
+  //     print('Successfully updated user portfolio list');
+  //   } on Exception catch (e) {
+  //     print('Error updaing user portfolio list: $e');
+  //   }
+  // } on Exception catch (e) {
+  //   print('Error adding new portfolio: $e');
+  // }
+// }
 
 class PortfolioFetcher {
   DocumentSnapshot? lastDocument;

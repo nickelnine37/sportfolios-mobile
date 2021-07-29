@@ -70,6 +70,8 @@ class _AccountRegistrationFormState extends State<AccountRegistrationForm> {
 
   GateKeeper? gateKeeper;
 
+  bool loading = false;
+
   @override
   void dispose() {
     // Clean up the controller when the widget is disposed.
@@ -173,12 +175,20 @@ class _AccountRegistrationFormState extends State<AccountRegistrationForm> {
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
       minWidth: 300,
       height: 50,
-      child: ElevatedButton(
-        child: Text(
-          'REGISTER',
-          style: TextStyle(color: Colors.white, fontSize: 18, letterSpacing: 1),
-        ),
-        onPressed: () async {
+      child: TextButton(
+        child: loading
+            ? SizedBox(
+                width: 25,
+                height: 25,
+                child: CircularProgressIndicator(
+                  strokeWidth: 3,
+                  valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                ))
+            : Text(
+                'REGISTER',
+                style: TextStyle(color: Colors.white, fontSize: 18, letterSpacing: 1),
+              ),
+        onPressed: loading? null : () async {
           if (_formKey.currentState!.validate()) {
             _formKey.currentState!.save();
 
@@ -190,9 +200,13 @@ class _AccountRegistrationFormState extends State<AccountRegistrationForm> {
             // save the form state
             _formKey.currentState!.save();
 
+            setState(() {
+              loading = true;
+            });
+
             // register user and check for problems
-            String? error =
-                await gateKeeper!.registerUser(email: _email!, username: _username, password: _password1!);
+            String? error = await gateKeeper!.registerUser(email: _email!, username: _username, password: _password1!);
+            await Future.delayed(Duration(seconds : 2));
 
             // if no problems happened with registering, push to verification stage
             if (error == null) {
@@ -209,6 +223,7 @@ class _AccountRegistrationFormState extends State<AccountRegistrationForm> {
             else {
               setState(() {
                 errorText = error;
+                loading = false;
               });
             }
           }
@@ -256,9 +271,7 @@ class _AccountRegistrationFormState extends State<AccountRegistrationForm> {
           ),
         ),
         SizedBox(height: 13),
-        (errorText == null)
-            ? Container()
-            : Container(height: 20, child: Text(errorText!, style: TextStyle(color: Colors.red))),
+        (errorText == null) ? Container() : Container(height: 20, child: Text(errorText!, style: TextStyle(color: Colors.red))),
       ],
     );
   }

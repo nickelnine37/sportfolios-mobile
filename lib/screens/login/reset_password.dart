@@ -67,8 +67,10 @@ class _PasswordResetFormState extends State<PasswordResetForm> {
   String? _email;
 
   /// text to display at the bottom
-  String _bottomText =
-      "Enter your email above. If you've registered an account, a link will be sent for you to reset your password. ";
+  String _bottomText = "Enter your email above. If you've registered an account, a link will be sent for you to reset your password. ";
+
+  bool loading = false;
+  bool done = false;
 
   /// global key for the form
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
@@ -112,29 +114,55 @@ class _PasswordResetFormState extends State<PasswordResetForm> {
                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
                 minWidth: 300,
                 height: 50,
-                child: ElevatedButton(
+                child: TextButton(
                   // elevation: 0,
-                  child: Text(
-                    'SEND RESET LINK',
-                    style: TextStyle(color: Colors.white, fontSize: 18, letterSpacing: 1),
-                  ),
-                  onPressed: () {
+                  child: loading
+                      ? SizedBox(
+                          width: 25,
+                          height: 25,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 3,
+                            valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                          ))
+                      : (done
+                          ? Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Text('Email sent', style: TextStyle(color: Colors.white, fontSize: 18, letterSpacing: 1)),
+                              SizedBox(width: 5),
+                              Icon(Icons.done, size: 30, color: Colors.white,),
+                            ],
+                          )
+                          : Text(
+                              'SEND RESET LINK',
+                              style: TextStyle(color: Colors.white, fontSize: 18, letterSpacing: 1),
+                            )),
+                  onPressed: (loading || done) ? null : () async {
                     if (_formKey.currentState!.validate()) {
-
-                     // close the keyboard
+                      // close the keyboard
                       if (!FocusScope.of(context).hasPrimaryFocus) {
                         FocusManager.instance.primaryFocus!.unfocus();
                       }
 
+                      setState(() {
+                        loading = true;
+                      });
+
                       // save the form state
                       _formKey.currentState!.save();
 
+                      await _authService.sendResetPasswordEmail(email: this._email!);
+                      print('sending password reset to ${this._email}');
+
+                      await Future.delayed(Duration(seconds: 2));
+
                       // change the bottom text
                       setState(() {
-                        _bottomText = 'Email sent. Follow the link to reset your password';
+                        loading = false;
+                        done = true;
+                        _bottomText = 'Follow the link to reset your password. The message may be in your junk folder :\'( ';
                       });
-                      print('sending password reset to ${this._email}');
-                      _authService.sendResetPasswordEmail(email: this._email!);
+
                     }
                   },
                 ),
@@ -148,7 +176,7 @@ class _PasswordResetFormState extends State<PasswordResetForm> {
           child: Text(
             _bottomText,
             style: TextStyle(color: Colors.white),
-            textAlign: TextAlign.justify,
+            textAlign: TextAlign.center,
           ),
         ),
       ],
