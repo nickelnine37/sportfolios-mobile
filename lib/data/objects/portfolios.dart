@@ -55,7 +55,7 @@ class Portfolio {
   bool? public;
   Map<String, double>? returnHist;
   String? user;
-  List<Transaction>? transactions;
+  List<Transaction> transactions = [];
   Map<String, Array>? historicalValue;
   double? cash;
   Map<String, List<int>>? times;
@@ -116,10 +116,12 @@ class Portfolio {
 
   Future<bool> checkForUpdates() async {
     DocumentSnapshot new_doc = await FirebaseFirestore.instance.collection('portfolios').doc(id).get();
-    if (new_doc['transactions'].length != transactions!.length) {
+    if (new_doc['transactions'].length != transactions.length) {
+      print('New transactions have been added!!');
       return true;
     }
     else {
+      print('No new transactions have been added');
       return false;
     }
   }
@@ -149,7 +151,7 @@ class Portfolio {
       'M': Array.fill(times!['M']!.length, 500.0)
     };
 
-    for (Transaction transaction in transactions!) {
+    for (Transaction transaction in transactions) {
       Map<String, Array> transactionValue = transaction.getHistoricalValue()!;
       for (String th in ['h', 'd', 'w', 'm', 'M']) {
         historicalValue![th] = historicalValue![th]! + transactionValue[th]!;
@@ -178,7 +180,7 @@ class Portfolio {
       if ((currentHoldings != null) && (historicalHoldings != null)) {
         times = Map<String, List<int>>.from(historicalHoldings['time']!);
 
-        for (Transaction transaction in transactions!) {
+        for (Transaction transaction in transactions) {
           transaction.market.setCurrentHoldings(currentHoldings[transaction.market.id]!);
           transaction.market.setHistoricalHoldings(historicalHoldings['data']![transaction.market.id], times!);
         }

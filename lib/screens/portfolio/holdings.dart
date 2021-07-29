@@ -110,18 +110,7 @@ class _HoldingsState extends State<Holdings> {
                             //
                             String marketId = sortedValues.keys.toList()[i];
                             Market market = widget.portfolio!.markets[marketId]!;
-                            // List<double> quantity = widget.portfolio!.currentQuantities[marketId]!;
                             double? value = sortedValues.values.toList()[i];
-                            // double? pmax = getMax(quantity);
-                            // List<double>? dailyPriceChart = market.lmsr.getHistoricalValue(quantity)?['d']!;
-
-                            // if (dailyPriceChart == null) {
-                            //   dailyPriceChart = List<double>.generate(60, (index) => 1.0);
-                            // }
-
-                            // double valueChange = dailyPriceChart.last - dailyPriceChart.first;
-                            // double percentChange = valueChange / dailyPriceChart.first;
-                            // String sign = valueChange < 0 ? '-' : '+';
 
                             return ExpansionPanel(
                               headerBuilder: (BuildContext context, bool itemIsExpanded) {
@@ -196,18 +185,34 @@ class _HoldingsState extends State<Holdings> {
                                   : Column(
                                       // crossAxisAlignment: CrossAxisAlignment.start,
                                       children: [
-                                        Container(
-                                          height: 250,
-                                          padding: const EdgeInsets.symmetric(vertical: 20),
-                                          // child: TrueStaticPayoutGraph(
-                                          //   quantity,
-                                          //   Colors.blue,
-                                          //   25,
-                                          //   150,
-                                          //   true,
-                                          //   pmax,
-                                          // ),
-                                        ),
+                                        marketId.contains('T')
+                                            ? Container(
+                                                height: 250,
+                                                padding: const EdgeInsets.symmetric(vertical: 20),
+                                                child: PayoutGraph(
+                                                  q: widget.portfolio!.holdings![marketId]!.q!,
+                                                  tappable: true,
+                                                  pmax: widget.portfolio!.holdings![marketId]!.q!.max,
+                                                ),
+                                              )
+                                            : Container(
+                                                height: 150,
+                                                child: Padding(
+                                                  padding: const EdgeInsets.symmetric(horizontal: 25),
+                                                  child: Row(
+                                                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                                                    children: [
+                                                      Column(
+                                                        // widget.portfolio!.holdings![marketId]!.k!
+                                                        children: [Text('Units Long', style: TextStyle(fontSize: 18)), Text('0')],
+                                                      ),
+                                                      Column(
+                                                        children: [Text('Units Short', style: TextStyle(fontSize: 18)), Text('0')],
+                                                      )
+                                                    ],
+                                                  ),
+                                                ),
+                                              ),
                                         Padding(
                                           padding: const EdgeInsets.only(bottom: 15.0),
                                           child: ElevatedButton(

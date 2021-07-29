@@ -30,7 +30,7 @@ class PurchaseCompleteChangeNotifier with ChangeNotifier {
   void setPortfolio(String? portfolioId) {
     if (_portfolio != portfolioId) {
       _portfolio = portfolioId;
-      print('Purchase made! notifying listeners');
+      print('Purchase made! notifying listeners!!!!!!!');
       notifyListeners();
       // _portfolio = null;
     }
@@ -296,7 +296,7 @@ class _BuyFormState extends State<BuyForm> {
                       } else {
                         try {
                           units = double.parse(value);
-                          widget.quantity.k = units;
+                          widget.quantity.k = widget.quantity.k! * units;
                           price = validatePrice(widget.market.currentLMSR!.priceTrade(
                             widget.quantity,
                           ));
@@ -366,7 +366,7 @@ class _BuyFormState extends State<BuyForm> {
                         loading = true;
                       });
 
-                      widget.quantity.k = units;
+                      widget.quantity.k = widget.quantity.k! * units;
 
                       Map<String, dynamic>? purchaseRequestResult =
                           await makePurchaseRequest(widget.market.id, _selectedPortfolioId!, widget.quantity, price);
@@ -393,6 +393,7 @@ class _BuyFormState extends State<BuyForm> {
                         });
 
                         // Notify portfolios that a new purchase has been made
+                        print('Notifying!!');
                         context.read(purchaseCompleteProvider).setPortfolio(_selectedPortfolioId!);
 
                         showDialog(
