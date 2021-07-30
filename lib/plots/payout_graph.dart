@@ -10,8 +10,9 @@ class PayoutGraph extends StatefulWidget {
   final double padding;
   final double height;
   final bool tappable;
+  final double pmax;
 
-  PayoutGraph({required this.q, required this.tappable, this.padding = 25, this.height = 150});
+  PayoutGraph({required this.q, required this.tappable, this.padding = 25, this.height = 150, this.pmax=10});
 
   @override
   _PayoutGraphState createState() => _PayoutGraphState();
@@ -27,7 +28,7 @@ class _PayoutGraphState extends State<PayoutGraph> {
       return range(n)
           .map(
             (int i) => CustomPaint(
-              painter: SimpleBar(payouts: widget.q, index: i, opacity: 1),
+              painter: SimpleBar(payouts: widget.q, index: i, opacity: 1, pmax: widget.pmax),
               size: Size(width!, widget.height),
             ),
           )
@@ -36,7 +37,7 @@ class _PayoutGraphState extends State<PayoutGraph> {
       return range(n)
           .map(
             (int i) => CustomPaint(
-              painter: SimpleBar(payouts: widget.q, index: i, opacity: (i == selectedBar) ? 1 : 0.5),
+              painter: SimpleBar(payouts: widget.q, index: i, opacity: (i == selectedBar) ? 1 : 0.5, pmax: widget.pmax),
               size: Size(width!, widget.height),
             ),
           )
@@ -47,7 +48,7 @@ class _PayoutGraphState extends State<PayoutGraph> {
   int? _selectedBar(Offset touchLocation) {
     int selected = (n! * touchLocation.dx / width!).floor();
 
-    if (touchLocation.dy + 20 > widget.height - widget.height * widget.q[selected] / 10)
+    if (touchLocation.dy + 20 > widget.height - widget.height * widget.q[selected] / widget.pmax)
       return selected;
     else
       return null;

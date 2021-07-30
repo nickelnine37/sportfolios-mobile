@@ -203,6 +203,7 @@ class _PieChartState extends State<PieChart> {
       child: Container(
         width: width,
         height: height,
+        color: Colors.grey[50],
         child: Center(
           child: Stack(
               children: <Widget>[centralText] +

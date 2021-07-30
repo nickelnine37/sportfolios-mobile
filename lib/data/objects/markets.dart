@@ -186,7 +186,16 @@ class TeamMarket extends Market {
   @override
   void addSnapshotInfo(DocumentSnapshot snapshot) {
     super.addSnapshotInfo(snapshot);
-    name = snapshot['name'];
+
+    if (snapshot['name'].length > 20) {
+      List names = snapshot['name'].split(" ");
+      if (names.length > 2)
+        name = names.first + ' ' + names.last;
+      else
+        name = names.first;
+    } else
+      name = snapshot['name'];
+
     info1 = "P ${snapshot['played']}";
     info2 = "GD ${snapshot['goal_difference'] > 0 ? '+' : '-'}${snapshot['goal_difference'].abs()}";
     info3 = "PTS ${snapshot['points']}";

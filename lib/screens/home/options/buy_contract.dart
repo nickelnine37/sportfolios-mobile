@@ -2,6 +2,7 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:confetti/confetti.dart';
 import 'package:intl/intl.dart' as intl;
@@ -15,6 +16,28 @@ import '../../../providers/authenication_provider.dart';
 import '../../../utils/strings/number_format.dart';
 import '../../../utils/numerical/numbers.dart';
 import '../../../data/objects/portfolios.dart';
+
+/// this can be used to notify other widgets that a purchase has been made
+final purchaseCompleteProvider = ChangeNotifierProvider<PurchaseCompleteChangeNotifier>((ref) {
+  return PurchaseCompleteChangeNotifier();
+});
+
+class PurchaseCompleteChangeNotifier with ChangeNotifier {
+  String? _portfolio;
+
+  String? get portfolio => _portfolio;
+
+  void setPortfolio(String? portfolioId) {
+    if (_portfolio != portfolioId) {
+      _portfolio = portfolioId;
+      print('Purchase made! notifying listeners!!!!!!!');
+      notifyListeners();
+      // _portfolio = null;
+    }
+  }
+}
+
+
 
 class BuyMarket extends StatefulWidget {
   final Market market;
@@ -42,7 +65,7 @@ class _BuyMarketState extends State<BuyMarket> {
     DocumentSnapshot userSnapshot = await FirebaseFirestore.instance.collection('users').doc(_authService.currentUid).get();
     List<String> portfolioIds = List<String>.from(userSnapshot['portfolios']);
     for (String portfolioId in portfolioIds) {
-      out.add(await getPortfolioById(portfolioId));
+      out.add((await getPortfolioById(portfolioId))!);
     }
     return out;
   }
@@ -273,7 +296,7 @@ class _BuyFormState extends State<BuyForm> {
                       } else {
                         try {
                           units = double.parse(value);
-                          widget.quantity.k = units;
+                          widget.quantity.k = widget.quantity.k! * units;
                           price = validatePrice(widget.market.currentLMSR!.priceTrade(
                             widget.quantity,
                           ));
@@ -343,7 +366,7 @@ class _BuyFormState extends State<BuyForm> {
                         loading = true;
                       });
 
-                      widget.quantity.k = units;
+                      widget.quantity.k = widget.quantity.k! * units;
 
                       Map<String, dynamic>? purchaseRequestResult =
                           await makePurchaseRequest(widget.market.id, _selectedPortfolioId!, widget.quantity, price);
@@ -368,6 +391,10 @@ class _BuyFormState extends State<BuyForm> {
                           loading = false;
                           complete = true;
                         });
+
+                        // Notify portfolios that a new purchase has been made
+                        print('Notifying!!');
+                        context.read(purchaseCompleteProvider).setPortfolio(_selectedPortfolioId!);
 
                         showDialog(
                             context: context,

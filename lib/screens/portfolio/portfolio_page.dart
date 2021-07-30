@@ -1,8 +1,10 @@
 import 'dart:ui';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:sportfolios_alpha/data/api/requests.dart';
+import 'package:sportfolios_alpha/screens/home/options/buy_contract.dart';
 
 import '../../data/firebase/portfolios.dart';
 import '../../providers/authenication_provider.dart';
@@ -19,89 +21,205 @@ class PortfolioPage extends StatefulWidget {
 
 class _PortfolioPageState extends State<PortfolioPage> {
   Future<void>? portfoliosFuture;
-  late int nPortfolios;
-  List<Portfolio> loadedPortfolios = [];
-  List<String?> alreadyLoadedPortfolioIds = [];
-  Portfolio? currentPortfolio;
+  Map<String, Portfolio> portfolios = {};
+  String? selectedPortfolioId;
+  SharedPreferences? prefs;
+
+  // late int nPortfolios;
+  // List<Portfolio> loadedPortfolios = [];
+  // List<String?> alreadyLoadedPortfolioIds = [];
+  // Portfolio? currentPortfolio;
 
   @override
   void initState() {
     super.initState();
-    portfoliosFuture = _getAllPortfolios();
+    portfoliosFuture = _getFreshPortfolios();
     print('initialising portfolio state');
   }
 
-  Future<void> _addNewPortfolio(String portfolioId) async {
-    Portfolio portfolio = await getPortfolioById(portfolioId);
-    await portfolio.populateMarketsFirebase();
-    await portfolio.populateMarketsServer();
-    await portfolio.populateMarketsFirebase();
-    portfolio.getCurrentValue();
-    portfolio.getHistoricalValue();
-    loadedPortfolios.add(portfolio);
-    alreadyLoadedPortfolioIds.add(portfolio.id);
-    currentPortfolio = getLoadedPortfolioById(portfolio.id);
-  }
-
-  Future<void> _getAllPortfolios() async {
+  // run once only in initState - gets all portfolios fresh
+  Future<void> _getFreshPortfolios() async {
+    prefs = await SharedPreferences.getInstance();
     String uid = AuthService().currentUid;
     DocumentSnapshot result = await FirebaseFirestore.instance.collection('users').doc(uid).get();
 
     for (String portfolioId in result['portfolios']) {
-      if (!alreadyLoadedPortfolioIds.contains(portfolioId)) {
-        await _addNewPortfolio(portfolioId);
+      Portfolio? portfolio = await _getFreshPortfolio(portfolioId);
+      if (portfolio != null) {
+        portfolios[portfolioId] = portfolio;
       }
-    }
-
-    nPortfolios = loadedPortfolios.length;
-
-    print('We have ${nPortfolios} portfolios');
-
-    SharedPreferences prefs = await SharedPreferences.getInstance();
-    // this may be null if selectedPortfolio is not set yet
-    currentPortfolio = getLoadedPortfolioById(prefs.getString('selectedPortfolio'));
-    if (currentPortfolio == null && nPortfolios > 0) {
-      currentPortfolio = loadedPortfolios[0];
     }
   }
 
-  Portfolio? getLoadedPortfolioById(String? id) {
-    if (id == null) {
+  Future<Portfolio?> _getFreshPortfolio(String portfolioId) async {
+    Portfolio? portfolio = await getPortfolioById(portfolioId);
+    if (portfolio == null) {
       return null;
+    } else {
+      await portfolio.populateMarketsFirebase();
+      await portfolio.populateMarketsServer();
+      portfolio.getCurrentValue();
+      portfolio.getHistoricalValue();
+      return portfolio;
     }
-    if (loadedPortfolios.length == 0) {
-      return null;
+  }
+
+  Future<void> _addNewPortfolio(String portfolioId) async {
+    Portfolio? newPortfolio = await _getFreshPortfolio(portfolioId);
+    if (newPortfolio != null) {
+      portfolios[portfolioId] = newPortfolio;
+      selectedPortfolioId = portfolioId;
     }
-    return loadedPortfolios.firstWhere((Portfolio portf) => portf.id == id, orElse: () => loadedPortfolios[0]);
+  }
+
+  Future<void> _refreshPortfolio(String portfolioId) async {
+    if (await portfolios[portfolioId]!.checkForUpdates()) {
+      portfolios[portfolioId] = (await _getFreshPortfolio(portfolioId))!;
+    }
   }
 
   @override
   Widget build(BuildContext context) {
-    return FutureBuilder(
-      future: portfoliosFuture,
-      builder: (BuildContext context, AsyncSnapshot snapshot) {
-        if (snapshot.connectionState != ConnectionState.done) {
-          return Scaffold(body: Center(child: CircularProgressIndicator()));
-        }
+    return Consumer(builder: (BuildContext context, watch, Widget? child) {
+      final portfoliloWatcher = watch(purchaseCompleteProvider);
+      String? pid = portfoliloWatcher.portfolio;
 
-        // create first portfolio page
-        if (loadedPortfolios.length == 0) {
-          return Scaffold(
-            body: Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Text('Add a new portfolio to get started', style: TextStyle(fontSize: 18, color: Colors.grey[800])),
-                  SizedBox(height: 25),
-                  TextButton(
-                    style: ButtonStyle(
-                        fixedSize: MaterialStateProperty.all<Size>(Size(150, 40)),
-                        overlayColor: MaterialStateProperty.all<Color>(Colors.blue[400]!),
-                        backgroundColor: MaterialStateProperty.all<Color>(Colors.blue[400]!),
-                        shape: MaterialStateProperty.all<OutlinedBorder>(RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(20),
-                        ))),
-                    child: Text('New portfolio   +', style: TextStyle(color: Colors.white, fontSize: 16)),
+      print('Pid has changed!! : ${pid}');
+
+      if (pid != null) {
+        portfoliosFuture = _refreshPortfolio(pid);
+      }
+
+      return FutureBuilder(
+        future: portfoliosFuture,
+        builder: (BuildContext context, AsyncSnapshot snapshot) {
+          if (snapshot.connectionState != ConnectionState.done) {
+            return Scaffold(body: Center(child: CircularProgressIndicator()));
+          }
+
+          // create first portfolio page
+          if (portfolios.length == 0) {
+            return Scaffold(
+              body: Center(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Text('Add a new portfolio to get started', style: TextStyle(fontSize: 18, color: Colors.grey[800])),
+                    SizedBox(height: 25),
+                    TextButton(
+                      style: ButtonStyle(
+                          fixedSize: MaterialStateProperty.all<Size>(Size(150, 40)),
+                          overlayColor: MaterialStateProperty.all<Color>(Colors.blue[400]!),
+                          backgroundColor: MaterialStateProperty.all<Color>(Colors.blue[400]!),
+                          shape: MaterialStateProperty.all<OutlinedBorder>(RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(20),
+                          ))),
+                      child: Text('New portfolio   +', style: TextStyle(color: Colors.white, fontSize: 16)),
+                      onPressed: () async {
+                        String? newPid = await showDialog(
+                          context: context,
+                          builder: (context) {
+                            return NewPortfolioDialogue();
+                          },
+                        );
+                        if (newPid != null) {
+                          setState(() {
+                            portfoliosFuture = _addNewPortfolio(newPid);
+                          });
+                        }
+                      },
+                    )
+                  ],
+                ),
+              ),
+            );
+          }
+
+          if (selectedPortfolioId == null && portfolios.length > 0) {
+            selectedPortfolioId = prefs!.getString('selectedPortfolio');
+            if (selectedPortfolioId == null) {
+              selectedPortfolioId = portfolios.keys.toList()[0];
+            }
+          }
+
+          return DefaultTabController(
+            length: 2,
+            child: Scaffold(
+              appBar: AppBar(
+                automaticallyImplyLeading: false,
+                titleSpacing: 0,
+                toolbarHeight: 110,
+                title: Column(children: [
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.start,
+                    children: [
+                      SizedBox(width: 5),
+                      GestureDetector(
+                        onTap: () async {
+                          String? newlySelectedPortfolioId = await showDialog(
+                            context: context,
+                            builder: (context) {
+                              return PortfolioSelectorDialogue(portfolios);
+                            },
+                          );
+
+                          if (newlySelectedPortfolioId != null) {
+                            setState(() {
+                              selectedPortfolioId = newlySelectedPortfolioId;
+                            });
+                          }
+                        },
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.start,
+                          crossAxisAlignment: CrossAxisAlignment.center,
+                          children: [
+                            SizedBox(width: 10),
+                            Container(
+                                height: 25,
+                                width: 25,
+                                child: MiniDonutChart(
+                                  portfolios[selectedPortfolioId]!,
+                                  strokeWidth: 8,
+                                )),
+                            SizedBox(width: 15),
+                            Text(portfolios[selectedPortfolioId]!.name!, style: TextStyle(fontSize: 25.0, color: Colors.white)),
+                            Container(
+                              padding: EdgeInsets.all(0),
+                              width: 30,
+                              height: 20,
+                              child: Center(
+                                child: Icon(Icons.arrow_drop_down, color: Colors.white),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                ]),
+                actions: [
+                  IconButton(
+                      icon: Icon(Icons.settings, color: Colors.white),
+                      onPressed: () async {
+                        if (portfolios[selectedPortfolioId]! != null) {
+                          String? output = await showDialog(
+                            context: context,
+                            builder: (context) {
+                              return PortfolioSettingsDialogue(portfolios[selectedPortfolioId]!);
+                            },
+                          );
+                          if (output == 'updated') {
+                            setState(() {});
+                          } else if (output == 'deleted') {
+                            setState(() {
+                              portfolios.remove(selectedPortfolioId);
+                              selectedPortfolioId = null;
+                            });
+                          }
+                        }
+                      }),
+                  IconButton(
+                    icon: Icon(Icons.add, color: Colors.white, size: 25),
                     onPressed: () async {
                       String? newPid = await showDialog(
                         context: context,
@@ -115,137 +233,41 @@ class _PortfolioPageState extends State<PortfolioPage> {
                         });
                       }
                     },
-                  )
+                  ),
+                ],
+                bottom: TabBar(
+                  labelPadding: EdgeInsets.all(5),
+                  tabs: <Row>[
+                    Row(mainAxisAlignment: MainAxisAlignment.center, children: [
+                      Text('Holdings', style: TextStyle(fontSize: 16.0, color: Colors.white)),
+                      SizedBox(width: 8),
+                      Icon(Icons.donut_large, color: Colors.white, size: 17)
+                    ]),
+                    Row(mainAxisAlignment: MainAxisAlignment.center, children: [
+                      Text('Performance', style: TextStyle(fontSize: 16.0, color: Colors.white)),
+                      SizedBox(width: 8),
+                      Icon(Icons.show_chart, color: Colors.white, size: 17)
+                    ]),
+                  ],
+                ),
+              ),
+              body: TabBarView(
+                physics: NeverScrollableScrollPhysics(),
+                children: [
+                  Holdings(portfolios[selectedPortfolioId]),
+                  Performance(portfolios[selectedPortfolioId]),
                 ],
               ),
             ),
           );
-        }
-
-        return DefaultTabController(
-          length: 2,
-          child: Scaffold(
-            appBar: AppBar(
-              automaticallyImplyLeading: false,
-              titleSpacing: 0,
-              toolbarHeight: 110,
-              title: Column(children: [
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.start,
-                  children: [
-                    SizedBox(width: 5),
-                    GestureDetector(
-                      onTap: () async {
-                        String? newlySelectedPortfolioId = await showDialog(
-                          context: context,
-                          builder: (context) {
-                            return PortfolioSelectorDialogue(loadedPortfolios);
-                          },
-                        );
-
-                        if (newlySelectedPortfolioId != null) {
-                          setState(() {
-                            currentPortfolio = getLoadedPortfolioById(newlySelectedPortfolioId);
-                          });
-                        }
-                      },
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.start,
-                        crossAxisAlignment: CrossAxisAlignment.center,
-                        children: [
-                          SizedBox(width: 10),
-                          Container(
-                              height: 25,
-                              width: 25,
-                              child: MiniDonutChart(
-                                currentPortfolio!,
-                                strokeWidth: 8,
-                              )),
-                          SizedBox(width: 15),
-                          Text(currentPortfolio!.name!, style: TextStyle(fontSize: 25.0, color: Colors.white)),
-                          Container(
-                            padding: EdgeInsets.all(0),
-                            width: 30,
-                            height: 20,
-                            child: Center(
-                              child: Icon(Icons.arrow_drop_down, color: Colors.white),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ],
-                ),
-              ]),
-              actions: [
-                IconButton(
-                    icon: Icon(Icons.settings, color: Colors.white),
-                    onPressed: () async {
-                      if (currentPortfolio != null) {
-                        String? output = await showDialog(
-                          context: context,
-                          builder: (context) {
-                            return PortfolioSettingsDialogue(currentPortfolio);
-                          },
-                        );
-                        if (output == 'updated') {
-                          setState(() {});
-                        } else if (output == 'deleted') {
-                          setState(() {
-                            loadedPortfolios.removeWhere((Portfolio pf) => pf.id == currentPortfolio);
-                          });
-                        }
-                      }
-                    }),
-                IconButton(
-                  icon: Icon(Icons.add, color: Colors.white, size: 25),
-                  onPressed: () async {
-                    String? newPid = await showDialog(
-                      context: context,
-                      builder: (context) {
-                        return NewPortfolioDialogue();
-                      },
-                    );
-                    if (newPid != null) {
-                      setState(() {
-                        portfoliosFuture = _addNewPortfolio(newPid);
-                      });
-                    }
-                  },
-                ),
-              ],
-              bottom: TabBar(
-                labelPadding: EdgeInsets.all(5),
-                tabs: <Row>[
-                  Row(mainAxisAlignment: MainAxisAlignment.center, children: [
-                    Text('Holdings', style: TextStyle(fontSize: 16.0, color: Colors.white)),
-                    SizedBox(width: 8),
-                    Icon(Icons.donut_large, color: Colors.white, size: 17)
-                  ]),
-                  Row(mainAxisAlignment: MainAxisAlignment.center, children: [
-                    Text('Performance', style: TextStyle(fontSize: 16.0, color: Colors.white)),
-                    SizedBox(width: 8),
-                    Icon(Icons.show_chart, color: Colors.white, size: 17)
-                  ]),
-                ],
-              ),
-            ),
-            body: TabBarView(
-              physics: NeverScrollableScrollPhysics(),
-              children: [
-                Holdings(currentPortfolio),
-                Performance(currentPortfolio),
-              ],
-            ),
-          ),
-        );
-      },
-    );
+        },
+      );
+    });
   }
 }
 
 class PortfolioSelectorDialogue extends StatelessWidget {
-  final List<Portfolio> portfolios;
+  final Map<String, Portfolio> portfolios;
 
   PortfolioSelectorDialogue(this.portfolios);
 
@@ -277,20 +299,21 @@ class PortfolioSelectorDialogue extends StatelessWidget {
                   return Divider();
                 },
                 itemBuilder: (context, i) {
+                  String pid = portfolios.keys.toList()[i];
                   return ListTile(
                     leading: Container(
                         height: 30,
                         width: 30,
                         child: MiniDonutChart(
-                          portfolios[i],
+                          portfolios[pid]!,
                           strokeWidth: 8,
                         )),
-                    trailing: Text(formatCurrency(portfolios[i].currentValue, 'GBP')),
-                    title: Text(portfolios[i].name!),
+                    trailing: Text(formatCurrency(portfolios[pid]!.currentValue, 'GBP')),
+                    title: Text(portfolios[pid]!.name!),
                     onTap: () async {
                       SharedPreferences prefs = await SharedPreferences.getInstance();
-                      prefs.setString('selectedPortfolio', portfolios[i].id);
-                      Navigator.of(context).pop(portfolios[i].id);
+                      prefs.setString('selectedPortfolio', pid);
+                      Navigator.of(context).pop(pid);
                     },
                   );
                 },

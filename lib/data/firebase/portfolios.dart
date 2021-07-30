@@ -2,8 +2,13 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import '../objects/portfolios.dart';
 import '../../providers/authenication_provider.dart';
 
-Future<Portfolio> getPortfolioById(String portfoliloId) async {
-  return Portfolio.fromDocumentSnapshot(await FirebaseFirestore.instance.collection('portfolios').doc(portfoliloId).get());
+Future<Portfolio?> getPortfolioById(String portfoliloId) async {
+  DocumentSnapshot portfolio_doc = await FirebaseFirestore.instance.collection('portfolios').doc(portfoliloId).get();
+  if (portfolio_doc.exists) {
+    return Portfolio.fromDocumentSnapshot(portfolio_doc);
+  } else {
+    return null;
+  }
 }
 
 Future<void> deletePortfolio(String portfolioId) async {
@@ -15,35 +20,35 @@ Future<void> deletePortfolio(String portfolioId) async {
 
 // Future<void> addNewPortfolio(String? name, bool public) async {
 //   String uid = AuthService().currentUid;
-  // CollectionReference portfoliosCollection = FirebaseFirestore.instance.collection('portfolios');
-  // try {
-  //   DocumentReference newPortfolio = await portfoliosCollection.add({
-  //     'user': uid,
-  //     'name': name,
-  //     'public': public,
-  //     'cash': 500.0,
-  //     'current_value': 500.0,
-  //     'holdings': {},
-  //     'transactions': [],
-  //     'returns_d': 0.0,
-  //     'returns_w': 0.0, 
-  //     'returns_m': 0.0, 
-  //     'returns_M': 0.0
-  //   });
+// CollectionReference portfoliosCollection = FirebaseFirestore.instance.collection('portfolios');
+// try {
+//   DocumentReference newPortfolio = await portfoliosCollection.add({
+//     'user': uid,
+//     'name': name,
+//     'public': public,
+//     'cash': 500.0,
+//     'current_value': 500.0,
+//     'holdings': {},
+//     'transactions': [],
+//     'returns_d': 0.0,
+//     'returns_w': 0.0,
+//     'returns_m': 0.0,
+//     'returns_M': 0.0
+//   });
 
-  //   print('Added new portfolio: ${newPortfolio.id}');
+//   print('Added new portfolio: ${newPortfolio.id}');
 
-  //   try {
-  //     FirebaseFirestore.instance.collection('users').doc(uid).update({
-  //       'portfolios': FieldValue.arrayUnion([newPortfolio.id])
-  //     });
-  //     print('Successfully updated user portfolio list');
-  //   } on Exception catch (e) {
-  //     print('Error updaing user portfolio list: $e');
-  //   }
-  // } on Exception catch (e) {
-  //   print('Error adding new portfolio: $e');
-  // }
+//   try {
+//     FirebaseFirestore.instance.collection('users').doc(uid).update({
+//       'portfolios': FieldValue.arrayUnion([newPortfolio.id])
+//     });
+//     print('Successfully updated user portfolio list');
+//   } on Exception catch (e) {
+//     print('Error updaing user portfolio list: $e');
+//   }
+// } on Exception catch (e) {
+//   print('Error adding new portfolio: $e');
+// }
 // }
 
 class PortfolioFetcher {

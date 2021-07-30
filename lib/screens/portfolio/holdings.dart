@@ -58,167 +58,199 @@ class _HoldingsState extends State<Holdings> {
               child: SingleChildScrollView(
                 child: Column(children: <Widget>[
                   AnimatedDonutChart(widget.portfolio),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 55.0),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Column(
+                          children: [
+                            Text('Cash', style: TextStyle(fontSize: 19, color: Colors.grey[800], fontWeight: FontWeight.w400)),
+                            Text(formatCurrency(widget.portfolio!.cash, 'GBP'),
+                                style: TextStyle(fontSize: 17, color: Colors.grey[800], fontWeight: FontWeight.w400))
+                          ],
+                        ),
+                        Column(
+                          children: [
+                            Text(
+                              'Assets',
+                              style: TextStyle(fontSize: 19, color: Colors.grey[800], fontWeight: FontWeight.w400),
+                            ),
+                            Text(
+                              formatCurrency(widget.portfolio!.currentValue! - widget.portfolio!.cash!, 'GBP'),
+                              style: TextStyle(fontSize: 17, color: Colors.grey[800], fontWeight: FontWeight.w400),
+                            )
+                          ],
+                        )
+                      ],
+                    ),
+                  ),
+                  SizedBox(height: 25),
+                  Text(
+                    'Holdings',
+                    style: TextStyle(fontSize: 19, color: Colors.grey[800], fontWeight: FontWeight.w400),
+                  ),
                   SizedBox(height: 15),
-                  // PortfolioItems(widget.portfolio),
-                  ExpansionPanelList(
-                    elevation: 2,
-                    animationDuration: Duration(milliseconds: 600),
-                    expansionCallback: (int i, bool itemIsExpanded) {
-                      if (widget.portfolio!.currentValues.keys.toList()[i] != 'cash') {
-                        setState(() {
-                          isExpanded![i] = !itemIsExpanded;
-                        });
-                      }
-                    },
-                    children: range(sortedValues.length).map<ExpansionPanel>((int i) {
-                      //
-                      String marketId = sortedValues.keys.toList()[i];
-                      Market market = widget.portfolio!.markets[marketId]!;
-                      // List<double> quantity = widget.portfolio!.currentQuantities[marketId]!;
-                      double? value = sortedValues.values.toList()[i];
-                      // double? pmax = getMax(quantity);
-                      // List<double>? dailyPriceChart = market.lmsr.getHistoricalValue(quantity)?['d']!;
+                  widget.portfolio!.currentValues.length == 0
+                      ? Text(
+                          '  Nothing to see here yet...',
+                          style: TextStyle(fontStyle: FontStyle.italic, color: Colors.grey[800]),
+                        )
+                      : ExpansionPanelList(
+                          elevation: 2,
+                          animationDuration: Duration(milliseconds: 600),
+                          expansionCallback: (int i, bool itemIsExpanded) {
+                            if (widget.portfolio!.currentValues.keys.toList()[i] != 'cash') {
+                              setState(() {
+                                isExpanded![i] = !itemIsExpanded;
+                              });
+                            }
+                          },
+                          children: range(sortedValues.length).map<ExpansionPanel>((int i) {
+                            //
+                            String marketId = sortedValues.keys.toList()[i];
+                            Market market = widget.portfolio!.markets[marketId]!;
+                            double? value = sortedValues.values.toList()[i];
 
-                      // if (dailyPriceChart == null) {
-                      //   dailyPriceChart = List<double>.generate(60, (index) => 1.0);
-                      // }
-
-                      // double valueChange = dailyPriceChart.last - dailyPriceChart.first;
-                      // double percentChange = valueChange / dailyPriceChart.first;
-                      // String sign = valueChange < 0 ? '-' : '+';
-
-                      return ExpansionPanel(
-                        headerBuilder: (BuildContext context, bool itemIsExpanded) {
-                          return ListTile(
-                            onTap: () {
-                                Navigator.of(context).push(MaterialPageRoute<void>(builder: (BuildContext context) {
-                                  if (market.runtimeType == TeamMarket) {
-                                    return TeamDetails(market);
-                                  }
-                                  else {
-                                    return PlayerDetails(market);
-                                  }
-                                }));
-                              
-                            },
-                            title: Container(
-                              padding: const EdgeInsets.symmetric(vertical: 25),
-                              child: Row(
-                                children: [
-                                  Expanded(
-                                    child: Column(
-                                      crossAxisAlignment: CrossAxisAlignment.start,
+                            return ExpansionPanel(
+                              headerBuilder: (BuildContext context, bool itemIsExpanded) {
+                                return ListTile(
+                                  onTap: () {
+                                    Navigator.of(context).push(MaterialPageRoute<void>(builder: (BuildContext context) {
+                                      if (market.runtimeType == TeamMarket) {
+                                        return TeamDetails(market);
+                                      } else {
+                                        return PlayerDetails(market);
+                                      }
+                                    }));
+                                  },
+                                  title: Container(
+                                    padding: const EdgeInsets.symmetric(vertical: 25),
+                                    child: Row(
                                       children: [
-                                        Row(
-                                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                          children: [
-                                            Row(
-                                              mainAxisAlignment: MainAxisAlignment.start,
-                                              children: [
-                                                market.imageURL != null
-                                                    ? Container(
-                                                        height: imageHeight,
-                                                        width: imageHeight,
-                                                        child: CachedNetworkImage(
-                                                          imageUrl: market.imageURL!,
-                                                          height: imageHeight,
-                                                        ),
-                                                      )
-                                                    : (market.id == 'cash'
-                                                        ? Container(
-                                                            height: imageHeight,
-                                                            width: 50,
-                                                            child: Text(
-                                                              '💸',
-                                                              style: TextStyle(fontSize: 40),
-                                                            ))
-                                                        : Container(height: imageHeight)),
-                                                SizedBox(width: 15),
-                                                Column(
-                                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                                  children: [
-                                                    Text(market.name!, style: TextStyle(fontSize: 16)),
-                                                    SizedBox(height: 3),
-                                                    marketId == 'cash'
-                                                        ? Container()
-                                                        : Text('Hey',
+                                        Expanded(
+                                          child: Column(
+                                            crossAxisAlignment: CrossAxisAlignment.start,
+                                            children: [
+                                              Row(
+                                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                                children: [
+                                                  Row(
+                                                    mainAxisAlignment: MainAxisAlignment.start,
+                                                    children: [
+                                                      market.imageURL != null
+                                                          ? Container(
+                                                              height: imageHeight,
+                                                              width: imageHeight,
+                                                              child: CachedNetworkImage(
+                                                                imageUrl: market.imageURL!,
+                                                                height: imageHeight,
+                                                              ),
+                                                            )
+                                                          : Container(height: imageHeight),
+                                                      SizedBox(width: 15),
+                                                      Column(
+                                                        crossAxisAlignment: CrossAxisAlignment.start,
+                                                        children: [
+                                                          Text(market.name!, style: TextStyle(fontSize: 16)),
+                                                          SizedBox(height: 3),
+                                                          Text(
+                                                            'Hey',
                                                             // '${sign}${formatPercentage(percentChange.abs(), 'GBP')}  (${sign}${formatCurrency(valueChange.abs(), 'GBP')})',
                                                             style: TextStyle(
-                                                                fontSize: 13,
-                                                                // color: valueChange >= 0 ? Colors.green[300] : Colors.red[300]),
-                                                          ),)
-                                                  ],
-                                                ),
-                                              ],
-                                            ),
-                                            Text(
-                                              formatCurrency(value, 'GBP'),
-                                              style: TextStyle(fontSize: 16),
-                                            )
-                                          ],
+                                                              fontSize: 13,
+                                                              // color: valueChange >= 0 ? Colors.green[300] : Colors.red[300]),
+                                                            ),
+                                                          )
+                                                        ],
+                                                      ),
+                                                    ],
+                                                  ),
+                                                  Text(
+                                                    formatCurrency(value, 'GBP'),
+                                                    style: TextStyle(fontSize: 16),
+                                                  )
+                                                ],
+                                              ),
+                                            ],
+                                          ),
                                         ),
                                       ],
                                     ),
                                   ),
-                                ],
-                              ),
-                            ),
-                          );
-                        },
-                        body: marketId == 'cash'
-                            ? Container()
-                            : Column(
-                                // crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Container(
-                                    height: 250,
-                                    padding: const EdgeInsets.symmetric(vertical: 20),
-                                    // child: TrueStaticPayoutGraph(
-                                    //   quantity,
-                                    //   Colors.blue,
-                                    //   25,
-                                    //   150,
-                                    //   true,
-                                    //   pmax,
-                                    // ),
-                                  ),
-                                  Padding(
-                                    padding: const EdgeInsets.only(bottom: 15.0),
-                                    child: ElevatedButton(
-                                      onPressed: () async {
-                                        bool saleComplete = await showModalBottomSheet(
-                                              isScrollControlled: true,
-                                              elevation: 100,
-                                              shape:
-                                                  RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(25.0))),
-                                              context: context,
-                                              builder: (context) {
-                                                return SellMarket(widget.portfolio, market, widget.portfolio!.holdings![marketId]!.q!);
-                                              },
-                                            ) ??
-                                            false;
+                                );
+                              },
+                              body: marketId == 'cash'
+                                  ? Container()
+                                  : Column(
+                                      // crossAxisAlignment: CrossAxisAlignment.start,
+                                      children: [
+                                        marketId.contains('T')
+                                            ? Container(
+                                                height: 250,
+                                                padding: const EdgeInsets.symmetric(vertical: 20),
+                                                child: PayoutGraph(
+                                                  q: widget.portfolio!.holdings![marketId]!.q!,
+                                                  tappable: true,
+                                                  pmax: widget.portfolio!.holdings![marketId]!.q!.max,
+                                                ),
+                                              )
+                                            : Container(
+                                                height: 150,
+                                                child: Padding(
+                                                  padding: const EdgeInsets.symmetric(horizontal: 25),
+                                                  child: Row(
+                                                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                                                    children: [
+                                                      Column(
+                                                        // widget.portfolio!.holdings![marketId]!.k!
+                                                        children: [Text('Units Long', style: TextStyle(fontSize: 18)), Text('0')],
+                                                      ),
+                                                      Column(
+                                                        children: [Text('Units Short', style: TextStyle(fontSize: 18)), Text('0')],
+                                                      )
+                                                    ],
+                                                  ),
+                                                ),
+                                              ),
+                                        Padding(
+                                          padding: const EdgeInsets.only(bottom: 15.0),
+                                          child: ElevatedButton(
+                                            onPressed: () async {
+                                              bool saleComplete = await showModalBottomSheet(
+                                                    isScrollControlled: true,
+                                                    elevation: 100,
+                                                    shape: RoundedRectangleBorder(
+                                                        borderRadius: BorderRadius.vertical(top: Radius.circular(25.0))),
+                                                    context: context,
+                                                    builder: (context) {
+                                                      return SellMarket(
+                                                          widget.portfolio, market, widget.portfolio!.holdings![marketId]!.q!);
+                                                    },
+                                                  ) ??
+                                                  false;
 
-                                        if (saleComplete) {
-                                          setState(() {
-                                            // portfolioUpdateFuture = widget.portfolio!.updateQuantities();
-                                          });
-                                        }
-                                      },
-                                      style: ElevatedButton.styleFrom(
-                                          primary: Colors.red[400],
-                                          minimumSize: Size(120, 40),
-                                          shape: new RoundedRectangleBorder(
-                                            borderRadius: BorderRadius.circular(10.0),
-                                          )),
-                                      child: Text('SELL', style: TextStyle(color: Colors.white)),
+                                              if (saleComplete) {
+                                                setState(() {
+                                                  // portfolioUpdateFuture = widget.portfolio!.updateQuantities();
+                                                });
+                                              }
+                                            },
+                                            style: ElevatedButton.styleFrom(
+                                                primary: Colors.red[400],
+                                                minimumSize: Size(120, 40),
+                                                shape: new RoundedRectangleBorder(
+                                                  borderRadius: BorderRadius.circular(10.0),
+                                                )),
+                                            child: Text('SELL', style: TextStyle(color: Colors.white)),
+                                          ),
+                                        ),
+                                      ],
                                     ),
-                                  ),
-                                ],
-                              ),
-                        isExpanded: isExpanded![i],
-                      );
-                    }).toList(),
-                  )
+                              isExpanded: isExpanded![i],
+                            );
+                          }).toList(),
+                        )
                 ]),
               ),
             );
