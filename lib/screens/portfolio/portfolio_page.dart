@@ -34,7 +34,6 @@ class _PortfolioPageState extends State<PortfolioPage> {
   void initState() {
     super.initState();
     portfoliosFuture = _getFreshPortfolios();
-    print('initialising portfolio state');
   }
 
   // run once only in initState - gets all portfolios fresh
@@ -83,8 +82,6 @@ class _PortfolioPageState extends State<PortfolioPage> {
     return Consumer(builder: (BuildContext context, watch, Widget? child) {
       final portfoliloWatcher = watch(purchaseCompleteProvider);
       String? pid = portfoliloWatcher.portfolio;
-
-      print('Pid has changed!! : ${pid}');
 
       if (pid != null) {
         portfoliosFuture = _refreshPortfolio(pid);

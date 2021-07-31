@@ -584,7 +584,7 @@ class _ConfirmPurchaseState extends State<ConfirmPurchase> {
             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
             children: [
               TextButton(
-                style: ButtonStyle(overlayColor: MaterialStateProperty.all<Color>(Colors.blue[400]!)),
+                style: ButtonStyle(overlayColor: MaterialStateProperty.all<Color>(Colors.blue[400]!), backgroundColor: MaterialStateProperty.all<Color>(Colors.blue)),
                 onPressed: () async {
                   setState(() {
                     contentId = 1;
@@ -598,7 +598,7 @@ class _ConfirmPurchaseState extends State<ConfirmPurchase> {
                 ),
               ),
               TextButton(
-                style: ButtonStyle(overlayColor: MaterialStateProperty.all<Color>(Colors.blue[400]!)),
+                style: ButtonStyle(overlayColor: MaterialStateProperty.all<Color>(Colors.blue[400]!), backgroundColor: MaterialStateProperty.all<Color>(Colors.blue[400]!)),
                 onPressed: () async {
                   setState(() {
                     contentId = 2;
@@ -726,7 +726,7 @@ class _CongratualtionsDialogueState extends State<CongratualtionsDialogue> {
             Align(
               alignment: Alignment.bottomRight,
               child: TextButton(
-                style: ButtonStyle(overlayColor: MaterialStateProperty.all<Color>(Colors.blue[400]!)),
+                style: ButtonStyle(overlayColor: MaterialStateProperty.all<Color>(Colors.blue[400]!), backgroundColor:  MaterialStateProperty.all<Color>(Colors.blue[400]!),),
                 onPressed: () {
                   Navigator.of(context).pop(); // To close the dialog
                 },

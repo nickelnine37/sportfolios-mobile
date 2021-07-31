@@ -42,6 +42,13 @@ class _HoldingsState extends State<Holdings> {
     setState(() {});
   }
 
+  Future<void> fullRefresh() async {
+    await widget.portfolio!.populateMarketsFirebase();
+    await widget.portfolio!.populateMarketsServer();
+    widget.portfolio!.getCurrentValue();
+    widget.portfolio!.getHistoricalValue();
+  }
+
   @override
   Widget build(BuildContext context) {
     if (isExpanded == null) {
@@ -196,10 +203,7 @@ class _HoldingsState extends State<Holdings> {
                                                         formatCurrency(value, 'GBP'),
                                                         style: TextStyle(fontSize: 16, color: Colors.grey[850]),
                                                       ),
-                                                      // SizedBox(height: 5),
-                                                      // SizedBox(
-                                                      // height: 30,
-                                                      // width: 65,
+
                                                       OutlinedButton(
                                                         onPressed: () async {
                                                           bool saleComplete = await showModalBottomSheet(
@@ -217,7 +221,7 @@ class _HoldingsState extends State<Holdings> {
 
                                                           if (saleComplete) {
                                                             setState(() {
-                                                              // portfolioUpdateFuture = widget.portfolio!.updateQuantities();
+                                                              portfolioUpdateFuture = fullRefresh();
                                                             });
                                                           }
                                                         },
@@ -340,7 +344,6 @@ class LongShortGraphPainter extends CustomPainter {
 
     touchLine.moveTo(p0, 0);
     touchLine.lineTo(p0, 5 * size.height / 7);
-    
 
     Paint touchLinePaint = Paint()
       ..color = Colors.grey[800]!
@@ -348,8 +351,6 @@ class LongShortGraphPainter extends CustomPainter {
       ..strokeWidth = 1.0;
 
     canvas.drawPath(touchLine, touchLinePaint);
-
-
   }
 
   @override

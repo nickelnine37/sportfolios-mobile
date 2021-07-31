@@ -27,6 +27,11 @@ class _PerformanceState extends State<Performance> {
 
     return SingleChildScrollView(
       child: Column(children: [
+        SizedBox(height: 25),
+        Text(
+          'Portfolio performance',
+          style: TextStyle(fontSize: 19, color: Colors.grey[700], fontWeight: FontWeight.w400),
+        ),
         TabbedPriceGraph(
           priceHistory: widget.portfolio!.historicalValue,
           times: widget.portfolio!.times,
@@ -34,7 +39,7 @@ class _PerformanceState extends State<Performance> {
         SizedBox(height: 35),
         Text(
           'Transaction History',
-          style: TextStyle(fontSize: 19, color: Colors.grey[800], fontWeight: FontWeight.w400),
+          style: TextStyle(fontSize: 19, color: Colors.grey[700], fontWeight: FontWeight.w400),
         ),
         SizedBox(height: 15),
         widget.portfolio!.transactions.length == 0

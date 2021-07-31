@@ -179,7 +179,6 @@ class Portfolio {
       currentValues[marketName] = value;
     });
     currentValue = total;
-    print('Portfolio value: ${total}');
     return total;
   }
 
@@ -215,10 +214,12 @@ class Portfolio {
     Map<String, Map<String, dynamic>>? historicalHoldings = await getMultipleHistoricalHoldings(markets.keys.toList());
 
     if (historicalHoldings != null) {
+      serverHistoricValuesRun = true;
       times = Map<String, List<int>>.from(historicalHoldings['time']!);
     }
 
     if ((currentHoldings != null) && (historicalHoldings != null)) {
+      serverCurrentValuesRun = true;
       for (Market market in markets.values) {
         market.setCurrentHoldings(currentHoldings[market.id]!);
         market.setHistoricalHoldings(historicalHoldings['data']![market.id], times!);

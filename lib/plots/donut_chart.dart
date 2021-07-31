@@ -53,12 +53,16 @@ class _AnimatedDonutChartState extends State<AnimatedDonutChart> {
         widget.portfolio!.currentValues, (a, b) => widget.portfolio!.currentValues[a]! < widget.portfolio!.currentValues[b]! ? 1 : -1);
 
 
-    binEdges = [0, widget.portfolio!.cash/ widget.portfolio!.currentValue];
+    binEdges = [0, widget.portfolio!.cash / widget.portfolio!.currentValue];
     double runningTotal = widget.portfolio!.cash;
     for (int i in range(sortedValues.length)) {
       runningTotal += sortedValues.values.toList()[i];
       binEdges!.add(runningTotal / widget.portfolio!.currentValue);
     }
+
+    print(sortedValues);
+    print(runningTotal);
+
 
     // increment endValue here
     endValue += 1;
@@ -106,7 +110,8 @@ class PieChart extends StatefulWidget {
 }
 
 class _PieChartState extends State<PieChart> {
-  double? width;
+  double? width;    
+
   double? height;
   int? nMarkets;
 
