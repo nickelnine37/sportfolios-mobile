@@ -1,40 +1,39 @@
 import 'dart:math' as math;
-import 'dart:math';
 import '../../utils/numerical/array_operations.dart';
 import '../../utils/numerical/arrays.dart';
 
 /// Used as the argument for any pricing-type method. Represents a holding of
 /// some asset, either a classic LMSR vector with optional scaling constant,
 /// or an amount of longs/shorts.
-class Asset {
-  Array? q;
-  double? k;
-  bool? long;
+// class Asset {
+//   Array? q;
+//   double? k;
+//   bool? long;
 
-  /// for team-type methods. [qq] is the quantity vector, [kk] is a scaling constant
-  Asset.team(Array qq, [double? kk]) {
-    q = qq;
-    k = kk;
-  }
+//   /// for team-type methods. [qq] is the quantity vector, [kk] is a scaling constant
+//   Asset.team(Array qq, [double? kk]) {
+//     q = qq;
+//     k = kk;
+//   }
 
-  /// for player-type methods. [llong] represents the long/short contract. [kk] is the number
-  /// of longs/shorts
-  Asset.player(bool llong, [double? kk]) {
-    long = llong;
-    k = kk;
-  }
-  @override
-  String toString() {
-    return 'Asset(q=${q}, long=${long}, k=${k})';
-  }
-}
+//   /// for player-type methods. [llong] represents the long/short contract. [kk] is the number
+//   /// of longs/shorts
+//   Asset.player(bool llong, [double? kk]) {
+//     long = llong;
+//     k = kk;
+//   }
+//   @override
+//   String toString() {
+//     return 'Asset(q=${q}, long=${long}, k=${k})';
+//   }
+// }
 
 /// Base class for one-off LMSR calculations
 abstract class LMSR {
   int? vecLen;
-  double getValue(Asset asset);
+  double getValue(Array quantity);
   double getLongValue();
-  double priceTrade(Asset asset);
+  double priceTrade(Array quantity);
 }
 
 /// Team class for one-off LMSR calculations. Implements classic LMSR scheme.
@@ -49,7 +48,7 @@ class TeamLMSR extends LMSR {
   late Array _expX;
 
   TeamLMSR({required Array this.x, required double this.b}) {
-    qLong = qLong = Array.fromList(range(x.length).map((int i) => math.exp(-i / 6)).toList().reversed.toList());
+    qLong = qLong = Array.fromList(range(x.length).map((int i) => 10 * math.exp(-i / 6)).toList().reversed.toList());
     _xMax = x.max;
     _expX = x.apply((double xi) => math.exp((xi - _xMax) / b));
     _expSum = _expX.sum;
@@ -58,12 +57,12 @@ class TeamLMSR extends LMSR {
 
   @override
   double getLongValue() {
-    return getValue(Asset.team(qLong, 10.0));
+    return getValue(qLong);
   }
 
   @override
-  double getValue(Asset asset) {
-    return asset.k == null ? asset.q!.dotProduct(_expX) / _expSum : asset.k! * (asset.q!.dotProduct(_expX) / _expSum);
+  double getValue(Array quantity) {
+    return quantity.dotProduct(_expX) / _expSum;
   }
 
   double _c(Array x_) {
@@ -72,14 +71,11 @@ class TeamLMSR extends LMSR {
   }
 
   @override
-  double priceTrade(Asset asset) {
-    if (asset.k != null) {
-      asset.q = asset.q!.scale(asset.k!);
-    }
-    double out = _c(asset.q! + x) - _xMax - b * math.log(_expSum);
+  double priceTrade(Array quantity) {
+    double out = _c(quantity + x) - _xMax - b * math.log(_expSum);
 
     if (out > 0) {
-      return max(out, 0.01);
+      return math.max(out, 0.01);
     } else {
       return out;
     }
@@ -91,60 +87,56 @@ class TeamLMSR extends LMSR {
 class PlayerLMSR extends LMSR {
   late double n;
   late double b;
+  late double lp;
 
-  PlayerLMSR({required double this.n, required double this.b});
+  PlayerLMSR({required double this.n, required double this.b}) {
+    double k = n / b;
+    if (k == 0) lp = 0.5;
+    if (k > 0)
+      lp = ((k - 1) + math.exp(-k)) / (k * (1 - math.exp(-k)));
+    else
+      lp = (math.exp(k) * (k - 1) + 1) / (k * (math.exp(k) - 1));
+  }
 
   @override
   double getLongValue() {
-    return getValue(Asset.player(true, 10));
+    return getValue(Array.fromList(<double>[10.0, 0.0]));
   }
 
   @override
-  double getValue(Asset asset) {
-    if (asset.k == null) {
-      asset.k = 1.0;
-    }
-
-    if (!asset.long!) {
-      return asset.k! - getValue(Asset.player(true, asset.k));
-    }
-
-    double c = n / b;
-
-    if (c == 0) return 0.5;
-
-    if (c > 0)
-      return asset.k! * ((c - 1) + math.exp(-c)) / (c * (1 - math.exp(-c)));
+  double getValue(Array quantity) {
+    double cMin = quantity.min;
+    double cMax = quantity.max;
+    if (quantity.argmax == 0)
+      return cMin + lp * (cMax - cMin);
     else
-      return asset.k! * (math.exp(c) * (c - 1) + 1) / (c * (math.exp(c) - 1));
+      return cMax - lp * (cMax - cMin);
   }
 
-  @override
-  double priceTrade(Asset asset) {
-    if (asset.k == null) {
-      asset.k = 1.0;
-    }
-
-    if (!asset.long!) return asset.k! + priceTrade(Asset.player(true, -asset.k!));
-
-    if (asset.k! == 0)
+  double _priceLongTrade(double nLongs) {
+    if (nLongs == 0)
       return 0;
     else if (n == 0) {
-      if (asset.k! < 0)
-        return b * math.log(b * (math.exp(asset.k! / b) - 1) / asset.k!);
+      if (nLongs < 0)
+        return b * math.log(b * (math.exp(nLongs / b) - 1) / nLongs);
       else
-        return b * math.log(b * (1 - math.exp(-asset.k! / b)) / (asset.k! * math.exp(-n / b)));
+        return b * math.log(b * (1 - math.exp(-nLongs / b)) / (nLongs * math.exp(-n / b)));
     } else if (n < 0) {
-      if (n == -asset.k!)
+      if (n == -nLongs)
         return b * math.log(n / (b * (math.exp(n / b) - 1)));
       else
-        return b * math.log(n / (n + asset.k!) * (math.exp((n + asset.k!) / b) - 1) / (math.exp(n / b) - 1));
+        return b * math.log(n / (n + nLongs) * (math.exp((n + nLongs) / b) - 1) / (math.exp(n / b) - 1));
     } else {
-      if (n == -asset.k!)
+      if (n == -nLongs)
         return b * math.log(n * math.exp(-n / b) / (b * (1 - math.exp(-n / b))));
       else
-        return b * math.log(n / (n + asset.k!) * (math.exp(asset.k! / b) - math.exp(-n / b)) / (1 - math.exp(-n / b)));
+        return b * math.log(n / (n + nLongs) * (math.exp(nLongs / b) - math.exp(-n / b)) / (1 - math.exp(-n / b)));
     }
+  }
+
+  @override
+  double priceTrade(Array quantity) {
+    return _priceLongTrade(quantity[0]) + quantity[1] + _priceLongTrade(quantity[1]);
   }
 }
 
@@ -152,7 +144,7 @@ class PlayerLMSR extends LMSR {
 /// are not aware of their associated time, and never exist independently of
 /// a historicalLMSR class
 abstract class MultiLMSR {
-  Array getValue(Asset asset);
+  Array getValue(Array quantity);
 }
 
 /// Team class for vector LMSR calculations. Implements classic LMSR scheme.
@@ -172,10 +164,8 @@ class TeamMultiLMSR extends MultiLMSR {
   }
 
   @override
-  Array getValue(Asset asset) {
-    return asset.k == null
-        ? _expX.multiplyHorizontal(asset.q!).sum(1) / _expSum
-        : (_expX.multiplyHorizontal(asset.q!).sum(1) / _expSum).scale(asset.k!);
+  Array getValue(Array quantity) {
+    return _expX.multiplyHorizontal(quantity).sum(1) / _expSum;
   }
 }
 
@@ -184,29 +174,30 @@ class TeamMultiLMSR extends MultiLMSR {
 class PlayerMultiLMSR extends MultiLMSR {
   late Array n;
   late Array b;
-  late Array c;
+  late Array lp;
 
   PlayerMultiLMSR({required this.n, required this.b}) {
-    c = n / b;
+    Array k = n / b;
+    lp = k.apply(_longPrice);
   }
 
-  double longShortPrice(double cc) {
-    if (cc == 0) return 0.5;
+  double _longPrice(double kk) {
+    if (kk == 0) return 0.5;
 
-    if (cc > 0)
-      return ((cc - 1) + math.exp(-cc)) / (cc * (1 - math.exp(-cc)));
+    if (kk > 0)
+      return ((kk - 1) + math.exp(-kk)) / (kk * (1 - math.exp(-kk)));
     else
-      return (math.exp(cc) * (cc - 1) + 1) / (cc * (math.exp(cc) - 1));
+      return (math.exp(kk) * (kk - 1) + 1) / (kk * (math.exp(kk) - 1));
   }
 
   @override
-  Array getValue(Asset asset) {
-    if (asset.k == null) asset.k = 1.0;
-
-    if (!asset.long!)
-      return Array.fill(n.length, asset.k!) - getValue(Asset.player(true, asset.k!));
+  Array getValue(Array quantity) {
+    double cMin = quantity.min;
+    double cMax = quantity.max;
+    if (quantity.argmax == 0)
+      return lp.scale(cMax - cMin).add(cMin);
     else
-      return c.apply(longShortPrice).scale(asset.k!);
+      return lp.scale(cMin - cMax).add(cMax);
   }
 }
 
@@ -216,7 +207,15 @@ class PlayerMultiLMSR extends MultiLMSR {
 abstract class HistoricalLMSR {
   late Map<String, MultiLMSR> lmsrMap;
   late Map<String, List<int>> ts;
-  Map<String, Array> getHistoricalValue(Asset asset);
+
+  Map<String, Array> getHistoricalValue(Array quantity) {
+    return Map<String, Array>.fromIterables(
+      lmsrMap.keys,
+      lmsrMap.keys.map(
+        (String th) => lmsrMap[th]!.getValue(quantity),
+      ),
+    );
+  }
 }
 
 /// Team class for historical LMSR calculations. Initialied with Map<String, Matrix>
@@ -235,16 +234,6 @@ class TeamHistoricalLMSR extends HistoricalLMSR {
     );
     ts = thist;
   }
-
-  @override
-  Map<String, Array> getHistoricalValue(Asset asset) {
-    return Map<String, Array>.fromIterables(
-      lmsrMap.keys,
-      lmsrMap.keys.map(
-        (String th) => lmsrMap[th]!.getValue(asset),
-      ),
-    );
-  }
 }
 
 /// Player class for histrical LMSR calculations Initialied with Map<String, Array>
@@ -256,12 +245,11 @@ class PlayerHisoricalLMSR extends HistoricalLMSR {
     required Map<String, List<int>> thist,
   }) {
     lmsrMap = Map<String, PlayerMultiLMSR>.fromIterables(
-        nhist.keys, nhist.keys.map((String th) => PlayerMultiLMSR(n: nhist[th]!, b: bhist[th]!)));
+      nhist.keys,
+      nhist.keys.map(
+        (String th) => PlayerMultiLMSR(n: nhist[th]!, b: bhist[th]!),
+      ),
+    );
     ts = thist;
-  }
-
-  @override
-  Map<String, Array> getHistoricalValue(Asset asset) {
-    return Map<String, Array>.fromIterables(lmsrMap.keys, lmsrMap.keys.map((String th) => lmsrMap[th]!.getValue(asset)));
   }
 }

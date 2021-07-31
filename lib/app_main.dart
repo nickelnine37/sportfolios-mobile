@@ -1,8 +1,5 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-// import 'package:sportfolios_alpha/tests.dart';
-// import 'package:sportfolios_alpha/utils/numerical/arrays.dart';
 import 'screens/leaderboard/leaderboard.dart';
 import 'screens/portfolio/portfolio_page.dart';
 import 'screens/settings.dart';

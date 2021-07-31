@@ -53,11 +53,11 @@ class _AnimatedDonutChartState extends State<AnimatedDonutChart> {
         widget.portfolio!.currentValues, (a, b) => widget.portfolio!.currentValues[a]! < widget.portfolio!.currentValues[b]! ? 1 : -1);
 
 
-    binEdges = [0, widget.portfolio!.cash! / widget.portfolio!.currentValue!];
-    double runningTotal = widget.portfolio!.cash!;
+    binEdges = [0, widget.portfolio!.cash/ widget.portfolio!.currentValue];
+    double runningTotal = widget.portfolio!.cash;
     for (int i in range(sortedValues.length)) {
       runningTotal += sortedValues.values.toList()[i];
-      binEdges!.add(runningTotal / widget.portfolio!.currentValue!);
+      binEdges!.add(runningTotal / widget.portfolio!.currentValue);
     }
 
     // increment endValue here
@@ -160,7 +160,7 @@ class _PieChartState extends State<PieChart> {
 
     marketNames = ['Cash'] + widget.sortedValues.keys.map((String mid) => widget.portfolio!.markets[mid]!.name!).toList();
     marketIds = ['cash'] + widget.sortedValues.keys.toList();
-    cashValues = [widget.portfolio!.cash!] + widget.sortedValues.values.toList();
+    cashValues = [widget.portfolio!.cash] + widget.sortedValues.values.toList();
 
     // Container for central text. Change opacity with percentComplete
     Center centralText = currentSegment == null

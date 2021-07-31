@@ -77,7 +77,7 @@ class _HoldingsState extends State<Holdings> {
                               style: TextStyle(fontSize: 19, color: Colors.grey[800], fontWeight: FontWeight.w400),
                             ),
                             Text(
-                              formatCurrency(widget.portfolio!.currentValue! - widget.portfolio!.cash!, 'GBP'),
+                              formatCurrency(widget.portfolio!.currentValue- widget.portfolio!.cash, 'GBP'),
                               style: TextStyle(fontSize: 17, color: Colors.grey[800], fontWeight: FontWeight.w400),
                             )
                           ],
@@ -190,9 +190,9 @@ class _HoldingsState extends State<Holdings> {
                                                 height: 250,
                                                 padding: const EdgeInsets.symmetric(vertical: 20),
                                                 child: PayoutGraph(
-                                                  q: widget.portfolio!.holdings![marketId]!.q!,
+                                                  q: widget.portfolio!.holdings[marketId]!,
                                                   tappable: true,
-                                                  pmax: widget.portfolio!.holdings![marketId]!.q!.max,
+                                                  pmax: widget.portfolio!.holdings[marketId]!.max,
                                                 ),
                                               )
                                             : Container(
@@ -225,7 +225,7 @@ class _HoldingsState extends State<Holdings> {
                                                     context: context,
                                                     builder: (context) {
                                                       return SellMarket(
-                                                          widget.portfolio, market, widget.portfolio!.holdings![marketId]!.q!);
+                                                          widget.portfolio, market, widget.portfolio!.holdings[marketId]!);
                                                     },
                                                   ) ??
                                                   false;

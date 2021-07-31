@@ -4,12 +4,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:sportfolios_alpha/data/api/requests.dart';
+import 'package:sportfolios_alpha/plots/mini_donut_chart.dart';
 import 'package:sportfolios_alpha/screens/home/options/buy_contract.dart';
 
 import '../../data/firebase/portfolios.dart';
 import '../../providers/authenication_provider.dart';
 import '../../data/objects/portfolios.dart';
-import '../leaderboard/pie_chart.dart';
 import 'holdings.dart';
 import 'performance.dart';
 import '../../utils/strings/number_format.dart';
@@ -182,7 +182,7 @@ class _PortfolioPageState extends State<PortfolioPage> {
                                   strokeWidth: 8,
                                 )),
                             SizedBox(width: 15),
-                            Text(portfolios[selectedPortfolioId]!.name!, style: TextStyle(fontSize: 25.0, color: Colors.white)),
+                            Text(portfolios[selectedPortfolioId]!.name, style: TextStyle(fontSize: 25.0, color: Colors.white)),
                             Container(
                               padding: EdgeInsets.all(0),
                               width: 30,
@@ -200,8 +200,7 @@ class _PortfolioPageState extends State<PortfolioPage> {
                 actions: [
                   IconButton(
                       icon: Icon(Icons.settings, color: Colors.white),
-                      onPressed: () async {
-                        if (portfolios[selectedPortfolioId]! != null) {
+                      onPressed:  selectedPortfolioId == null ? null : () async {
                           String? output = await showDialog(
                             context: context,
                             builder: (context) {
@@ -216,7 +215,6 @@ class _PortfolioPageState extends State<PortfolioPage> {
                               selectedPortfolioId = null;
                             });
                           }
-                        }
                       }),
                   IconButton(
                     icon: Icon(Icons.add, color: Colors.white, size: 25),
@@ -309,7 +307,7 @@ class PortfolioSelectorDialogue extends StatelessWidget {
                           strokeWidth: 8,
                         )),
                     trailing: Text(formatCurrency(portfolios[pid]!.currentValue, 'GBP')),
-                    title: Text(portfolios[pid]!.name!),
+                    title: Text(portfolios[pid]!.name),
                     onTap: () async {
                       SharedPreferences prefs = await SharedPreferences.getInstance();
                       prefs.setString('selectedPortfolio', pid);
@@ -607,7 +605,7 @@ class _PortfolioSettingsDialogueState extends State<PortfolioSettingsDialogue> {
                       bool? delete = await showDialog(
                           context: context,
                           builder: (context) {
-                            return DeletePortfolioDiaglogue(widget.portfolio!.name!);
+                            return DeletePortfolioDiaglogue(widget.portfolio!.name);
                           });
 
                       // if we want to delete

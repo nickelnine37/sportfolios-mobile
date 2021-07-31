@@ -1,9 +1,9 @@
 // import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
+import 'package:sportfolios_alpha/data/firebase/portfolios.dart';
+import 'package:sportfolios_alpha/plots/mini_donut_chart.dart';
 
 import '../../data/objects/portfolios.dart';
-import 'pie_chart.dart';
-import 'leaderboard_plots.dart';
 
 class Leaderboard extends StatelessWidget {
   @override
@@ -14,18 +14,18 @@ class Leaderboard extends StatelessWidget {
         appBar: AppBar(
           bottom: TabBar(
             tabs: [
-              Tab(icon: Text('1w', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white))),
-              Tab(icon: Text('1m', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white))),
+              Tab(icon: Text('Week', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white))),
+              Tab(icon: Text('Month', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white))),
               Tab(icon: Text('Max', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white))),
             ],
           ),
-          title: Text('Leaderboard', style: TextStyle(color: Colors.white)),
+          title: Text('Portfolio Leaderboard', style: TextStyle(color: Colors.white)),
         ),
         body: TabBarView(
           children: [
-            LeaderboardScroll('1w'),
-            LeaderboardScroll('1m'),
-            LeaderboardScroll('Max'),
+            LeaderboardScroll('w'),
+            LeaderboardScroll('m'),
+            LeaderboardScroll('M'),
           ],
         ),
       ),
@@ -33,42 +33,46 @@ class Leaderboard extends StatelessWidget {
   }
 }
 
+// ignore: must_be_immutable
 class LeaderboardScroll extends StatefulWidget {
   final String timeHorizon;
+  late ReturnsPortfolioFetcher portfolioFetcher;
 
-  LeaderboardScroll(this.timeHorizon);
+  LeaderboardScroll(this.timeHorizon) {
+    portfolioFetcher = ReturnsPortfolioFetcher(timeHorizon);
+  }
 
   @override
   _LeaderboardScrollState createState() => _LeaderboardScrollState();
 }
 
 class _LeaderboardScrollState extends State<LeaderboardScroll> with AutomaticKeepAliveClientMixin {
-  Future<List<Portfolio>>? portfoliosFuture;
+  Future<void>? portfoliosFuture;
   List<Portfolio>? portfolios;
+  ScrollController _scrollController = ScrollController(initialScrollOffset: 50);
 
   @override
   void initState() {
-    // set portfoliosFuture
     super.initState();
-    portfoliosFuture = getPortfolios();
+    portfoliosFuture = widget.portfolioFetcher.get10();
+    _scrollController.addListener(_scrollListener);
   }
 
-  Future<List<Portfolio>> getPortfolios() async {
-    // run firebase queires here
-    // use await and return the portfolio objects
-    // late QuerySnapshot results;
+  /// helper function: has the user scrolled to the bottom of the page?
+  bool _scrolledToBottom() {
+    return _scrollController.offset >= _scrollController.position.maxScrollExtent && !_scrollController.position.outOfRange;
+  }
 
-    if (widget.timeHorizon == 'd') {
-      // set results
-    } else if (widget.timeHorizon == 'm') {
-      // set results
-    } else if (widget.timeHorizon == 'M') {
-      // set results
+  /// listener for scroll controller
+  void _scrollListener() async {
+    if (!widget.portfolioFetcher.finished) {
+      if (_scrolledToBottom()) {
+        // await Future.delayed(Duration(seconds: 1), () => 12);
+        // don't reassign the future here - it's just for the initial building
+        await widget.portfolioFetcher.get10();
+        setState(() {});
+      }
     }
-    // simulate delay
-    await Future.delayed(Duration(seconds: 1));
-    // return results.docs.map((DocumentSnapshot doc) => Portfolio.fromDocumentSnapshot(doc)).toList();
-    return [];
   }
 
   @override
@@ -77,10 +81,43 @@ class _LeaderboardScrollState extends State<LeaderboardScroll> with AutomaticKee
     return FutureBuilder(
       future: portfoliosFuture,
       builder: (BuildContext context, AsyncSnapshot snapshot) {
-        if (snapshot.hasData) {
-          // loading is done
-          portfolios = snapshot.data;
-          return Center(child: Text('${widget.timeHorizon} Done')); // ListView<PortfolioTile>? SingleChildScrollView<Column(PortfolioTile)>?
+        if (snapshot.connectionState == ConnectionState.done) {
+          int nTiles = widget.portfolioFetcher.loadedResults.length + 1;
+          // make space for the apology tile
+          if (nTiles == 1) {
+            nTiles += 1;
+          }
+
+          return ListView.separated(
+            controller: _scrollController,
+            itemCount: nTiles,
+            itemBuilder: (context, index) {
+               if (index == nTiles - 1) {
+                // final tile contains the loading spinner
+                if (widget.portfolioFetcher.finished) {
+                  return Container(height: 0);
+                } else {
+                  return Padding(
+                    padding: EdgeInsets.all(8.0),
+                    child: Center(child: CircularProgressIndicator()),
+                  );
+                }
+              }
+              if (widget.portfolioFetcher.loadedResults.length == 0) {
+                // no results here
+                return Padding(
+                  padding: const EdgeInsets.all(25.0),
+                  child: Center(child: Text("Sorry, no results :'(")),
+                );
+              } else {
+                return ListTile(title: Text(widget.portfolioFetcher.loadedResults[index].name));
+              }
+            },
+            separatorBuilder: (context, index) => Divider(
+              thickness: 2,
+              height: 2,
+            ),
+          );
         } else {
           // loading is not done
           return Center(child: CircularProgressIndicator());
@@ -92,7 +129,6 @@ class _LeaderboardScrollState extends State<LeaderboardScroll> with AutomaticKee
   @override
   bool get wantKeepAlive => true;
 }
-
 
 class PortfolioTile extends StatelessWidget {
   final Portfolio portfolio;
@@ -158,9 +194,6 @@ class PortfolioTile extends StatelessWidget {
           padding: EdgeInsets.all(10.0),
           margin: EdgeInsets.all(0),
           width: double.infinity,
-        ),
-        Container(
-          child: HomeWidget(),
         ),
         Divider(
           thickness: 2,

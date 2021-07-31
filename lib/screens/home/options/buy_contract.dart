@@ -6,8 +6,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:confetti/confetti.dart';
 import 'package:intl/intl.dart' as intl;
-import 'package:sportfolios_alpha/data/lmsr/lmsr.dart';
-import 'package:sportfolios_alpha/plots/payout_graph.dart';
 
 import '../../../data/api/requests.dart';
 import '../../../data/firebase/portfolios.dart';
@@ -16,6 +14,9 @@ import '../../../providers/authenication_provider.dart';
 import '../../../utils/strings/number_format.dart';
 import '../../../utils/numerical/numbers.dart';
 import '../../../data/objects/portfolios.dart';
+import '../../../plots/payout_graph.dart';
+import '../../../utils/numerical/arrays.dart';
+
 
 /// this can be used to notify other widgets that a purchase has been made
 final purchaseCompleteProvider = ChangeNotifierProvider<PurchaseCompleteChangeNotifier>((ref) {
@@ -37,14 +38,12 @@ class PurchaseCompleteChangeNotifier with ChangeNotifier {
   }
 }
 
-
-
 class BuyMarket extends StatefulWidget {
   final Market market;
-  final Asset quantity;
+  final Array unitQuantity;
   final String contract_type;
 
-  BuyMarket(this.market, this.quantity, this.contract_type);
+  BuyMarket(this.market, this.unitQuantity, this.contract_type);
 
   @override
   _BuyMarketState createState() => _BuyMarketState();
@@ -115,7 +114,7 @@ class _BuyMarketState extends State<BuyMarket> {
                               Text('Per contract'),
                               SizedBox(height: 3),
                               Text(
-                                formatCurrency(widget.market.currentLMSR!.getValue(widget.quantity), 'GBP'),
+                                formatCurrency(widget.market.currentLMSR!.getValue(widget.unitQuantity), 'GBP'),
                                 style: TextStyle(fontSize: 18, fontWeight: FontWeight.w300),
                               ),
                             ],
@@ -134,13 +133,13 @@ class _BuyMarketState extends State<BuyMarket> {
                           ),
                         ]),
                         Divider(thickness: 2, height: 25),
-                        widget.market.id.contains('T') ? PayoutGraph(q:  widget.quantity.q!, tappable: true) : Container(),
+                        widget.market.id.contains('T') ? PayoutGraph(q:  widget.unitQuantity, tappable: true) : Container(),
                         SizedBox(height: 0),
                         FutureBuilder(
                             future: _portfoliosFuture,
                             builder: (BuildContext context, AsyncSnapshot snapshot) {
                               if (snapshot.hasData) {
-                                return BuyForm(snapshot.data[0], widget.market, widget.quantity);
+                                return BuyForm(snapshot.data[0], widget.market, widget.unitQuantity);
                               } else if (snapshot.hasError) {
                                 print(snapshot.error);
                                 return Center(child: Text('Error'));
@@ -164,9 +163,9 @@ class _BuyMarketState extends State<BuyMarket> {
 class BuyForm extends StatefulWidget {
   final List<Portfolio>? portfolios;
   final Market market;
-  final Asset quantity;
+  final Array unitQuantity;
 
-  BuyForm(this.portfolios, this.market, this.quantity);
+  BuyForm(this.portfolios, this.market, this.unitQuantity);
 
   @override
   _BuyFormState createState() => _BuyFormState();
@@ -224,7 +223,7 @@ class _BuyFormState extends State<BuyForm> {
                       itemHeight: 100,
                       value: _selectedPortfolioId,
                       items: List<DropdownMenuItem<String>>.from(widget.portfolios!
-                              .map((portfolio) => DropdownMenuItem(onTap: () {}, value: portfolio.id, child: Text(portfolio.name!, style: TextStyle(color: Colors.grey[850]),)))) +
+                              .map((portfolio) => DropdownMenuItem(onTap: () {}, value: portfolio.id, child: Text(portfolio.name, style: TextStyle(color: Colors.grey[850]),)))) +
                           <DropdownMenuItem<String>>[
                             DropdownMenuItem(
                               value: 'new',
@@ -296,10 +295,8 @@ class _BuyFormState extends State<BuyForm> {
                       } else {
                         try {
                           units = double.parse(value);
-                          widget.quantity.k = widget.quantity.k! * units;
-                          price = validatePrice(widget.market.currentLMSR!.priceTrade(
-                            widget.quantity,
-                          ));
+                          Array qPurchase = widget.unitQuantity.scale(units);
+                          price = validatePrice(widget.market.currentLMSR!.priceTrade(qPurchase));
                           setState(() {});
                         } catch (error) {
                           print(error.toString());
@@ -309,7 +306,7 @@ class _BuyFormState extends State<BuyForm> {
                     validator: (String? value) {
                       try {
                         double.parse(value!);
-                        if (price >= widget.portfolios!.firstWhere((portfolio) => portfolio.id == _selectedPortfolioId).cash!) {
+                        if (price >= widget.portfolios!.firstWhere((portfolio) => portfolio.id == _selectedPortfolioId).cash) {
                           return 'Insufficient funds';
                         }
                         return null;
@@ -348,7 +345,7 @@ class _BuyFormState extends State<BuyForm> {
                       : complete
                           ? Icon(Icons.done, color: Colors.white)
                           : Text('OK', style: TextStyle(color: Colors.white)),
-                  style: ButtonStyle(overlayColor: MaterialStateProperty.all<Color>(Colors.blue), backgroundColor: MaterialStateProperty.all<Color>(Colors.blue)),
+                  style: ButtonStyle(overlayColor: MaterialStateProperty.all<Color>(Colors.blue), backgroundColor: MaterialStateProperty.all<Color>(Colors.blue), ),
                   onPressed: () async {
                     if (!complete) {
                       if (_formKey.currentState!.validate()) {
@@ -366,10 +363,10 @@ class _BuyFormState extends State<BuyForm> {
                         loading = true;
                       });
 
-                      widget.quantity.k = widget.quantity.k! * units;
+                      Array qPurchase = widget.unitQuantity.scale(units);
 
                       Map<String, dynamic>? purchaseRequestResult =
-                          await makePurchaseRequest(widget.market.id, _selectedPortfolioId!, widget.quantity, price);
+                          await makePurchaseRequest(widget.market.id, _selectedPortfolioId!, qPurchase, price);
 
                       if (purchaseRequestResult == null) {
                         showDialog(

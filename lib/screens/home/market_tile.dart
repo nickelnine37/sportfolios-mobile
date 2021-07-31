@@ -1,9 +1,7 @@
 import 'package:cached_network_image/cached_network_image.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter/material.dart';
 import 'package:sportfolios_alpha/utils/numerical/arrays.dart';
 
-import '../../providers/settings_provider.dart';
 import 'options/market_details.dart';
 import '../../utils/strings/number_format.dart';
 import '../../data/objects/markets.dart';

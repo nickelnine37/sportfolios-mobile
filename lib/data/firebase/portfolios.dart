@@ -52,10 +52,12 @@ Future<void> deletePortfolio(String portfolioId) async {
 // }
 
 class PortfolioFetcher {
+
   DocumentSnapshot? lastDocument;
   late Query baseQuery;
   List<Portfolio> loadedResults = [];
   bool finished = false;
+
 
   Future<void> get10() async {
     if (!finished) {
@@ -64,7 +66,7 @@ class PortfolioFetcher {
       if (loadedResults.length == 0) {
         results = await baseQuery.get();
       } else {
-        results = await baseQuery.startAfterDocument(loadedResults.last.doc!).get();
+        results = await baseQuery.startAfterDocument(loadedResults.last.doc).get();
       }
 
       if (results.docs.length < 10) {
@@ -72,38 +74,40 @@ class PortfolioFetcher {
       }
 
       if (results.docs.length > 0) {
-        loadedResults.addAll(
-          results.docs.map<Portfolio>((DocumentSnapshot snapshot) => Portfolio.fromDocumentSnapshot(snapshot)),
-        );
+        loadedResults.addAll(results.docs.map<Portfolio>((DocumentSnapshot snapshot) =>  Portfolio.fromDocumentSnapshot(snapshot)));
       }
+      print(loadedResults);
     }
   }
+
 }
 
-class WeeklyPortfolioFetcher extends PortfolioFetcher {
-  WeeklyPortfolioFetcher() {
-    baseQuery = FirebaseFirestore.instance.collection('portfolios').orderBy('weekly_return', descending: true).limit(10);
-  }
+class ReturnsPortfolioFetcher extends PortfolioFetcher {
+
+  late String timeHorizon;
+
+  ReturnsPortfolioFetcher(this.timeHorizon) {
+
+    baseQuery = FirebaseFirestore.instance
+        .collection('portfolios')
+        .where('active', isEqualTo: true)
+        .where('public', isEqualTo: true)
+        .orderBy('returns_${timeHorizon}', descending: true)
+        .limit(10);
+  } 
+
+
 }
 
-class MonthlyPortfolioFetcher extends PortfolioFetcher {
-  WeeklyPortfolioFetcher() {
-    baseQuery = FirebaseFirestore.instance.collection('portfolios').orderBy('monthly_return', descending: true).limit(10);
-  }
-}
-
-class MaxlyPortfolioFetcher extends PortfolioFetcher {
-  WeeklyPortfolioFetcher() {
-    baseQuery = FirebaseFirestore.instance.collection('portfolios').orderBy('maxly_return', descending: true).limit(10);
-  }
-}
 
 class ContainingPortfolioFetcher extends PortfolioFetcher {
   WeeklyPortfolioFetcher(String marketId) {
     baseQuery = FirebaseFirestore.instance
         .collection('portfolios')
-        .where('search_terms', arrayContains: marketId)
-        .orderBy('maxly_return', descending: true)
+        .where('active', isEqualTo: true)
+        .where('public', isEqualTo: true)
+        .where('markets', arrayContains: marketId)
+        .orderBy('returns_M', descending: true)
         .limit(10);
   }
 }

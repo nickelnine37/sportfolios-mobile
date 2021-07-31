@@ -1,6 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '../../data/api/requests.dart';
-import '../../data/lmsr/lmsr.dart';
 import '../../utils/numerical/array_operations.dart';
 import '../../utils/numerical/arrays.dart';
 import 'markets.dart';
@@ -9,7 +8,7 @@ class Transaction {
   late Market market;
   late double time;
   late double price;
-  late Asset quantity;
+  late Array quantity;
 
   Map<String, Array>? transactionValue;
 
@@ -26,7 +25,7 @@ class Transaction {
     if (market.historicalLMSR == null)
       print('Cannt get historical value for transaction as historical lmsr for ${market} has not been set');
     else
-      transactionValue =  market.historicalLMSR!.getHistoricalValue(quantity).map((String th, Array valueHist) => MapEntry(
+      transactionValue = market.historicalLMSR!.getHistoricalValue(quantity).map((String th, Array valueHist) => MapEntry(
           th,
           Array.fromDynamicList(range(valueHist.length).map((int i) {
             if (market.historicalLMSR!.ts[th]![i] < time) {
@@ -35,7 +34,7 @@ class Transaction {
               return valueHist[i] - price;
             }
           }).toList())));
-      return transactionValue;
+    return transactionValue;
   }
 
   @override
@@ -45,69 +44,63 @@ class Transaction {
 }
 
 class Portfolio {
+  //
+  // ----- core attributes -----
   late String id;
-  DocumentSnapshot? doc;
-  double? currentValue;
-  Map<String, double> currentValues = {};
-  Map<String, Asset>? holdings;
-  Map<String, Market> markets = {};
-  String? name;
-  bool? public;
-  Map<String, double>? returnHist;
-  String? user;
-  List<Transaction> transactions = [];
-  Map<String, Array>? historicalValue;
-  double? cash;
-  Map<String, List<int>>? times;
+  late String name;
+  late bool public;
+  late String user;
+  late DocumentSnapshot doc; //                     doc object used for ordering queries
+  Map<String, Market> markets = {}; //              holds all the unique markets ever used in this portfolio
 
-  Portfolio(this.id);
+  // ----- current value attributes -----
+  late double cash; //                              current amount of cash in portfolio
+  late double currentValue; //                      total value of portfolio. Initial estimate from firebase, updated when server call made
+  late Map<String, double> currentValues; //        map market to value. Initial estimate from firebase, updated when server call made
+  late Map<String, Array> holdings; //              current holdigs, from firebase
+
+  // ------- historical value attributes --------
+  late List<Transaction> transactions; //           list of Transaction objects
+  late Map<String, double> periodReturns; //        map time-horizon to period returns
+  Map<String, Array>? historicalValue; //           map from time horizon to value array
+  Map<String, List<int>>? times; //                 corresponding map to array of timestamps
+
+  // ---- what's been run? -------
+  bool firebaseMarketsRun = false;
+  bool serverCurrentValuesRun = false;
+  bool serverHistoricValuesRun = false;
 
   Portfolio.fromDocumentSnapshot(DocumentSnapshot snapshot) {
     doc = snapshot;
     id = snapshot.id;
     currentValue = snapshot['current_value'];
     name = snapshot['name'];
-    returnHist = {'d': snapshot['returns_d'], 'w': snapshot['returns_w'], 'm': snapshot['returns_m'], 'M': snapshot['returns_M']};
+    periodReturns = {'d': snapshot['returns_d'], 'w': snapshot['returns_w'], 'm': snapshot['returns_m'], 'M': snapshot['returns_M']};
     public = snapshot['public'];
     user = snapshot['user'];
     cash = snapshot['cash'] + 0.0;
+    currentValues = Map<String, double>.from(snapshot['current_values']);
 
     // holdings is a map between marketId and an Asset
-    holdings = Map<String, dynamic>.from(snapshot['holdings']).map((String marketName, dynamic value) {
-      if (marketName.contains('T')) {
-        Array quantity = Array.fromTrueDynamicList(value);
-        return MapEntry(marketName, Asset.team(quantity, 1.0));
-      } else {
-        bool long = marketName.contains('L');
-        marketName = marketName.substring(0, marketName.length - 1);
-        return MapEntry(marketName, Asset.player(long, value + 0.0));
-      }
-    });
+    holdings = Map<String, List>.from(snapshot['holdings']).map(
+      (String marketName, List quantity) => MapEntry(
+        marketName,
+        Array.fromTrueDynamicList(quantity),
+      ),
+    );
 
     transactions = snapshot['transactions'].map<Transaction>((transaction) {
       String marketName = transaction['market'];
       double price = transaction['price'] + 0.0;
       double time = transaction['time'] + 0.0;
+      Array quantity = Array.fromTrueDynamicList(transaction['quantity']);
       Market market;
-      Asset quantity;
 
-      if (marketName.contains('T')) {
-        quantity = Asset.team(Array.fromTrueDynamicList(transaction['quantity']));
-        if (markets.keys.contains(marketName)) {
-          market = markets[marketName]!;
-        } else {
-          market = TeamMarket(marketName);
-          markets[marketName] = market;
-        }
+      if (markets.keys.contains(marketName)) {
+        market = markets[marketName]!;
       } else {
-        quantity = Asset.player(marketName.contains('L'), transaction['quantity']);
-        marketName = marketName.substring(0, marketName.length - 1);
-        if (markets.keys.contains(marketName)) {
-          market = markets[marketName]!;
-        } else {
-          market = PlayerMarket(marketName);
-          markets[marketName] = market;
-        }
+        market = marketName.contains('T') ? TeamMarket(marketName) : PlayerMarket(marketName);
+        markets[marketName] = market;
       }
 
       return Transaction(market, time, price, quantity);
@@ -119,25 +112,26 @@ class Portfolio {
     if (new_doc['transactions'].length != transactions.length) {
       print('New transactions have been added!!');
       return true;
-    }
-    else {
+    } else {
       print('No new transactions have been added');
       return false;
     }
   }
 
   double? getCurrentValue() {
-    if (holdings != null) {
-      double total = cash!;
-      holdings!.forEach((String marketName, Asset asset) {
-        double value = markets[marketName]!.currentLMSR!.getValue(asset);
-        total += value;
-        currentValues[marketName] = value;
-      });
-      currentValue = total;
-      print('Portfolio value: ${total}');
-      return total;
+    if (!serverCurrentValuesRun) {
+      return null;
     }
+
+    double total = cash;
+    holdings.forEach((String marketName, Array quantity) {
+      double value = markets[marketName]!.currentLMSR!.getValue(quantity);
+      total += value;
+      currentValues[marketName] = value;
+    });
+    currentValue = total;
+    print('Portfolio value: ${total}');
+    return total;
   }
 
   Map<String, Array> getHistoricalValue() {
@@ -163,30 +157,25 @@ class Portfolio {
   }
 
   Future<void> populateMarketsFirebase() async {
-    if (transactions != null) {
-      await Future.wait(markets.values.map((Market market) => market.getSnapshotInfo()));
-    } else {
-      print('Cannot populate markets. No information has been added from firebase');
-    }
+    await Future.wait(markets.values.map((Market market) => market.getSnapshotInfo()));
+    firebaseMarketsRun = true;
   }
 
   Future<void> populateMarketsServer() async {
-    if (transactions == null) {
-      print('Cannot populate markets. No information has been added from firebase');
-    } else {
-      Map<String, Map<String, dynamic>>? currentHoldings = await getMultipleCurrentHoldings(markets.keys.toList());
-      Map<String, Map<String, dynamic>>? historicalHoldings = await getMultipleHistoricalHoldings(markets.keys.toList());
+    Map<String, Map<String, dynamic>>? currentHoldings = await getMultipleCurrentHoldings(markets.keys.toList());
+    Map<String, Map<String, dynamic>>? historicalHoldings = await getMultipleHistoricalHoldings(markets.keys.toList());
 
-      if ((currentHoldings != null) && (historicalHoldings != null)) {
-        times = Map<String, List<int>>.from(historicalHoldings['time']!);
+    if (historicalHoldings != null) {
+      times = Map<String, List<int>>.from(historicalHoldings['time']!);
+    }
 
-        for (Transaction transaction in transactions) {
-          transaction.market.setCurrentHoldings(currentHoldings[transaction.market.id]!);
-          transaction.market.setHistoricalHoldings(historicalHoldings['data']![transaction.market.id], times!);
-        }
-      } else {
-        print('Unable to populateMarketsServer. Current or historical holdings failed');
+    if ((currentHoldings != null) && (historicalHoldings != null)) {
+      for (Market market in markets.values) {
+        market.setCurrentHoldings(currentHoldings[market.id]!);
+        market.setHistoricalHoldings(historicalHoldings['data']![market.id], times!);
       }
+    } else {
+      print('Unable to populateMarketsServer. Current or historical holdings failed');
     }
   }
 }

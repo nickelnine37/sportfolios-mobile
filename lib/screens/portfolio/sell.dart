@@ -2,7 +2,6 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart' as intl;
 import 'package:confetti/confetti.dart';
-import 'package:sportfolios_alpha/data/lmsr/lmsr.dart';
 import 'package:sportfolios_alpha/utils/numerical/arrays.dart';
 
 import '../../data/api/requests.dart';
@@ -118,7 +117,7 @@ class _SellMarketState extends State<SellMarket> {
                               Text('Total value'),
                               SizedBox(height: 3),
                               Text(
-                                formatCurrency(-widget.market.currentLMSR!.priceTrade(Asset.team(widget.quantityHeld, -1)), 'GBP'),
+                                formatCurrency(-widget.market.currentLMSR!.priceTrade(widget.quantityHeld.scale(-1)), 'GBP'),
                                 style: TextStyle(fontSize: 18, fontWeight: FontWeight.w300),
                               ),
                             ],
@@ -191,13 +190,7 @@ class _SellMarketState extends State<SellMarket> {
                               return SellForm(
                                 widget.portfolio,
                                 widget.market,
-                                Asset.team(
-                                  Array.fromList(
-                                    range(widget.market.currentLMSR!.vecLen!)
-                                        .map((int i) => qHeldNew![i] - widget.quantityHeld[i])
-                                        .toList(),
-                                  ),
-                                ),
+                                qHeldNew! - widget.quantityHeld,
                               );
                             } else if (snapshot.hasError) {
                               print(snapshot.error);
@@ -223,9 +216,9 @@ class _SellMarketState extends State<SellMarket> {
 class SellForm extends StatefulWidget {
   final Portfolio? portfolio;
   final Market market;
-  final Asset quantity;
+  final Array sellQuantity;  // this is negative
 
-  SellForm(this.portfolio, this.market, this.quantity);
+  SellForm(this.portfolio, this.market, this.sellQuantity);
 
   @override
   _SellFormState createState() => _SellFormState();
@@ -243,7 +236,7 @@ class _SellFormState extends State<SellForm> {
 
   @override
   Widget build(BuildContext context) {
-    payout = widget.market.currentLMSR!.priceTrade(widget.quantity);
+    payout = widget.market.currentLMSR!.priceTrade(widget.sellQuantity);   // this is also negative
 
     return Padding(
       padding: EdgeInsets.symmetric(horizontal: 5),
@@ -281,10 +274,11 @@ class _SellFormState extends State<SellForm> {
                     });
 
                     Map<String, dynamic>? purchaseRequestResult =
-                        await makePurchaseRequest(widget.market.id, widget.portfolio!.id, widget.quantity, payout! + 1);
+                        await makePurchaseRequest(widget.market.id, widget.portfolio!.id, widget.sellQuantity, payout!);
 
                     if (purchaseRequestResult == null) {
                       Navigator.of(context).pop(false);
+                      print('OOHH DEAR');
                       return;
                     }
 

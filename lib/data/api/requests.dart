@@ -1,5 +1,4 @@
 import 'package:http/http.dart' as http;
-import 'package:sportfolios_alpha/data/lmsr/lmsr.dart';
 import 'package:sportfolios_alpha/data/utils/casting.dart';
 import 'package:sportfolios_alpha/utils/numerical/arrays.dart';
 import 'urls.dart';
@@ -18,7 +17,7 @@ Future<String?> createNewPortfolio(String name, bool public) async {
     'Version': __version__,
   }, body: {
     'name': name,
-    'public': public ? 'true' : 'false',
+    'public': public.toString(),
   });
 
   if (response.statusCode == 200) {
@@ -135,10 +134,11 @@ Future<Map<String, Map<String, dynamic>>?> getMultipleCurrentHoldings(List<Strin
 Future<Map<String, Map<String, dynamic>>?> getMultipleHistoricalHoldings(List<String?> markets) async {
   Uri url = historicalMultipleHoldingsURL(markets);
 
-  // if (markets.length == 0) {
-  //   print('getMultipleHistoricalX: No markets passed!');
-  //   return null;
-  // }
+  if (markets.length == 0) {
+    // Allow no markets to be sent, then we just want the times
+    print('getMultipleHistoricalX: No markets passed!');
+    // return null;
+  }
 
   var response = await http.get(
     url,
@@ -179,19 +179,19 @@ Future<Map<String, Map<String, dynamic>>?> getMultipleHistoricalHoldings(List<St
 Future<Map<String, dynamic>?> makePurchaseRequest(
   String market,
   String portfolio,
-  Asset asset,
+  Array quantity,
   double price,
 ) async {
-  print({'market': market, 'portfolioId': portfolio, 'quantity': asset.toString(), 'price': price.toString()});
+  print({'market': market, 'portfolioId': portfolio, 'quantity': quantity.toString(), 'price': price.toString()});
 
   Uri url = attemptPurchaseURL();
   var response = await http.post(url, headers: {
     'Authorization': await AuthService().getJWTToken(),
     'Version': __version__,
   }, body: {
-    'market': market.contains('P') ? (market + (asset.long! ? 'L' : 'S')) : market ,
+    'market': market ,
     'portfolioId': portfolio,
-    'quantity': (market.contains('P') ? asset.k : asset.q!.scale(asset.k == null ? 1 : asset.k!).toList()).toString(),
+    'quantity': quantity.toString(),
     'price': price.toString()
   });
 
