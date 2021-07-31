@@ -136,7 +136,7 @@ class PlayerLMSR extends LMSR {
 
   @override
   double priceTrade(Array quantity) {
-    return _priceLongTrade(quantity[0]) + quantity[1] + _priceLongTrade(quantity[1]);
+    return _priceLongTrade(quantity[0]) + quantity[1] + _priceLongTrade(-quantity[1]);
   }
 }
 

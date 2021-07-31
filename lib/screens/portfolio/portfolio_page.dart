@@ -150,51 +150,54 @@ class _PortfolioPageState extends State<PortfolioPage> {
                 titleSpacing: 0,
                 toolbarHeight: 110,
                 title: Column(children: [
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.start,
-                    children: [
-                      SizedBox(width: 5),
-                      GestureDetector(
-                        onTap: () async {
-                          String? newlySelectedPortfolioId = await showDialog(
-                            context: context,
-                            builder: (context) {
-                              return PortfolioSelectorDialogue(portfolios);
-                            },
-                          );
+                  Padding(
+                    padding: const EdgeInsets.only(left: 10.0),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.start,
+                      children: [
+                        SizedBox(width: 5),
+                        GestureDetector(
+                          onTap: () async {
+                            String? newlySelectedPortfolioId = await showDialog(
+                              context: context,
+                              builder: (context) {
+                                return PortfolioSelectorDialogue(portfolios);
+                              },
+                            );
 
-                          if (newlySelectedPortfolioId != null) {
-                            setState(() {
-                              selectedPortfolioId = newlySelectedPortfolioId;
-                            });
-                          }
-                        },
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.start,
-                          crossAxisAlignment: CrossAxisAlignment.center,
-                          children: [
-                            SizedBox(width: 10),
-                            Container(
-                                height: 25,
-                                width: 25,
-                                child: MiniDonutChart(
-                                  portfolios[selectedPortfolioId]!,
-                                  strokeWidth: 8,
-                                )),
-                            SizedBox(width: 15),
-                            Text(portfolios[selectedPortfolioId]!.name, style: TextStyle(fontSize: 25.0, color: Colors.white)),
-                            Container(
-                              padding: EdgeInsets.all(0),
-                              width: 30,
-                              height: 20,
-                              child: Center(
-                                child: Icon(Icons.arrow_drop_down, color: Colors.white),
+                            if (newlySelectedPortfolioId != null) {
+                              setState(() {
+                                selectedPortfolioId = newlySelectedPortfolioId;
+                              });
+                            }
+                          },
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.start,
+                            crossAxisAlignment: CrossAxisAlignment.center,
+                            children: [
+                              SizedBox(width: 10),
+                              Container(
+                                  height: 25,
+                                  width: 25,
+                                  child: MiniDonutChart(
+                                    portfolios[selectedPortfolioId]!,
+                                    strokeWidth: 8,
+                                  )),
+                              SizedBox(width: 17),
+                              Text(portfolios[selectedPortfolioId]!.name, style: TextStyle(fontSize: 25.0, color: Colors.white)),
+                              Container(
+                                padding: EdgeInsets.all(0),
+                                width: 30,
+                                height: 20,
+                                child: Center(
+                                  child: Icon(Icons.arrow_drop_down, color: Colors.white),
+                                ),
                               ),
-                            ),
-                          ],
+                            ],
+                          ),
                         ),
-                      ),
-                    ],
+                      ],
+                    ),
                   ),
                 ]),
                 actions: [

@@ -4,15 +4,63 @@ import '../../utils/numerical/array_operations.dart';
 import '../../utils/numerical/arrays.dart';
 import 'markets.dart';
 
+/// function to determine what kind of contract is associated with a given q vector
+String classify(Array quantity) {
+  if (quantity.length == 2) {
+    if (quantity[0] == 0) {
+      return 'short';
+    } else if (quantity[1] == 0) {
+      return 'long';
+    }
+    return 'long/short';
+  }
+
+  for (int i = 0; i < quantity.length - 1; i++) {
+    if (((quantity[i] / quantity[i + 1]) - 1.1813).abs() > 0.001) {
+      break;
+    }
+    if (i == quantity.length - 2) {
+      return 'short';
+    }
+  }
+
+  for (int i = 0; i < quantity.length - 1; i++) {
+    if (((quantity[i] / quantity[i + 1]) - 0.8464).abs() > 0.001) {
+      break;
+    }
+    if (i == quantity.length - 2) {
+      return 'long';
+    }
+  }
+
+  int diffs = 0;
+
+  for (int i = 0; i < quantity.length - 1; i++) {
+    if ((quantity[i] - quantity[i + 1]).abs() > 0.001) {
+      diffs += 1;
+    }
+  }
+
+  if (diffs == 1) {
+    return 'binary';
+  }
+
+  return 'custom';
+}
+
+
 class Transaction {
   late Market market;
   late double time;
   late double price;
   late Array quantity;
+  late String contractType;
 
   Map<String, Array>? transactionValue;
 
-  Transaction(this.market, this.time, this.price, this.quantity);
+  Transaction(this.market, this.time, this.price, this.quantity) {
+    contractType = classify(quantity);
+  }
 
   double? getCurrentValue() {
     if (market.currentLMSR == null)
@@ -42,6 +90,7 @@ class Transaction {
     return 'Transaction(${market}, t=${time.toStringAsFixed(0)}), £${price.toStringAsFixed(2)}';
   }
 }
+
 
 class Portfolio {
   //
@@ -125,7 +174,7 @@ class Portfolio {
 
     double total = cash;
     holdings.forEach((String marketName, Array quantity) {
-      double value = markets[marketName]!.currentLMSR!.getValue(quantity);
+      double value = -markets[marketName]!.currentLMSR!.priceTrade(quantity.scale(-1));
       total += value;
       currentValues[marketName] = value;
     });

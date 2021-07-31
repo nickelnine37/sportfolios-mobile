@@ -4,6 +4,26 @@ import '../../data/utils/casting.dart';
 import '../api/requests.dart';
 import '../lmsr/lmsr.dart';
 
+String splitLongName(String name, int maxLen, String type) {
+  if (name.length > maxLen) {
+    List names = name.split(" ");
+    if (names.length > 2) {
+      if (type == 'player') {
+        name = names.first + ' ' + names.last;
+      } else {
+        name = names.first + ' ' + names[1];
+      }
+    } else {
+      if (type == 'player') {
+        name = names.last;
+      } else {
+        name = names.first;
+      }
+    }
+  }
+
+  return name;
+}
 
 abstract class Market {
   // ----- core attributes -----
@@ -35,8 +55,13 @@ abstract class Market {
   LMSR? currentLMSR;
   HistoricalLMSR? historicalLMSR;
 
-  // ---- Players only ---- 
+  // ---- Players only ----
   TeamMarket? team;
+
+  // ---- what's been run? -------
+  bool firebaseMarketsRun = false;
+  bool serverCurrentValuesRun = false;
+  bool serverHistoricValuesRun = false;
 
   void addSnapshotInfo(DocumentSnapshot snapshot) {
     doc = snapshot;
@@ -62,7 +87,6 @@ abstract class Market {
       'm': snapshot['long_price_returns_m'],
       'M': snapshot['long_price_returns_M']
     };
-
   }
 
   Future<void> getSnapshotInfo();
@@ -92,25 +116,15 @@ class PlayerMarket extends Market {
   @override
   void addSnapshotInfo(DocumentSnapshot snapshot) {
     super.addSnapshotInfo(snapshot);
-    if (snapshot['name'].length > 20) {
-      List names = snapshot['name'].split(" ");
-      if (names.length > 2)
-        name = names.first + ' ' + names.last;
-      else
-        name = names.last;
-    } else
-      name = snapshot['name'];
+    name = splitLongName(snapshot['name'], 20, 'player');
 
     info1 = snapshot['country_flag'] + ' ' + snapshot['position'];
     info2 = "Hey";
-
-    if (snapshot['team_name'].length > 20)
-      info3 = snapshot['team_name'].split(" ")[0];
-    else
-      info3 = snapshot['team_name'];
+    info3 = splitLongName(snapshot['team_name'], 15, 'team');
 
     team_id = '${snapshot['team_id']}:${snapshot['league_id']}:${snapshot['season_id']}T';
 
+    firebaseMarketsRun = true;
   }
 
   Future<void> getSnapshotInfo() async {
@@ -124,6 +138,7 @@ class PlayerMarket extends Market {
     if (currentHoldings != null) {
       currentLMSR = PlayerLMSR(n: currentHoldings['N'], b: currentHoldings['b']);
       longPriceCurrent = currentLMSR!.getLongValue();
+      serverCurrentValuesRun = true;
     } else {
       print('Error: getCurrentHoldings(${id}) returned null');
     }
@@ -133,6 +148,7 @@ class PlayerMarket extends Market {
   void setCurrentHoldings(Map<String, dynamic> currentHoldings) {
     currentLMSR = PlayerLMSR(n: currentHoldings['N'], b: currentHoldings['b']);
     longPriceCurrent = currentLMSR!.getLongValue();
+    serverCurrentValuesRun = true;
   }
 
   @override
@@ -141,6 +157,7 @@ class PlayerMarket extends Market {
     if (historicalHoldings != null) {
       historicalLMSR = PlayerHisoricalLMSR(
           nhist: historicalHoldings['data']['N'], bhist: historicalHoldings['data']['b'], thist: historicalHoldings['time']);
+      serverHistoricValuesRun = true;
     } else {
       print('Error: getCurrentHoldings(${id}) returned null');
     }
@@ -149,6 +166,7 @@ class PlayerMarket extends Market {
   @override
   void setHistoricalHoldings(Map<String, dynamic> data, Map<String, List<int>> time) {
     historicalLMSR = PlayerHisoricalLMSR(nhist: data['N'], bhist: data['b'], thist: time);
+    serverHistoricValuesRun = true;
   }
 
   @override
@@ -178,19 +196,13 @@ class TeamMarket extends Market {
   void addSnapshotInfo(DocumentSnapshot snapshot) {
     super.addSnapshotInfo(snapshot);
 
-    if (snapshot['name'].length > 20) {
-      List names = snapshot['name'].split(" ");
-      if (names.length > 2)
-        name = names.first + ' ' + names.last;
-      else
-        name = names.first;
-    } else
-      name = snapshot['name'];
-
+    name = splitLongName(snapshot['name'], 20, 'team');
     info1 = "P ${snapshot['played']}";
     info2 = "GD ${snapshot['goal_difference'] > 0 ? '+' : '-'}${snapshot['goal_difference'].abs()}";
     info3 = "PTS ${snapshot['points']}";
     players = List<String>.from(snapshot['players'].map((playerId) => '$playerId:${snapshot['league_id']}:${snapshot['season_id']}}P'));
+    firebaseMarketsRun = true;
+
   }
 
   Future<void> getSnapshotInfo() async {
@@ -209,6 +221,7 @@ class TeamMarket extends Market {
     if (currentHoldings != null) {
       currentLMSR = TeamLMSR(x: currentHoldings['x'], b: currentHoldings['b']);
       longPriceCurrent = currentLMSR!.getLongValue();
+      serverCurrentValuesRun = true;
     } else {
       print('Error: getCurrentHoldings(${id}) returned null');
     }
@@ -218,6 +231,7 @@ class TeamMarket extends Market {
   void setCurrentHoldings(Map<String, dynamic> currentHoldings) {
     currentLMSR = TeamLMSR(x: currentHoldings['x'], b: currentHoldings['b']);
     longPriceCurrent = currentLMSR!.getLongValue();
+    serverCurrentValuesRun = true;
   }
 
   @override
@@ -226,6 +240,7 @@ class TeamMarket extends Market {
     if (historicalHoldings != null) {
       historicalLMSR = TeamHistoricalLMSR(
           xhist: historicalHoldings['data']['x'], bhist: historicalHoldings['data']['b'], thist: historicalHoldings['time']);
+      serverHistoricValuesRun = true;
     } else {
       print('Error: getCurrentHoldings(${id}) returned null');
     }
@@ -234,6 +249,7 @@ class TeamMarket extends Market {
   @override
   void setHistoricalHoldings(Map<String, dynamic> data, Map<String, List<int>> time) {
     historicalLMSR = TeamHistoricalLMSR(xhist: data['x'], bhist: data['b'], thist: time);
+    serverHistoricValuesRun = true;
   }
 
   @override
@@ -241,25 +257,3 @@ class TeamMarket extends Market {
     return null;
   }
 }
-
-// class TeamMarket extends Market {
-//   void initInfo() {
-//     name = doc['name'];
-//     info1 = "P ${doc['played']}";
-//     info2 = "GD ${doc['goal_difference'] > 0 ? '+' : '-'}${doc['goal_difference'].abs()}";
-//     info3 = "PTS ${doc['points']}";
-//     players = List<String>.from(doc['players'].map((playerId) => '$playerId:${doc['league_id']}:${doc['season_id']}}P'));
-//   }
-
-//   @override
-//   String toString() {
-//     return 'TeamMarket($id)';
-//   }
-// }
-
-
-// class PlayerMarket extends Market {
-
-
-
-// }
