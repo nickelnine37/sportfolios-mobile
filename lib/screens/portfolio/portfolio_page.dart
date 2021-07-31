@@ -252,7 +252,7 @@ class _PortfolioPageState extends State<PortfolioPage> {
               body: TabBarView(
                 physics: NeverScrollableScrollPhysics(),
                 children: [
-                  Holdings(portfolios[selectedPortfolioId]),
+                  Holdings(portfolio: portfolios[selectedPortfolioId], owner: true),
                   Performance(portfolios[selectedPortfolioId]),
                 ],
               ),

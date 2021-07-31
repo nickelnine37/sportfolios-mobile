@@ -16,7 +16,9 @@ import '../../utils/strings/number_format.dart';
 
 class Holdings extends StatefulWidget {
   final Portfolio? portfolio;
-  Holdings(this.portfolio);
+  final bool owner;
+
+  Holdings({required this.portfolio, required this.owner});
 
   @override
   _HoldingsState createState() => _HoldingsState();

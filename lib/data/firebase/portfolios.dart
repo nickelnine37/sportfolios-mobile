@@ -46,6 +46,9 @@ class PortfolioFetcher {
       }
 
     }
+
+    print('heres some portfolios: ${loadedResults}');
+
   }
 
 }
@@ -55,6 +58,8 @@ class ReturnsPortfolioFetcher extends PortfolioFetcher {
   late String timeHorizon;
 
   ReturnsPortfolioFetcher(this.timeHorizon) {
+
+  print('creating portfolio fetcher with th: ${timeHorizon}');
 
     baseQuery = FirebaseFirestore.instance
         .collection('portfolios')
