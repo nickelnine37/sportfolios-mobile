@@ -63,27 +63,27 @@ class _HoldingsState extends State<Holdings> {
     Map<String, Row> icons = {
       'long': Row(children: [
         Text('Long', style: TextStyle(fontSize: 14.0, color: Colors.grey[700])),
-        SizedBox(width: 3),
+        SizedBox(width: 5),
         Icon(Icons.trending_up, size: 20, color: Colors.green[600])
       ]),
       'short': Row(children: [
         Text('Short', style: TextStyle(fontSize: 14.0, color: Colors.grey[700])),
-        SizedBox(width: 3),
+        SizedBox(width: 5),
         Icon(Icons.trending_down, size: 20, color: Colors.red[600])
       ]),
       'binary': Row(children: [
         Text('Binary', style: TextStyle(fontSize: 14.0, color: Colors.grey[700])),
-        SizedBox(width: 3),
+        SizedBox(width: 5),
         Transform.rotate(angle: 3.14159 / 2, child: Icon(Icons.vertical_align_center, size: 20, color: Colors.blue[800])),
       ]),
       'custom': Row(children: [
         Text('Custom', style: TextStyle(fontSize: 14.0, color: Colors.grey[700])),
-        SizedBox(width: 3),
+        SizedBox(width: 5),
         Icon(Icons.bar_chart, size: 20, color: Colors.blue[800])
       ]),
       'long/short': Row(children: [
         Text('Long/Short', style: TextStyle(fontSize: 14.0, color: Colors.grey[600])),
-        SizedBox(width: 3),
+        SizedBox(width: 5),
         Icon(Icons.shuffle, size: 20, color: Colors.blue[800])
       ]),
     };
@@ -205,7 +205,7 @@ class _HoldingsState extends State<Holdings> {
                                                         formatCurrency(value, 'GBP'),
                                                         style: TextStyle(fontSize: 16, color: Colors.grey[850]),
                                                       ),
-
+                                                      widget.owner ?  
                                                       OutlinedButton(
                                                         onPressed: () async {
                                                           bool saleComplete = await showModalBottomSheet(
@@ -229,7 +229,7 @@ class _HoldingsState extends State<Holdings> {
                                                         },
                                                         // style: TextButton.styleFrom(backgroundColor: Colors.red[400]),
                                                         child: Text('SELL', style: TextStyle(color: Colors.grey[800], letterSpacing: 0.6)),
-                                                      ),
+                                                      ) : Container(),
                                                       // )
                                                     ],
                                                   )

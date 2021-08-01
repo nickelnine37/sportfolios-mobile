@@ -42,13 +42,14 @@ class _ViewPortfolioState extends State<ViewPortfolio> {
           length: 2,
           child: Scaffold(
             appBar: AppBar(
-              automaticallyImplyLeading: false,
+              // automaticallyImplyLeading: false,
+              iconTheme: IconThemeData(color: Colors.white),
               titleSpacing: 0,
               toolbarHeight: 110,
               title: Column(children: [
-                Padding(
-                  padding: const EdgeInsets.only(left: 10.0),
-                  child: Row(
+                // Padding(
+                  // padding: const EdgeInsets.only(left: 0.0),
+                  Row(
                     mainAxisAlignment: MainAxisAlignment.start,
                     children: [
                       SizedBox(width: 5),
@@ -68,7 +69,7 @@ class _ViewPortfolioState extends State<ViewPortfolio> {
                       ),
                     ],
                   ),
-                ),
+                // ),
               ]),
               bottom: TabBar(
                 labelPadding: EdgeInsets.all(5),

@@ -72,7 +72,7 @@ class _AnimatedDonutChartState extends State<AnimatedDonutChart> {
       duration: Duration(milliseconds: 600),
       tween: Tween<double>(begin: 0, end: endValue),
       builder: (_, double percentComlpete, __) {
-        return PieChart(
+        return DonutChart(
           portfolio: widget.portfolio,
           edges: binEdges,
           percentComplete: 1 + percentComlpete - endValue,
@@ -90,14 +90,14 @@ class _AnimatedDonutChartState extends State<AnimatedDonutChart> {
 /// (i.e. [portfolioValue], [marketValues] and [binEdges] could all be calculated from [portfolio])
 /// however since the class is being called many times in the opening animation, it's more efficient to
 /// precompute these things and pass them as an argument.
-class PieChart extends StatefulWidget {
+class DonutChart extends StatefulWidget {
   final Portfolio? portfolio;
   final List<double>? edges;
   final double percentComplete;
   final double radius;
   final SplayTreeMap<String, double> sortedValues;
 
-  PieChart({
+  DonutChart({
     required this.portfolio,
     required this.edges,
     required this.percentComplete,
@@ -106,10 +106,10 @@ class PieChart extends StatefulWidget {
   });
 
   @override
-  _PieChartState createState() => _PieChartState();
+  _DonutChartState createState() => _DonutChartState();
 }
 
-class _PieChartState extends State<PieChart> {
+class _DonutChartState extends State<DonutChart> {
   double? width;    
 
   double? height;
@@ -119,7 +119,7 @@ class _PieChartState extends State<PieChart> {
   double lowerWidth = 20;
   double upperWidth = 25;
   double lowerOpacity = 0.5;
-  double upperOpacity = 0.85;
+  double upperOpacity = 1.0;
   int animationTime = 150;
 
   // initialise this as zero to avoid a null error
