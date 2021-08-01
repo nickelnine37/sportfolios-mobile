@@ -3,9 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:sportfolios_alpha/data/objects/markets.dart';
 import 'package:sportfolios_alpha/screens/home/options/market_details.dart';
 import 'package:sportfolios_alpha/utils/numerical/array_operations.dart';
-import 'package:sportfolios_alpha/utils/strings/number_format.dart';
 import 'package:intl/intl.dart';
-import 'dart:math' as math;
 
 import '../../data/objects/portfolios.dart';
 import '../../plots/price_chart.dart';
@@ -18,29 +16,30 @@ class Performance extends StatefulWidget {
 }
 
 class _PerformanceState extends State<Performance> {
-
   List<bool>? isExpanded;
   final double imageHeight = 40;
 
-
   @override
   Widget build(BuildContext context) {
-
-      if (isExpanded == null) {
+    if (isExpanded == null) {
       isExpanded = range(widget.portfolio!.transactions.length).map((int i) => false).toList();
     }
 
-    
     return SingleChildScrollView(
       child: Column(children: [
+        SizedBox(height: 25),
+        Text(
+          'Portfolio performance',
+          style: TextStyle(fontSize: 19, color: Colors.grey[700], fontWeight: FontWeight.w400),
+        ),
         TabbedPriceGraph(
           priceHistory: widget.portfolio!.historicalValue,
           times: widget.portfolio!.times,
         ),
-        SizedBox(height: 35), 
+        SizedBox(height: 35),
         Text(
-          'Transactions',
-          style: TextStyle(fontSize: 19, color: Colors.grey[800], fontWeight: FontWeight.w400),
+          'Transaction History',
+          style: TextStyle(fontSize: 19, color: Colors.grey[700], fontWeight: FontWeight.w400),
         ),
         SizedBox(height: 15),
         widget.portfolio!.transactions.length == 0
@@ -63,7 +62,7 @@ class _PerformanceState extends State<Performance> {
                   String marketId = widget.portfolio!.transactions.map((Transaction trans) => trans.market.id).toList()[i];
                   Market market = widget.portfolio!.transactions.map((Transaction trans) => trans.market).toList()[i];
                   Transaction transaction = widget.portfolio!.transactions[i];
-    
+
                   return ExpansionPanel(
                     headerBuilder: (BuildContext context, bool itemIsExpanded) {
                       return ListTile(
@@ -104,7 +103,10 @@ class _PerformanceState extends State<Performance> {
                                             Column(
                                               crossAxisAlignment: CrossAxisAlignment.start,
                                               children: [
-                                                Text(DateFormat('d MMM yy HH:mm').format(DateTime.fromMillisecondsSinceEpoch((transaction.time * 1000).floor())), style: TextStyle(fontSize: 16)),
+                                                Text(
+                                                    DateFormat('d MMM yy HH:mm')
+                                                        .format(DateTime.fromMillisecondsSinceEpoch((transaction.time * 1000).floor())),
+                                                    style: TextStyle(fontSize: 16)),
                                                 SizedBox(height: 3),
                                                 Text(
                                                   market.name!,
@@ -118,10 +120,15 @@ class _PerformanceState extends State<Performance> {
                                             ),
                                           ],
                                         ),
-                                        // Text(
-                                        //   formatCurrency(value, 'GBP'),
-                                        //   style: TextStyle(fontSize: 16),
-                                        // )
+                                        transaction.price > 0
+                                            ? Text(
+                                                'BUY',
+                                                style: TextStyle(fontSize: 16, color: Colors.green[600]),
+                                              )
+                                            : Text(
+                                                'SELL',
+                                                style: TextStyle(fontSize: 16, color: Colors.red[600]),
+                                              )
                                       ],
                                     ),
                                   ],
@@ -165,7 +172,6 @@ class _PerformanceState extends State<Performance> {
                                         ),
                                       ),
                                     ),
-                              
                             ],
                           ),
                     isExpanded: isExpanded![i],

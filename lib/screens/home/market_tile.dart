@@ -1,9 +1,7 @@
 import 'package:cached_network_image/cached_network_image.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter/material.dart';
 import 'package:sportfolios_alpha/utils/numerical/arrays.dart';
 
-import '../../providers/settings_provider.dart';
 import 'options/market_details.dart';
 import '../../utils/strings/number_format.dart';
 import '../../data/objects/markets.dart';
@@ -139,7 +137,7 @@ class MiniPriceChartPainter extends CustomPainter {
     Path path = Path();
 
     if (pmin != pmax) {
-      Array pathpY = pathY.apply((y) => size.height * (1 - (y - pmin) / (pmax - pmin)));
+      Array pathpY = pathY.apply((y) => 0.95 * size.height * (1 - (y - pmin) / (pmax - pmin)));
       List pathpX = List.generate(N, (index) => index * size.width / (N - 1));
 
       path.moveTo(pathpX[0], pathpY[0]);
@@ -155,6 +153,20 @@ class MiniPriceChartPainter extends CustomPainter {
     }
 
     canvas.drawPath(path, paint);
+
+    Rect rect = Rect.fromPoints(Offset(0, 0), Offset(size.width, size.height));
+    LinearGradient lg = LinearGradient(begin: Alignment.centerRight, end: Alignment.centerLeft, stops: [
+      0.0,
+      0.6,
+      1.0
+    ], colors: [
+      //create 2 white colors, one transparent
+      Color.fromARGB(0, 250, 250, 250),
+      Color.fromARGB(0, 250, 250, 250),
+      Color.fromARGB(240, 250, 250, 250)
+    ]);
+    Paint paint2 = Paint()..shader = lg.createShader(rect);
+    canvas.drawRect(rect, paint2);
   }
 
   @override

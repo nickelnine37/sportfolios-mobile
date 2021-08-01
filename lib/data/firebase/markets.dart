@@ -25,13 +25,6 @@ class MarketFetcher {
   List<Market>? alreadyLoaded;
 
   void setData({List<Market>? alreadyLoaded = null, String? search = null}) {
-    // work out whether this is a player or team market and order by different metric accordingly
-
-    // if (marketType == 'players') {
-    //   baseQuery = baseQuery.orderBy('rating', descending: true).limit(10);
-    // } else {
-    //   baseQuery = baseQuery.orderBy('points', descending: true).limit(10);
-    // }
 
     this.alreadyLoaded = alreadyLoaded;
 
@@ -146,3 +139,5 @@ class TeamPlayerSearchMarketFetcher extends MarketFetcher {
     super.setData(alreadyLoaded: this.alreadyLoaded, search: search);
   }
 }
+
+

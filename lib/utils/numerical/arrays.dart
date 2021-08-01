@@ -4,23 +4,28 @@ class Array {
   late Float64List a;
 
   /// ------- Constructors --------
-
+  
+  /// create an array from a Float64List (mostly for internal use)
   Array.from(Float64List b) {
     a = b;
   }
 
+  /// create an array from a list of doubles
   Array.fromList(List<double> l) {
     a = Float64List.fromList(l);
   }
 
+  /// create an array fro a list which is marked as dynamic, but truly only contains doubles
   Array.fromDynamicList(List l) {
     a = Float64List.fromList(List<double>.from(l));
   }
 
+  /// create an array from a list which is marked as dynamic and may contain ints
   Array.fromTrueDynamicList(List l) {
     a = Float64List.fromList(List<double>.from(l.map((i) => i + 0.0)));
   }
 
+  /// creaet an array of length [n] full of zeros
   Array.zeros(int n) {
     a = Float64List(n);
     for (int i = 0; i < n; i++) {
@@ -28,6 +33,7 @@ class Array {
     }
   }
 
+  /// create an array of length [n] full of ones
   Array.ones(int n) {
     a = Float64List(n);
     for (int i = 0; i < n; i++) {
@@ -35,6 +41,7 @@ class Array {
     }
   }
 
+  /// create an array of length [n] full of [value] (equiv to Array.ones(n).scale(value))
   Array.fill(int n, double value) {
     a = Float64List(n);
     for (int i = 0; i < n; i++) {
@@ -74,6 +81,26 @@ class Array {
     return min;
   }
   
+  int get argmin {
+    int argmin = 0;
+    for (int i = 1; i < a.length; i++) {
+      if (a[i] < a[argmin]) {
+        argmin = i;
+      }
+    }
+    return argmin;
+  }
+
+  int get argmax {
+    int argmax = 0;
+    for (int i = 1; i < a.length; i++) {
+      if (a[i] > a[argmax]) {
+        argmax = i;
+      }
+    }
+    return argmax;
+  }
+
   double get last {
     return a.last;
   }

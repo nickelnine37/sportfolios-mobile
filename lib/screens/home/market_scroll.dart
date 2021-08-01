@@ -213,9 +213,9 @@ class MarketScrollState extends State<MarketScroll> with AutomaticKeepAliveClien
                     )
                   ],
                 );
-              } else if (index == nTiles - 1) {
+              } else if (index == nTiles - 1 ) {
                 // final tile contains the loading spinner
-                if (_selectedMarketFetcher!.finished) {
+                if (_selectedMarketFetcher!.finished || (_selectedMarketFetcher!.loadedResults.length == 0)) {
                   return Container(height: 0);
                 } else {
                   return Padding(

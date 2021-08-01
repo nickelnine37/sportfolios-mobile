@@ -1,6 +1,7 @@
 import 'dart:collection';
 
 import 'package:flutter/material.dart';
+import 'package:sportfolios_alpha/data/objects/markets.dart';
 
 import '../../data/objects/portfolios.dart';
 import '../../utils/numerical/array_operations.dart';
@@ -33,16 +34,18 @@ class MiniDonutChart extends StatelessWidget {
 
     List<SegmentData> pieData = <SegmentData>[
           SegmentData(
-            percentage: portfolio.cash! / portfolio.currentValue!,
+            percentage: portfolio.cash / portfolio.currentValue,
             colour: Colors.green,
           )
         ] +
-        range(sortedValues.length)
-            .map((int i) => SegmentData(
-                  percentage: sortedValues.values.toList()[i] / portfolio.currentValue!,
-                  colour: fromHex(portfolio.markets[sortedValues.keys.toList()[i]]!.colours![0])
-                ))
-            .toList();
+        range(sortedValues.length).map((int i) {
+          Market market = portfolio.markets[sortedValues.keys.toList()[i]]!;
+          return SegmentData(
+              percentage: sortedValues.values.toList()[i] / portfolio.currentValue,
+              colour: market.colours == null
+                  ? getColorCycle(i, sortedValues.length)
+                  : fromHex(market.colours![0]));
+        }).toList();
 
     return CustomPaint(painter: MiniDonutChartPainter(pieData, strokeWidth));
   }

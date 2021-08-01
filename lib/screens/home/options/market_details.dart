@@ -1,6 +1,5 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
-import 'package:sportfolios_alpha/data/lmsr/lmsr.dart';
 import 'package:sportfolios_alpha/plots/payout_graph.dart';
 import 'package:sportfolios_alpha/plots/price_chart.dart';
 import 'package:sportfolios_alpha/screens/home/market_tile.dart';
@@ -383,7 +382,7 @@ class _TeamDetailsState extends State<TeamDetails> with SingleTickerProviderStat
                         ),
                       ),
                       TabbedPriceGraph(
-                        priceHistory: widget.market.historicalLMSR!.getHistoricalValue(Asset.team(qs![selected])),
+                        priceHistory: widget.market.historicalLMSR!.getHistoricalValue(qs![selected]),
                         times: widget.market.historicalLMSR!.ts,
                       ),
                       SizedBox(height: 30),
@@ -609,7 +608,7 @@ class _PlayerDetailsState extends State<PlayerDetails> with SingleTickerProvider
                       SizedBox(height: 10),
                       PlayerPageHeader(selected == 0, widget.market, selected == 0 ? longInfo(context) : shortInfo(context)),
                       TabbedPriceGraph(
-                          priceHistory: widget.market.historicalLMSR!.getHistoricalValue(Asset.player(selected == 0, 10)),
+                          priceHistory: widget.market.historicalLMSR!.getHistoricalValue((Array.fromList(selected == 0 ? <double>[10.0, 0.0] : <double>[0.0, 1.0]))),
                           times: widget.market.historicalLMSR!.ts),
                       SizedBox(height: 10),
                       PageFooter(widget.market)
