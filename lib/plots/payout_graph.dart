@@ -12,7 +12,11 @@ class PayoutGraph extends StatefulWidget {
   final bool tappable;
   final double pmax;
 
-  PayoutGraph({required this.q, required this.tappable, this.padding = 25, this.height = 150, this.pmax=10});
+  PayoutGraph({required this.q, required this.tappable, this.padding = 25, this.height = 150, this.pmax=10}){
+    // print(q);
+    // print(pmax);
+  }
+  
 
   @override
   _PayoutGraphState createState() => _PayoutGraphState();
@@ -136,9 +140,9 @@ class SimpleBar extends CustomPainter {
   void paint(Canvas canvas, Size size) {
     int n = payouts.length;
     double barWidth = 0.95 * size.width / n;
-    double barHeight = payouts[index] * size.height / pmax;
+    double barHeight = 0.995 * payouts[index] * size.height / pmax;
 
-    Paint paint = Paint()..color = Colors.blue.withOpacity(opacity * (0.4 + 0.6 * payouts[index] / pmax));
+    Paint paint = Paint()..color = Colors.blue.withOpacity(0.995 * opacity * (0.4 + 0.6 * payouts[index] / pmax));
 
     TextSpan positionText = TextSpan(
         text: (payouts.length - index).toString(),

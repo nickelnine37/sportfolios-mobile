@@ -282,7 +282,7 @@ class _TeamDetailsState extends State<TeamDetails> with SingleTickerProviderStat
               padding: const EdgeInsets.only(right: 2.0),
               child: LeagueProgressBar(
                 leagueOrMarket: widget.market,
-                textColor: textColor,
+                textColor: textColor!,
               ),
             ),
           ]),
@@ -582,7 +582,7 @@ class _PlayerDetailsState extends State<PlayerDetails> with SingleTickerProvider
               padding: const EdgeInsets.only(right: 2.0),
               child: LeagueProgressBar(
                 leagueOrMarket: widget.market,
-                textColor: textColor,
+                textColor: textColor!,
               ),
             ),
           ]),

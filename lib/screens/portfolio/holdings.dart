@@ -5,6 +5,7 @@ import 'package:flutter_colorpicker/flutter_colorpicker.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:sportfolios_alpha/screens/home/app_bar.dart';
 import 'package:sportfolios_alpha/utils/design/colors.dart';
 import 'package:sportfolios_alpha/utils/numerical/arrays.dart';
 
@@ -196,11 +197,9 @@ class _HoldingsState extends State<Holdings> {
                           elevation: 2,
                           animationDuration: Duration(milliseconds: 600),
                           expansionCallback: (int i, bool itemIsExpanded) {
-                            if (widget.portfolio!.currentValues.keys.toList()[i] != 'cash') {
                               setState(() {
                                 isExpanded![i] = !itemIsExpanded;
                               });
-                            }
                           },
                           children: range(sortedValues.length).map<ExpansionPanel>((int i) {
                             //
@@ -222,7 +221,7 @@ class _HoldingsState extends State<Holdings> {
                                     }));
                                   },
                                   title: Container(
-                                    padding: const EdgeInsets.symmetric(vertical: 18),
+                                    padding: const EdgeInsets.symmetric(vertical: 10),
                                     child: Row(
                                       children: [
                                         Expanded(
@@ -305,6 +304,11 @@ class _HoldingsState extends State<Holdings> {
                               body: Column(
                                 // crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
+                                  Padding(
+                                    padding: const EdgeInsets.symmetric(horizontal: 8.0),
+                                    child: LeagueProgressBar(leagueOrMarket: market, textColor: Colors.grey[800]!),
+                                  ), 
+                                  SizedBox(height: 4), 
                                   marketId.contains('T')
                                       ? Container(
                                           height: 220,

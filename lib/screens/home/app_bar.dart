@@ -164,7 +164,7 @@ class _MainViewState extends State<MainView> {
 
 class LeagueProgressBar extends StatelessWidget {
   final dynamic leagueOrMarket;
-  final Color? textColor;
+  final Color textColor;
   final Color paintColor1;
   final Color paintColor2;
 

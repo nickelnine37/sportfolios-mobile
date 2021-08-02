@@ -1,9 +1,14 @@
+import 'dart:math';
+
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:sportfolios_alpha/data/objects/markets.dart';
+import 'package:sportfolios_alpha/plots/payout_graph.dart';
 import 'package:sportfolios_alpha/screens/home/options/market_details.dart';
+import 'package:sportfolios_alpha/screens/portfolio/holdings.dart';
 import 'package:sportfolios_alpha/utils/numerical/array_operations.dart';
 import 'package:intl/intl.dart';
+import 'package:sportfolios_alpha/utils/strings/number_format.dart';
 
 import '../../data/objects/portfolios.dart';
 import '../../plots/price_chart.dart';
@@ -51,11 +56,9 @@ class _PerformanceState extends State<Performance> {
                 elevation: 2,
                 animationDuration: Duration(milliseconds: 600),
                 expansionCallback: (int i, bool itemIsExpanded) {
-                  if (widget.portfolio!.currentValues.keys.toList()[i] != 'cash') {
-                    setState(() {
-                      isExpanded![i] = !itemIsExpanded;
-                    });
-                  }
+                  setState(() {
+                    isExpanded![i] = !itemIsExpanded;
+                  });
                 },
                 children: range(widget.portfolio!.transactions.length).map<ExpansionPanel>((int i) {
                   //
@@ -139,41 +142,37 @@ class _PerformanceState extends State<Performance> {
                         ),
                       );
                     },
-                    body: marketId == 'cash'
-                        ? Container()
-                        : Column(
-                            // crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              marketId.contains('T')
-                                  ? Container(
-                                      height: 250,
-                                      padding: const EdgeInsets.symmetric(vertical: 20),
-                                      // child: PayoutGraph(
-                                      //   q: widget.portfolio!.holdings![marketId]!.q!,
-                                      //   tappable: true,
-                                      //   pmax: widget.portfolio!.holdings![marketId]!.q!.max,
-                                      // ),
-                                    )
-                                  : Container(
-                                      height: 150,
-                                      child: Padding(
-                                        padding: const EdgeInsets.symmetric(horizontal: 25),
-                                        child: Row(
-                                          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                                          children: [
-                                            Column(
-                                              // widget.portfolio!.holdings![marketId]!.k!
-                                              children: [Text('Units Long', style: TextStyle(fontSize: 18)), Text('0')],
-                                            ),
-                                            Column(
-                                              children: [Text('Units Short', style: TextStyle(fontSize: 18)), Text('0')],
-                                            )
-                                          ],
-                                        ),
-                                      ),
-                                    ),
-                            ],
-                          ),
+                    body: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Padding(
+                            padding: EdgeInsets.symmetric(horizontal: 25),
+                            child: Text(transaction.price > 0 ? 'Bought for ${formatCurrency(transaction.price, 'GBP')}: ' : 'Sold for ${formatCurrency(-transaction.price, 'GBP')}: ',
+                                style: TextStyle(fontSize: 16, color: Colors.grey[800]))),
+                                SizedBox(height: 10), 
+                        marketId.contains('T')
+                            ? Container(
+                                height: 250,
+                                padding: const EdgeInsets.symmetric(vertical: 20),
+                                width: double.infinity,
+                                child: PayoutGraph(
+                                  q: transaction.price > 0 ? transaction.quantity : transaction.quantity.scale(-1.0).add(1e-10),
+                                  tappable: true,
+                                  pmax: max(transaction.quantity.max.abs(), transaction.quantity.min.abs()),
+                                ),
+                              )
+                            : Container(
+                                height: 150,
+                                width: double.infinity,
+                                child: Padding(
+                                  padding: const EdgeInsets.symmetric(horizontal: 25),
+                                  child: LongShortGraph(
+                                      quantity: transaction.price > 0 ? transaction.quantity : transaction.quantity.scale(-1.0).add(1e-10),
+                                      height: 75),
+                                ),
+                              ),
+                      ],
+                    ),
                     isExpanded: isExpanded![i],
                   );
                 }).toList(),

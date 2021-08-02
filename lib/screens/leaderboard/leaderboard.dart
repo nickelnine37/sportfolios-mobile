@@ -164,15 +164,17 @@ class PortfolioTile extends StatelessWidget {
         height: height,
         padding: padding,
         child: Row(children: [
+          SizedBox(width: 10),
           Container(
-            height: 35,
-            width: 35,
-            child: MiniDonutChart(portfolio, strokeWidth: 8),
+            height: 40,
+            width: 40,
+            child: MiniDonutChart(portfolio, strokeWidth: 9),
           ),
+          SizedBox(width: 5),
           Expanded(
             child: Container(
               height: double.infinity,
-                      alignment: Alignment.center,
+              alignment: Alignment.center,
               padding: EdgeInsets.only(left: 20, right: 5),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.center,
@@ -203,13 +205,11 @@ class PortfolioTile extends StatelessWidget {
                           Text(
                               '${portfolio.periodReturns[returnsPeriod]! < 0 ? '-' : '+'}${formatPercentage(portfolio.periodReturns[returnsPeriod]!.abs(), 'GBP')}',
                               style: TextStyle(
-                                  fontSize: 12,
-                                  color: portfolio.periodReturns[returnsPeriod]! >= 0 ? Colors.green[300] : Colors.red[300])),
+                                  fontSize: 12, color: portfolio.periodReturns[returnsPeriod]! >= 0 ? Colors.green[300] : Colors.red[300])),
                         ],
                       )
                     ],
                   ),
-                 
                 ],
               ),
             ),
