@@ -44,7 +44,8 @@ abstract class Market {
   String? imageURL;
 
   // stats
-  Map<String, dynamic>? stats;
+  Map<String, Map<String, dynamic>>? stats;
+  Map<String, dynamic>? details;
 
   // ----- price attributes -----
   double? longPriceCurrent;
@@ -100,6 +101,14 @@ abstract class Market {
   void setHistoricalHoldings(Map<String, dynamic> data, Map<String, List<int>> time);
 
   Future<void> getTeamInfo();
+
+  Future<void> getStats() async {
+    String stats_id = id.split(':')[0] + id[id.length - 1];
+    DocumentSnapshot snapshot = await FirebaseFirestore.instance.collection('stats').doc(stats_id).get();
+    stats = Map<String, Map<String, dynamic>>.from(snapshot['stats']);
+    details = Map<String, dynamic>.from(snapshot['details']);
+  }
+
 }
 
 class PlayerMarket extends Market {
