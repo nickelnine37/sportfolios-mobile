@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-import '../../providers/authenication_provider.dart';
+import '../../utils/authentication/authenication_provider.dart';
 import 'login_utils.dart';
 
 /// Main Password Rest Page Widget

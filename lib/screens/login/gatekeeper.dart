@@ -3,7 +3,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 
 import '../../app_main.dart';
-import '../../providers/authenication_provider.dart';
+import '../../utils/authentication/authenication_provider.dart';
 import 'login.dart';
 
 /// This class is used to decide whether or not to let a user into the app

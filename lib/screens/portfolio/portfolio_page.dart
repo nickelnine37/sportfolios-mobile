@@ -8,7 +8,7 @@ import 'package:sportfolios_alpha/plots/mini_donut_chart.dart';
 import 'package:sportfolios_alpha/screens/home/options/buy_contract.dart';
 
 import '../../data/firebase/portfolios.dart';
-import '../../providers/authenication_provider.dart';
+import '../../utils/authentication/authenication_provider.dart';
 import '../../data/objects/portfolios.dart';
 import 'holdings.dart';
 import 'performance.dart';
@@ -41,6 +41,7 @@ class _PortfolioPageState extends State<PortfolioPage> {
     prefs = await SharedPreferences.getInstance();
     String uid = AuthService().currentUid;
     DocumentSnapshot result = await FirebaseFirestore.instance.collection('users').doc(uid).get();
+
 
     for (String portfolioId in result['portfolios']) {
       Portfolio? portfolio = await _getFreshPortfolio(portfolioId);

@@ -1,12 +1,14 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '../objects/portfolios.dart';
-import '../../providers/authenication_provider.dart';
+import '../../utils/authentication/authenication_provider.dart';
 
 Future<Portfolio?> getPortfolioById(String portfoliloId) async {
   DocumentSnapshot portfolio_doc = await FirebaseFirestore.instance.collection('portfolios').doc(portfoliloId).get();
   if (portfolio_doc.exists) {
+    print('Got him!: ${portfoliloId}');
     return Portfolio.fromDocumentSnapshot(portfolio_doc);
   } else {
+    print('Cannot get portfolio: ${portfoliloId}');
     return null;
   }
 }

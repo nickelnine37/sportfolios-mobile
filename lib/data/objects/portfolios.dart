@@ -99,6 +99,7 @@ class Portfolio {
   late String name;
   late bool public;
   late String user;
+  late String username;
   late DocumentSnapshot doc; //                     doc object used for ordering queries
   Map<String, Market> markets = {}; //              holds all the unique markets ever used in this portfolio
 
@@ -124,6 +125,7 @@ class Portfolio {
     id = snapshot.id;
     currentValue = snapshot['current_value'];
     name = snapshot['name'];
+    username = snapshot['username'];
     periodReturns = {'d': snapshot['returns_d'], 'w': snapshot['returns_w'], 'm': snapshot['returns_m'], 'M': snapshot['returns_M']};
     public = snapshot['public'];
     user = snapshot['user'];

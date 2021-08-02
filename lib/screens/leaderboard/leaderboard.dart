@@ -187,7 +187,7 @@ class PortfolioTile extends StatelessWidget {
                           Text(portfolio.name, style: TextStyle(fontSize: upperTextSize)),
                           SizedBox(height: spacing),
                           Text(
-                            'username',
+                            portfolio.username,
                             style: TextStyle(fontSize: lowerTextSize, color: Colors.grey[600]),
                           ),
                         ],

@@ -10,7 +10,7 @@ import 'package:intl/intl.dart' as intl;
 import '../../../data/api/requests.dart';
 import '../../../data/firebase/portfolios.dart';
 import '../../../data/objects/markets.dart';
-import '../../../providers/authenication_provider.dart';
+import '../../../utils/authentication/authenication_provider.dart';
 import '../../../utils/strings/number_format.dart';
 import '../../../utils/numerical/numbers.dart';
 import '../../../data/objects/portfolios.dart';

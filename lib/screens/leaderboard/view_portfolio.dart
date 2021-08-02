@@ -64,7 +64,14 @@ class _ViewPortfolioState extends State<ViewPortfolio> {
                             child: MiniDonutChart(widget.portfolio, strokeWidth: 8),
                           ),
                           SizedBox(width: 17),
-                          Text(widget.portfolio.name, style: TextStyle(fontSize: 25.0, color: Colors.white)),
+                          Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(widget.portfolio.name, style: TextStyle(fontSize: 25.0, color: Colors.white)),
+                              SizedBox(height: 2),
+                              Text(widget.portfolio.username, style: TextStyle(color: Colors.white, fontSize: 14),)
+                            ],
+                          ),
                         ],
                       ),
                     ],

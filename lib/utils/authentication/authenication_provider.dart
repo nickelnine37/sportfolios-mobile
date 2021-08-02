@@ -1,10 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
-// final AutoDisposeStreamProvider<SportfoliosUser>? authenticationProvider = StreamProvider.autoDispose<SportfoliosUser>((ref) {
-//   return AuthService().userStream;
-// });
-
 /// a class to handle basic authentication tasks
 class AuthService {
   // for interacting with firebase
@@ -14,12 +10,13 @@ class AuthService {
     return _auth.currentUser!.uid;
   }
 
-  // Stream<SportfoliosUser> get userStream {
-  //   return _auth
-  //       .userChanges()
-  //       .where((User? user) => user!.emailVerified)
-  //       .map((User? user) => SportfoliosUser(user));
-  // }
+  String get username {
+    return _auth.currentUser!.displayName!;
+  }
+
+  String get email {
+    return _auth.currentUser!.email!;
+  }
 
   void signOut() {
     _auth.signOut();
@@ -43,7 +40,7 @@ class AuthService {
     try {
       await _auth.sendPasswordResetEmail(email: email);
       return null;
-    } on FirebaseAuthException catch (error)  {
+    } on FirebaseAuthException catch (error) {
       print('Error sending password reset: ${error.message}');
       return error;
     }
@@ -58,9 +55,8 @@ class AuthService {
       UserCredential result = await _auth.createUserWithEmailAndPassword(email: email, password: password);
       await result.user!.updateDisplayName(username);
       CollectionReference users = FirebaseFirestore.instance.collection('users');
-      users
-          .doc(result.user!.uid)
-          .set({'portfolios': []}).catchError((error) => print("Failed to add user database entry: $error"));
+      users.doc(result.user!.uid).set({'portfolios': [], 'username': result.user!.displayName}).catchError(
+          (error) => print("Failed to add user database entry: $error"));
       return null;
     } on FirebaseAuthException catch (error) {
       print('Error creating new user: ' + error.message!);
@@ -84,7 +80,34 @@ class AuthService {
     }
   }
 
-  /// refresh the token??? Needed sometimes 
+  Future<String?> updatePassword(String newPassword) async {
+    try {
+      await _auth.currentUser!.updatePassword(newPassword);
+      return null;
+    } on FirebaseAuthException catch (error) {
+      print('Error updating password: ${error.message}');
+      return error.message;
+    } catch (e) {
+      print(e);
+      return 'Error';
+    }
+  }
+
+  Future<String?> updateUsername(String newUsername) async {
+    try {
+      await _auth.currentUser!.updateDisplayName(newUsername);
+      return null;
+    } on FirebaseAuthException catch (error) {
+      print('Error updating username: ${error.message}');
+      return error.message;
+    } catch (e) {
+      print(e);
+
+      return 'Error';
+    }
+  }
+
+  /// refresh the token??? Needed sometimes
   /// https://stackoverflow.com/questions/47243702/firebase-token-email-verified-going-weird
   Future<void> refreshToken() async {
     await _auth.currentUser!.getIdToken(true);
@@ -94,7 +117,7 @@ class AuthService {
     return await _auth.currentUser!.getIdToken(false);
   }
 
-  /// check whether there is a current user signed in, 
+  /// check whether there is a current user signed in,
   /// and whether that user is email-verified
   Future<bool> isVerified() async {
     // if there is no user signed in, return false

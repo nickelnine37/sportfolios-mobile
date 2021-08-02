@@ -4,7 +4,7 @@ import 'package:sportfolios_alpha/utils/numerical/arrays.dart';
 import 'urls.dart';
 import 'dart:convert' as convert;
 
-import '../../providers/authenication_provider.dart';
+import '../../utils/authentication/authenication_provider.dart';
 
 String __version__ = '0.0';
 

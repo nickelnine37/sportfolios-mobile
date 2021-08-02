@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'app_main.dart';
-import 'providers/authenication_provider.dart';
+import 'utils/authentication/authenication_provider.dart';
 import 'screens/login/login.dart';
 
 /// It all begins here...
