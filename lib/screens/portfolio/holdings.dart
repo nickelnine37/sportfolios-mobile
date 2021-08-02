@@ -1,8 +1,11 @@
 import 'dart:collection';
-import 'dart:math';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:flutter_colorpicker/flutter_colorpicker.dart';
 
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:sportfolios_alpha/utils/design/colors.dart';
 import 'package:sportfolios_alpha/utils/numerical/arrays.dart';
 
 import '../../data/objects/markets.dart';
@@ -13,6 +16,42 @@ import '../home/options/market_details.dart';
 import 'sell.dart';
 import '../../utils/numerical/array_operations.dart';
 import '../../utils/strings/number_format.dart';
+
+Widget getIcon(String type) {
+  if (type == 'long') {
+    return Row(children: [
+      Text('Long', style: TextStyle(fontSize: 14.0, color: Colors.grey[700])),
+      SizedBox(width: 5),
+      Icon(Icons.trending_up, size: 20, color: Colors.green[600])
+    ]);
+  } else if (type == 'short') {
+    return Row(children: [
+      Text('Short', style: TextStyle(fontSize: 14.0, color: Colors.grey[700])),
+      SizedBox(width: 5),
+      Icon(Icons.trending_down, size: 20, color: Colors.red[600])
+    ]);
+  } else if (type == 'binary') {
+    return Row(children: [
+      Text('Binary', style: TextStyle(fontSize: 14.0, color: Colors.grey[700])),
+      SizedBox(width: 5),
+      Transform.rotate(angle: 3.14159 / 2, child: Icon(Icons.vertical_align_center, size: 20, color: Colors.blue[800])),
+    ]);
+  } else if (type == 'custom') {
+    return Row(children: [
+      Text('Custom', style: TextStyle(fontSize: 14.0, color: Colors.grey[700])),
+      SizedBox(width: 5),
+      Icon(Icons.bar_chart, size: 20, color: Colors.blue[800])
+    ]);
+  } else if (type == 'long/short') {
+    return Row(children: [
+      Text('Long/Short', style: TextStyle(fontSize: 14.0, color: Colors.grey[600])),
+      SizedBox(width: 5),
+      Icon(Icons.shuffle, size: 20, color: Colors.blue[800])
+    ]);
+  } else {
+    throw Exception();
+  }
+}
 
 class Holdings extends StatefulWidget {
   final Portfolio? portfolio;
@@ -31,6 +70,13 @@ class _HoldingsState extends State<Holdings> {
   List<bool>? isExpanded;
   final double imageHeight = 50;
   Future<void>? portfolioUpdateFuture;
+
+  Color pickerColor = Color(0xff443a49);
+  Color currentColor = Color(0xff443a49);
+
+  void changeColor(Color color) {
+    setState(() => pickerColor = color);
+  }
 
   @override
   void initState() {
@@ -60,34 +106,6 @@ class _HoldingsState extends State<Holdings> {
     SplayTreeMap<String, double> sortedValues = SplayTreeMap<String, double>.from(
         widget.portfolio!.currentValues, (a, b) => widget.portfolio!.currentValues[a]! < widget.portfolio!.currentValues[b]! ? 1 : -1);
 
-    Map<String, Row> icons = {
-      'long': Row(children: [
-        Text('Long', style: TextStyle(fontSize: 14.0, color: Colors.grey[700])),
-        SizedBox(width: 5),
-        Icon(Icons.trending_up, size: 20, color: Colors.green[600])
-      ]),
-      'short': Row(children: [
-        Text('Short', style: TextStyle(fontSize: 14.0, color: Colors.grey[700])),
-        SizedBox(width: 5),
-        Icon(Icons.trending_down, size: 20, color: Colors.red[600])
-      ]),
-      'binary': Row(children: [
-        Text('Binary', style: TextStyle(fontSize: 14.0, color: Colors.grey[700])),
-        SizedBox(width: 5),
-        Transform.rotate(angle: 3.14159 / 2, child: Icon(Icons.vertical_align_center, size: 20, color: Colors.blue[800])),
-      ]),
-      'custom': Row(children: [
-        Text('Custom', style: TextStyle(fontSize: 14.0, color: Colors.grey[700])),
-        SizedBox(width: 5),
-        Icon(Icons.bar_chart, size: 20, color: Colors.blue[800])
-      ]),
-      'long/short': Row(children: [
-        Text('Long/Short', style: TextStyle(fontSize: 14.0, color: Colors.grey[600])),
-        SizedBox(width: 5),
-        Icon(Icons.shuffle, size: 20, color: Colors.blue[800])
-      ]),
-    };
-
     return FutureBuilder(
         future: portfolioUpdateFuture,
         builder: (BuildContext context, AsyncSnapshot snapshot) {
@@ -96,7 +114,46 @@ class _HoldingsState extends State<Holdings> {
               onRefresh: refreshHoldings,
               child: SingleChildScrollView(
                 child: Column(children: <Widget>[
-                  AnimatedDonutChart(widget.portfolio),
+                  Stack(
+                    children: [
+                      AnimatedDonutChart(widget.portfolio),
+                      Container(
+                        height: 286,
+                        width: double.infinity,
+                        child: Consumer(
+                          builder: (BuildContext context, watch, Widget? child) {
+                            String? asset = watch(selectedAssetProvider).asset;
+
+                            return (asset == null || !widget.owner)
+                                ? Container()
+                                : Container(
+                                    padding: EdgeInsets.all(15),
+                                    child: IconButton(
+                                      onPressed: () async {
+                                        Color? color = await showDialog(
+                                          context: context,
+                                          builder: (context) => PickAColor(),
+                                        );
+                                        if (color != null) {
+                                          await FirebaseFirestore.instance
+                                              .collection('portfolios')
+                                              .doc(widget.portfolio!.id)
+                                              .update({'colours.${asset}': toHex(color)});
+                                          setState(() {
+                                            widget.portfolio!.colours[asset] = color;
+                                          });
+                                        }
+                                      },
+                                      icon: Icon(Icons.format_color_fill),
+                                      color: Colors.grey[700],
+                                    ),
+                                    alignment: Alignment.bottomRight,
+                                  );
+                          },
+                        ),
+                      )
+                    ],
+                  ),
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 55.0),
                     child: Row(
@@ -194,7 +251,7 @@ class _HoldingsState extends State<Holdings> {
                                                         children: [
                                                           Text(market.name!, style: TextStyle(fontSize: 16, color: Colors.grey[850])),
                                                           SizedBox(height: 3),
-                                                          icons[classify(holding)]!
+                                                          getIcon(classify(holding))
                                                         ],
                                                       ),
                                                     ],
@@ -205,31 +262,33 @@ class _HoldingsState extends State<Holdings> {
                                                         formatCurrency(value, 'GBP'),
                                                         style: TextStyle(fontSize: 16, color: Colors.grey[850]),
                                                       ),
-                                                      widget.owner ?  
-                                                      OutlinedButton(
-                                                        onPressed: () async {
-                                                          bool saleComplete = await showModalBottomSheet(
-                                                                isScrollControlled: true,
-                                                                elevation: 100,
-                                                                shape: RoundedRectangleBorder(
-                                                                    borderRadius: BorderRadius.vertical(top: Radius.circular(25.0))),
-                                                                context: context,
-                                                                builder: (context) {
-                                                                  return SellMarket(
-                                                                      widget.portfolio, market, widget.portfolio!.holdings[marketId]!);
-                                                                },
-                                                              ) ??
-                                                              false;
+                                                      widget.owner
+                                                          ? OutlinedButton(
+                                                              onPressed: () async {
+                                                                bool saleComplete = await showModalBottomSheet(
+                                                                      isScrollControlled: true,
+                                                                      elevation: 100,
+                                                                      shape: RoundedRectangleBorder(
+                                                                          borderRadius: BorderRadius.vertical(top: Radius.circular(25.0))),
+                                                                      context: context,
+                                                                      builder: (context) {
+                                                                        return SellMarket(widget.portfolio, market,
+                                                                            widget.portfolio!.holdings[marketId]!);
+                                                                      },
+                                                                    ) ??
+                                                                    false;
 
-                                                          if (saleComplete) {
-                                                            setState(() {
-                                                              portfolioUpdateFuture = fullRefresh();
-                                                            });
-                                                          }
-                                                        },
-                                                        // style: TextButton.styleFrom(backgroundColor: Colors.red[400]),
-                                                        child: Text('SELL', style: TextStyle(color: Colors.grey[800], letterSpacing: 0.6)),
-                                                      ) : Container(),
+                                                                if (saleComplete) {
+                                                                  setState(() {
+                                                                    portfolioUpdateFuture = fullRefresh();
+                                                                  });
+                                                                }
+                                                              },
+                                                              // style: TextButton.styleFrom(backgroundColor: Colors.red[400]),
+                                                              child: Text('SELL',
+                                                                  style: TextStyle(color: Colors.grey[800], letterSpacing: 0.6)),
+                                                            )
+                                                          : Container(),
                                                       // )
                                                     ],
                                                   )
@@ -278,6 +337,42 @@ class _HoldingsState extends State<Holdings> {
             return Center(child: CircularProgressIndicator());
           }
         });
+  }
+}
+
+class PickAColor extends StatefulWidget {
+  const PickAColor({Key? key}) : super(key: key);
+
+  @override
+  _PickAColorState createState() => _PickAColorState();
+}
+
+class _PickAColorState extends State<PickAColor> {
+  Color color = Colors.red;
+
+  @override
+  Widget build(BuildContext context) {
+    return AlertDialog(
+      title: const Text('Pick a color!'),
+      content: SingleChildScrollView(
+        child: ColorPicker(
+          pickerColor: color,
+          onColorChanged: (Color selectedColor) {
+            color = selectedColor;
+          },
+          showLabel: true,
+          pickerAreaHeightPercent: 0.8,
+        ),
+      ),
+      actions: <Widget>[
+        TextButton(
+          child: const Text('Got it'),
+          onPressed: () {
+            Navigator.of(context).pop(color);
+          },
+        ),
+      ],
+    );
   }
 }
 

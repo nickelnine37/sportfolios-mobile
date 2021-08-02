@@ -150,7 +150,6 @@ Future<Map<String, Map<String, dynamic>>?> getMultipleHistoricalHoldings(List<St
 
   if (response.statusCode == 200) {
     Map<String, Map<String, dynamic>> jsonResponse = Map<String, Map<String, dynamic>>.from(convert.jsonDecode(response.body));
-    // print(jsonResponse['data']);
     return {
       'data': Map<String, Map<String, dynamic>>.fromIterables(
         jsonResponse['data']!.keys,
@@ -182,7 +181,7 @@ Future<Map<String, dynamic>?> makePurchaseRequest(
   Array quantity,
   double price,
 ) async {
-  print({'market': market, 'portfolioId': portfolio, 'quantity': quantity.toString(), 'price': price.toString()});
+  print('Purchase request: ${{'market': market, 'portfolioId': portfolio, 'quantity': quantity.toString(), 'price': price.toString()}}');
 
   Uri url = attemptPurchaseURL();
   var response = await http.post(url, headers: {

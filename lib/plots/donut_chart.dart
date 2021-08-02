@@ -60,10 +60,6 @@ class _AnimatedDonutChartState extends State<AnimatedDonutChart> {
       binEdges!.add(runningTotal / widget.portfolio!.currentValue);
     }
 
-    print(sortedValues);
-    print(runningTotal);
-
-
     // increment endValue here
     endValue += 1;
 
@@ -215,9 +211,7 @@ class _DonutChartState extends State<DonutChart> {
                   range(nMarkets).map((int i) {
                     String marketId = marketIds[i];
 
-                    Color? color = marketId == 'cash'
-                        ? Colors.green[500]
-                        : fromHex(widget.portfolio!.markets[marketId]!.colours![0]);
+                    Color? color = widget.portfolio!.colours[marketId]!;
 
                     if (spinning) {
                       return Center(
@@ -317,6 +311,8 @@ class DonutSegmentPainter extends CustomPainter {
   void paint(Canvas canvas, Size size) {
     double startAngle = 2 * _pi * (start - 0.25);
     double endAngle = 2 * _pi * (end - start);
+
+    // print('${start}, ${end}, ${color}, ${opacity}, ${strokeWidth}');
 
     Paint arcPaint = Paint()
       ..color = color!.withOpacity(opacity)

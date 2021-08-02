@@ -213,7 +213,6 @@ class _ChangeUsernameState extends State<ChangeUsername> {
                       return null;
                     },
                     onChanged: (newusername) {
-                      print(newusername);
                       _username = newusername;
                     },
                     onSaved: (newusername) {

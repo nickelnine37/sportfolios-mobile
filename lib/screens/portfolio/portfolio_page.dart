@@ -25,11 +25,6 @@ class _PortfolioPageState extends State<PortfolioPage> {
   String? selectedPortfolioId;
   SharedPreferences? prefs;
 
-  // late int nPortfolios;
-  // List<Portfolio> loadedPortfolios = [];
-  // List<String?> alreadyLoadedPortfolioIds = [];
-  // Portfolio? currentPortfolio;
-
   @override
   void initState() {
     super.initState();
@@ -668,11 +663,9 @@ class _PortfolioSettingsDialogueState extends State<PortfolioSettingsDialogue> {
                         }
 
                         if ((output['name'] == init_values['name']) && (output['public'] == init_values['public'])) {
-                          print('Nothing Changed');
                           // pop bool indicating whether changes were made
                           Navigator.of(context).pop(null);
                         } else {
-                          print('Something Changed');
                           setState(() {
                             loading = true;
                           });

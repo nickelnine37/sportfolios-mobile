@@ -51,7 +51,7 @@ class _StatsShowState extends State<StatsShow>
     return FutureBuilder(
         future: statsFuture,
         builder: (BuildContext context, AsyncSnapshot snapshot) {
-          print(snapshot);
+
           if (snapshot.connectionState == ConnectionState.done) {
             if (seasons == null) {
               seasons = widget.market!.stats!.keys.toList();

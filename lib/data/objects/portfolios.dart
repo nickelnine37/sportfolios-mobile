@@ -1,4 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:flutter/material.dart';
+import 'package:sportfolios_alpha/utils/design/colors.dart';
 import '../../data/api/requests.dart';
 import '../../utils/numerical/array_operations.dart';
 import '../../utils/numerical/arrays.dart';
@@ -48,7 +50,6 @@ String classify(Array quantity) {
   return 'custom';
 }
 
-
 class Transaction {
   late Market market;
   late double time;
@@ -91,7 +92,6 @@ class Transaction {
   }
 }
 
-
 class Portfolio {
   //
   // ----- core attributes -----
@@ -102,6 +102,7 @@ class Portfolio {
   late String username;
   late DocumentSnapshot doc; //                     doc object used for ordering queries
   Map<String, Market> markets = {}; //              holds all the unique markets ever used in this portfolio
+  late Map<String, Color> colours;
 
   // ----- current value attributes -----
   late double cash; //                              current amount of cash in portfolio
@@ -131,6 +132,7 @@ class Portfolio {
     user = snapshot['user'];
     cash = snapshot['cash'] + 0.0;
     currentValues = Map<String, double>.from(snapshot['current_values']);
+    colours = Map<String, String>.from(snapshot['colours']!).map((key, value) => MapEntry(key, fromHex(value)));
 
     // holdings is a map between marketId and an Asset
     holdings = Map<String, List>.from(snapshot['holdings']).map(

@@ -102,7 +102,6 @@ class AuthService {
       return error.message;
     } catch (e) {
       print(e);
-
       return 'Error';
     }
   }

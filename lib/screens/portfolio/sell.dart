@@ -288,7 +288,6 @@ class _SellFormState extends State<SellForm> {
 
                     if (purchaseRequestResult == null) {
                       Navigator.of(context).pop(false);
-                      print('OOHH DEAR');
                       return;
                     }
 
