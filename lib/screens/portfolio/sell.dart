@@ -1,8 +1,11 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:intl/intl.dart' as intl;
 import 'package:confetti/confetti.dart';
+import 'package:sportfolios_alpha/screens/portfolio/holdings.dart';
 import 'package:sportfolios_alpha/utils/numerical/arrays.dart';
+import 'package:sportfolios_alpha/utils/numerical/numbers.dart';
 
 import '../../data/api/requests.dart';
 import '../../data/objects/markets.dart';
@@ -11,18 +14,18 @@ import '../../utils/numerical/array_operations.dart';
 import '../../utils/strings/number_format.dart';
 import '../../data/objects/portfolios.dart';
 
-class SellMarket extends StatefulWidget {
+class SellTeam extends StatefulWidget {
   final Market market;
   final Array quantityHeld;
   final Portfolio? portfolio;
 
-  SellMarket(this.portfolio, this.market, this.quantityHeld);
+  SellTeam(this.portfolio, this.market, this.quantityHeld);
 
   @override
-  _SellMarketState createState() => _SellMarketState();
+  _SellTeamState createState() => _SellTeamState();
 }
 
-class _SellMarketState extends State<SellMarket> {
+class _SellTeamState extends State<SellTeam> {
   Future<void>? _marketFuture;
   Array? qHeldNew;
   bool locked = false;
@@ -168,7 +171,7 @@ class _SellMarketState extends State<SellMarket> {
                                   });
                                 },
                               ),
-                                                    SizedBox(height: 15),
+                        SizedBox(height: 15),
 
                         Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -186,7 +189,11 @@ class _SellMarketState extends State<SellMarket> {
                                 Text('Lock payout')
                               ],
                             ),
-                            IconButton(onPressed: () {}, icon: Icon(Icons.info_outline), color: Colors.grey[700],)
+                            IconButton(
+                              onPressed: () {},
+                              icon: Icon(Icons.info_outline),
+                              color: Colors.grey[700],
+                            )
                           ],
                         ),
                         // SizedBox(height: 5),
@@ -220,6 +227,218 @@ class _SellMarketState extends State<SellMarket> {
   }
 }
 
+class SellPlayer extends StatefulWidget {
+  final Market market;
+  final Array quantityHeld;
+  final Portfolio? portfolio;
+
+  SellPlayer(this.portfolio, this.market, this.quantityHeld);
+
+  @override
+  _SellPlayerState createState() => _SellPlayerState();
+}
+
+class _SellPlayerState extends State<SellPlayer> {
+  final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
+  final TextEditingController _longUnitController = TextEditingController();
+  final TextEditingController _shortUnitController = TextEditingController();
+
+  double payout = 0;
+
+  Array quantitySold = Array.zeros(2);
+
+  @override
+  void dispose() {
+    _longUnitController.dispose();
+    _shortUnitController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom),
+      child: Container(
+        height: 520,
+        decoration: BoxDecoration(
+          color: Theme.of(context).canvasColor,
+          borderRadius: BorderRadius.only(
+            topLeft: const Radius.circular(10),
+            topRight: const Radius.circular(10),
+          ),
+        ),
+        child: Container(
+          child: Padding(
+            padding: EdgeInsets.only(left: 35, right: 35, bottom: 10),
+            child: Column(
+              // mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Container(
+                    height: 20, width: MediaQuery.of(context).size.width * 0.35, child: CustomPaint(painter: SwipeDownTopBarPainter())),
+                SizedBox(height: 5),
+                Expanded(
+                  child: SingleChildScrollView(
+                    child: Form(
+                      key: _formKey,
+                      child: Column(
+                        children: [
+                          Text('Sell: ${widget.market.name}',
+                              textAlign: TextAlign.center, style: TextStyle(fontSize: 24, fontWeight: FontWeight.w300)),
+                          SizedBox(height: 5),
+                          Divider(thickness: 2, height: 25),
+                          Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, crossAxisAlignment: CrossAxisAlignment.center, children: [
+                            CachedNetworkImage(
+                              imageUrl: widget.market.imageURL!,
+                              height: 50,
+                            ),
+                            Column(
+                              children: [
+                                Text('Total value'),
+                                SizedBox(height: 3),
+                                Text(
+                                  formatCurrency(-widget.market.currentLMSR!.priceTrade(widget.quantityHeld.scale(-1)), 'GBP'),
+                                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.w300),
+                                ),
+                              ],
+                            ),
+                            Column(
+                              children: [
+                                Text('Payout date'),
+                                SizedBox(height: 3),
+                                Text(
+                                  intl.DateFormat.yMMMd().format(widget.market.endDate!),
+                                  // TODO: add market expirey date
+                                  // DateFormat('d MMM yy').format(widget.league.endDate),
+                                  style: TextStyle(fontSize: 17, fontWeight: FontWeight.w300),
+                                ),
+                              ],
+                            ),
+                          ]),
+                          Divider(thickness: 2, height: 25),
+                          SizedBox(height: 15),
+                          Text('Contracts held after sale: '),
+                          SizedBox(height: 15),
+                          LongShortGraph(quantity: widget.quantityHeld - quantitySold, height: 120, qmax: widget.quantityHeld.max),
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            crossAxisAlignment: CrossAxisAlignment.center,
+                            children: [
+                              Text('Sell units long: '),
+                              Container(
+                                width: 150,
+                                height: 50,
+                                child: TextFormField(
+                                  enabled: widget.quantityHeld[0] > 0,
+                                  keyboardType: TextInputType.numberWithOptions(signed: false, decimal: true),
+                                  inputFormatters: <TextInputFormatter>[FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d{0,2}$'))],
+                                  // maxLength: 5,
+                                  controller: _longUnitController,
+                                  decoration: InputDecoration(hintText: '0.00'),
+                                  onChanged: (String value) {
+                                    if (value == '') {
+                                      quantitySold[0] = 0;
+                                      payout = validatePrice(-widget.market.currentLMSR!.priceTrade(quantitySold.scale(-1)));
+                                      setState(() {});
+                                    } else {
+                                      try {
+                                        double units = double.parse(value);
+
+                                        if (units > widget.quantityHeld[0]) {
+                                          _longUnitController.text = widget.quantityHeld[0].toStringAsFixed(2);
+                                          units = widget.quantityHeld[0];
+                                        }
+
+                                        quantitySold[0] = units;
+                                        payout = validatePrice(-widget.market.currentLMSR!.priceTrade(quantitySold.scale(-1)));
+                                        setState(() {});
+                                      } catch (error) {
+                                        print(error.toString());
+                                      }
+                                    }
+                                  },
+                                  validator: (String? value) {
+                                    try {
+                                      double.parse(value!);
+                                      return null;
+                                    } catch (error) {
+                                      return 'Please input valid units';
+                                    }
+                                  },
+                                  onSaved: (String? value) {
+                                    quantitySold[0] = double.parse(value!);
+                                  },
+                                ),
+                              ),
+                            ],
+                          ),
+                          SizedBox(height: 10),
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            crossAxisAlignment: CrossAxisAlignment.center,
+                            children: [
+                              Text('Sell units short: '),
+                              Container(
+                                width: 150,
+                                height: 50,
+                                child: TextFormField(
+                                  enabled: widget.quantityHeld[1] > 0,
+                                  keyboardType: TextInputType.numberWithOptions(signed: false, decimal: true),
+                                  inputFormatters: <TextInputFormatter>[FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d{0,2}$'))],
+                                  // maxLength: 5,
+                                  controller: _shortUnitController,
+                                  decoration: InputDecoration(hintText: '0.00'),
+                                  onChanged: (String value) {
+                                    if (value == '') {
+                                      quantitySold[1] = 0;
+                                      payout = validatePrice(-widget.market.currentLMSR!.priceTrade(quantitySold.scale(-1)));
+                                      setState(() {});
+                                    } else {
+                                      try {
+                                        double units = double.parse(value);
+
+                                        if (units > widget.quantityHeld[1]) {
+                                          _shortUnitController.text = widget.quantityHeld[1].toStringAsFixed(2);
+                                          units = widget.quantityHeld[1];
+                                        }
+
+                                        quantitySold[1] = units;
+                                        payout = validatePrice(-widget.market.currentLMSR!.priceTrade(quantitySold.scale(-1)));
+                                        setState(() {});
+                                      } catch (error) {
+                                        print(error.toString());
+                                      }
+                                    }
+                                  },
+                                  validator: (String? value) {
+                                    try {
+                                      double.parse(value!);
+                                      return null;
+                                    } catch (error) {
+                                      return 'Please input valid units';
+                                    }
+                                  },
+                                  onSaved: (String? value) {
+                                    quantitySold[1] = double.parse(value!);
+                                  },
+                                ),
+                              ),
+                            ],
+                          ),
+                          SellForm(widget.portfolio, widget.market, quantitySold.scale(-1)),
+                        ],
+                      ),
+                    ),
+                  ),
+                )
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
 class SellForm extends StatefulWidget {
   final Portfolio? portfolio;
   final Market market;
@@ -232,7 +451,7 @@ class SellForm extends StatefulWidget {
 }
 
 class _SellFormState extends State<SellForm> {
-  double? payout;
+  double payout = 0;
   bool loading = false;
   bool complete = false;
 
@@ -258,7 +477,7 @@ class _SellFormState extends State<SellForm> {
                 style: TextStyle(fontSize: 18, fontWeight: FontWeight.w400),
               ),
               Text(
-                formatCurrency(payout!.abs(), 'GBP'),
+                formatCurrency(payout.abs(), 'GBP'),
                 style: TextStyle(fontSize: 18, fontWeight: FontWeight.w400),
               ),
               TextButton(
@@ -277,79 +496,114 @@ class _SellFormState extends State<SellForm> {
                   overlayColor: MaterialStateProperty.all<Color>(Colors.blue[400]!),
                   backgroundColor: MaterialStateProperty.all<Color>(Colors.blue[400]!),
                 ),
-                onPressed: () async {
-                  if (!complete) {
-                    setState(() {
-                      loading = true;
-                    });
-
-                    Map<String, dynamic>? purchaseRequestResult =
-                        await makePurchaseRequest(widget.market.id, widget.portfolio!.id, widget.sellQuantity, payout!);
-
-                    if (purchaseRequestResult == null) {
-                      Navigator.of(context).pop(false);
-                      return;
-                    }
-
-                    await Future.delayed(Duration(seconds: 1));
-
-                    if (purchaseRequestResult['success']) {
-                      setState(() {
-                        loading = false;
-                        complete = true;
-                      });
-
-                      showDialog(
-                          context: context,
-                          builder: (BuildContext context) {
-                            return PurchaseCompletePopup();
+                onPressed: payout == 0
+                    ? null
+                    : () async {
+                        if (!complete) {
+                          setState(() {
+                            loading = true;
                           });
 
-                      await Future.delayed(Duration(milliseconds: 800));
-                      Navigator.of(context).pop();
+                          // make initial purchase request
+                          // sellQuantity is -ve, payout is -ve
+                          Map<String, dynamic>? purchaseRequestResult =
+                              await makePurchaseRequest(widget.market.id, widget.portfolio!.id, widget.sellQuantity, payout);
 
-                      await Future.delayed(Duration(milliseconds: 500));
+                          // this should never happen - a server error
+                          if (purchaseRequestResult == null) {
+                            Navigator.of(context).pop(false);
+                            return;
+                          }
 
-                      Navigator.of(context).pop(true);
-                    } else {
-                      setState(() {
-                        loading = false;
-                        complete = false;
-                      });
+                          await Future.delayed(Duration(seconds: 1));
 
-                      bool confirm = await showDialog(
-                              context: context,
-                              builder: (BuildContext context) {
-                                return ConfirmPurchase(oldPrice: payout, newPrice: purchaseRequestResult['price']);
-                              }) ??
-                          false;
-
-                      bool ok = await respondToNewPrice(confirm, purchaseRequestResult['cancelId']);
-
-                      if (confirm && !ok) {
-                        showDialog(
-                            context: context,
-                            builder: (BuildContext context) {
-                              return ProblemPopup();
+                          // everything went smoothly
+                          if (purchaseRequestResult['success']) {
+                            setState(() {
+                              loading = false;
+                              complete = true;
                             });
-                        await Future.delayed(Duration(seconds: 1));
-                        Navigator.of(context).pop(false);
-                      } else if (confirm && ok) {
-                        setState(() {
-                          payout = purchaseRequestResult['price'];
-                          loading = false;
-                          complete = true;
-                        });
 
-                        await Future.delayed(Duration(milliseconds: 600));
-                        Navigator.of(context).pop(true);
-                      } else if (!confirm) {
-                        await Future.delayed(Duration(milliseconds: 600));
-                        Navigator.of(context).pop(false);
-                      }
-                    }
-                  }
-                },
+                            // purchase complete
+                            showDialog(
+                                context: context,
+                                builder: (BuildContext context) {
+                                  return PurchaseCompletePopup();
+                                });
+
+                            // pop purchase complete diaglogue
+                            await Future.delayed(Duration(milliseconds: 800));
+                            Navigator.of(context).pop();
+
+                            // pop a transaction from sell form dialogue
+                            await Future.delayed(Duration(milliseconds: 500));
+                            Navigator.of(context).pop(
+                              Transaction(
+                                widget.market,
+                                DateTime.now().millisecondsSinceEpoch / 1000,
+                                payout,
+                                widget.sellQuantity,
+                              ),
+                            );
+                          } else {
+
+                            // the price we requested has been rejected
+                            setState(() {
+                              loading = false;
+                              complete = false;
+                            });
+
+                            // confirm purchase dialogue
+                            bool confirm = await showDialog(
+                                    context: context,
+                                    builder: (BuildContext context) {
+                                      return ConfirmPurchase(oldPrice: payout, newPrice: purchaseRequestResult['price']);
+                                    }) ??
+                                false;
+
+                            // respond to the new price. Null means no
+                            bool ok = await respondToNewPrice(confirm, purchaseRequestResult['cancelId']);
+
+                            // we wanted to confirm, but there has been a problem
+                            if (confirm && !ok) {
+                              showDialog(
+                                  context: context,
+                                  builder: (BuildContext context) {
+                                    return ProblemPopup();
+                                  });
+                              
+                              // wait and pop null
+                              await Future.delayed(Duration(seconds: 1));
+                              Navigator.of(context).pop(null);
+                            } 
+                            
+                            // we wanted to confirm and its all good
+                            else if (confirm && ok) {
+                              setState(() {
+                                payout = purchaseRequestResult['price'];
+                                loading = false;
+                                complete = true;
+                              });
+                              
+                            // pop the confirmed transaction, with updated price
+                              await Future.delayed(Duration(milliseconds: 600));
+                              Navigator.of(context).pop(Transaction(
+                                widget.market,
+                                DateTime.now().millisecondsSinceEpoch / 1000,
+                                purchaseRequestResult['price'],
+                                widget.sellQuantity,
+                              ));
+
+                            } 
+                            
+                            // transaction cancelled
+                            else if (!confirm) {
+                              await Future.delayed(Duration(milliseconds: 600));
+                              Navigator.of(context).pop(null);
+                            }
+                          }
+                        }
+                      },
               ),
             ],
           )

@@ -1,6 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:sportfolios_alpha/utils/design/colors.dart';
+import 'package:sportfolios_alpha/utils/strings/number_format.dart';
 import '../../data/api/requests.dart';
 import '../../utils/numerical/array_operations.dart';
 import '../../utils/numerical/arrays.dart';
@@ -63,14 +64,17 @@ class Transaction {
     contractType = classify(quantity);
   }
 
-  double? getCurrentValue() {
+  double? getCurrentValue({bool takePrice = true}) {
     if (market.currentLMSR == null)
       print('Cannot get current value for transaction as current lmsr for ${market} has not been set');
-    else
+    else if (takePrice) {
       return market.currentLMSR!.getValue(quantity) - price;
+    } else {
+      return market.currentLMSR!.getValue(quantity);
+    }
   }
 
-  Map<String, Array>? getHistoricalValue() {
+  Map<String, Array>? getHistoricalValue({bool takePrice = true}) {
     if (market.historicalLMSR == null)
       print('Cannt get historical value for transaction as historical lmsr for ${market} has not been set');
     else
@@ -80,6 +84,7 @@ class Transaction {
             if (market.historicalLMSR!.ts[th]![i] < time) {
               return 0.0;
             } else {
+
               return valueHist[i] - price;
             }
           }).toList())));
@@ -100,6 +105,7 @@ class Portfolio {
   late bool public;
   late String user;
   late String username;
+  late String description;
   late DocumentSnapshot doc; //                     doc object used for ordering queries
   Map<String, Market> markets = {}; //              holds all the unique markets ever used in this portfolio
   late Map<String, Color> colours;
@@ -131,6 +137,7 @@ class Portfolio {
     public = snapshot['public'];
     user = snapshot['user'];
     cash = snapshot['cash'] + 0.0;
+    description = snapshot['description'];
     currentValues = Map<String, double>.from(snapshot['current_values']);
     colours = Map<String, String>.from(snapshot['colours']!).map((key, value) => MapEntry(key, fromHex(value)));
 
@@ -158,6 +165,21 @@ class Portfolio {
 
       return Transaction(market, time, price, quantity);
     }).toList();
+  }
+
+  void addTransaction(Transaction transaction) {
+    cash -= transaction.price;
+
+    if (holdings.keys.contains(transaction.market.id)) {
+      holdings[transaction.market.id] = holdings[transaction.market.id]! + transaction.quantity;
+      currentValues[transaction.market.id] = currentValues[transaction.market.id]! + transaction.price;
+    } else {
+      holdings[transaction.market.id] = transaction.quantity;
+      markets[transaction.market.id] = transaction.market;
+      colours[transaction.market.id] = fromHex(transaction.market.colours![0]);
+      currentValues[transaction.market.id] = transaction.price;
+    }
+    transactions.add(transaction);
   }
 
   Future<bool> checkForUpdates() async {
@@ -231,5 +253,10 @@ class Portfolio {
     } else {
       print('Unable to populateMarketsServer. Current or historical holdings failed');
     }
+  }
+
+  @override
+  String toString() {
+    return 'Portfolio(${name}; ${formatCurrency(currentValue, 'GBP')})';
   }
 }

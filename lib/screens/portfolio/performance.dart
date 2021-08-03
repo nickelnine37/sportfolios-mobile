@@ -26,9 +26,11 @@ class _PerformanceState extends State<Performance> {
 
   @override
   Widget build(BuildContext context) {
-    if (isExpanded == null) {
+    if (isExpanded == null || isExpanded!.length != widget.portfolio!.transactions.length) {
       isExpanded = range(widget.portfolio!.transactions.length).map((int i) => false).toList();
     }
+
+    print(widget.portfolio!.transactions);
 
     return SingleChildScrollView(
       child: Column(children: [

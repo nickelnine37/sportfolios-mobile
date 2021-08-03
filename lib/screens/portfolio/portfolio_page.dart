@@ -1,5 +1,5 @@
 import 'dart:ui';
-import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:cloud_firestore/cloud_firestore.dart' as fire;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -25,6 +25,8 @@ class _PortfolioPageState extends State<PortfolioPage> {
   String? selectedPortfolioId;
   SharedPreferences? prefs;
 
+  List<int> registeredTransactions = [];
+
   @override
   void initState() {
     super.initState();
@@ -35,10 +37,10 @@ class _PortfolioPageState extends State<PortfolioPage> {
   Future<void> _getFreshPortfolios() async {
     prefs = await SharedPreferences.getInstance();
     String uid = AuthService().currentUid;
-    DocumentSnapshot result = await FirebaseFirestore.instance.collection('users').doc(uid).get();
-
+    fire.DocumentSnapshot result = await fire.FirebaseFirestore.instance.collection('users').doc(uid).get();
 
     for (String portfolioId in result['portfolios']) {
+      print(portfolioId);
       Portfolio? portfolio = await _getFreshPortfolio(portfolioId);
       if (portfolio != null) {
         portfolios[portfolioId] = portfolio;
@@ -75,12 +77,18 @@ class _PortfolioPageState extends State<PortfolioPage> {
 
   @override
   Widget build(BuildContext context) {
-    return Consumer(builder: (BuildContext context, watch, Widget? child) {
+    return Consumer(builder: (BuildContext context, ScopedReader watch, Widget? child) {
       final portfoliloWatcher = watch(purchaseCompleteProvider);
-      String? pid = portfoliloWatcher.portfolio;
 
-      if (pid != null) {
-        portfoliosFuture = _refreshPortfolio(pid);
+      String? pid = portfoliloWatcher.portfolio;
+      int? transactionId = portfoliloWatcher.transactionId;
+      Transaction? transaction = portfoliloWatcher.transaction;
+
+      if (transactionId != null) {
+        if (!registeredTransactions.contains(transactionId)) {
+          registeredTransactions.add(transactionId);
+          portfolios[pid!]!.addTransaction(transaction!);
+        }
       }
 
       return FutureBuilder(
@@ -196,22 +204,24 @@ class _PortfolioPageState extends State<PortfolioPage> {
                 actions: [
                   IconButton(
                       icon: Icon(Icons.settings, color: Colors.white),
-                      onPressed:  selectedPortfolioId == null ? null : () async {
-                          String? output = await showDialog(
-                            context: context,
-                            builder: (context) {
-                              return PortfolioSettingsDialogue(portfolios[selectedPortfolioId]!);
-                            },
-                          );
-                          if (output == 'updated') {
-                            setState(() {});
-                          } else if (output == 'deleted') {
-                            setState(() {
-                              portfolios.remove(selectedPortfolioId);
-                              selectedPortfolioId = null;
-                            });
-                          }
-                      }),
+                      onPressed: selectedPortfolioId == null
+                          ? null
+                          : () async {
+                              String? output = await showDialog(
+                                context: context,
+                                builder: (context) {
+                                  return PortfolioSettingsDialogue(portfolios[selectedPortfolioId]!);
+                                },
+                              );
+                              if (output == 'updated') {
+                                setState(() {});
+                              } else if (output == 'deleted') {
+                                setState(() {
+                                  portfolios.remove(selectedPortfolioId);
+                                  selectedPortfolioId = null;
+                                });
+                              }
+                            }),
                   IconButton(
                     icon: Icon(Icons.add, color: Colors.white, size: 25),
                     onPressed: () async {
@@ -333,6 +343,7 @@ class _NewPortfolioDialogueState extends State<NewPortfolioDialogue> {
   String name = '';
   bool loading = false;
   bool error = false;
+  String _description = '';
 
   @override
   Widget build(BuildContext context) {
@@ -341,7 +352,7 @@ class _NewPortfolioDialogueState extends State<NewPortfolioDialogue> {
       elevation: 0.0,
       backgroundColor: Colors.transparent,
       child: Container(
-        height: error ? 350 : 300,
+        height: error ? 520 : 470,
         padding: EdgeInsets.only(top: 16, left: 16, right: 16),
         decoration: BoxDecoration(
           color: Colors.white,
@@ -349,132 +360,161 @@ class _NewPortfolioDialogueState extends State<NewPortfolioDialogue> {
           borderRadius: BorderRadius.circular(16),
           boxShadow: [BoxShadow(color: Colors.black26, blurRadius: 10.0, offset: const Offset(0.0, 10.0))],
         ),
-        child: Column(
-          children: [
-            Container(
-                padding: EdgeInsets.only(bottom: 16),
-                child: Text('New portfolio', style: TextStyle(fontSize: 20.0, fontWeight: FontWeight.w600))),
-            Form(
-              key: _formKey,
-              child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 15),
-                child: Column(
-                  children: [
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Text('Name', style: TextStyle(fontSize: 16)),
-                        Container(
-                          width: 100,
-                          height: 40,
-                          child: TextFormField(
-                            decoration: InputDecoration(hintText: 'MyPortfolio'),
-                            onChanged: (String value) {
-                              name = value;
-                            },
-                            validator: (String? value) {
-                              if (value == '' || value == null) {
-                                return 'Please enter valid portfolio name';
-                              } else if (value.length > 20) {
-                                return 'Portfolio names must be 20 characters or less';
-                              } else {
-                                return null;
-                              }
-                            },
-                          ),
-                        )
-                      ],
-                    ),
-                    SizedBox(height: 20),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Text('Public', style: TextStyle(fontSize: 16)),
-                        Switch(
-                          value: public,
-                          onChanged: (value) {
-                            setState(() {
-                              public = value;
-                            });
-                          },
-                          activeTrackColor: Colors.lightBlueAccent,
-                          activeColor: Colors.blue,
-                        ),
-                      ],
-                    ),
-                  ],
-                ),
-              ),
-            ),
-            Text(
-              'Public portfolios will be entered into the leaderboard and will be viewable by other users.',
-              style: TextStyle(fontSize: 12),
-              textAlign: TextAlign.center,
-            ),
-            SizedBox(height: 15),
-            error
-                ? Text(
-                    'There was an error creating a new portfolio. Please try again later',
-                    style: TextStyle(color: Colors.red),
-                    textAlign: TextAlign.center,
-                  )
-                : Container(),
-            error ? SizedBox(height: 15) : Container(),
-            Align(
-              alignment: Alignment.bottomRight,
-              child: TextButton(
-                style: ButtonStyle(
-                  overlayColor: MaterialStateProperty.all<Color>(Colors.blue[400]!),
-                  backgroundColor: MaterialStateProperty.all<Color>(Colors.blue[400]!),
-                  // shape: MaterialStateProperty.all<OutlinedBorder>(RoundedRectangleBorder(borderRadius: BorderRadius.circular(20.0))),
-                ),
-                onPressed: error
-                    ? () {
-                        Navigator.of(context).pop(null);
-                      }
-                    : () async {
-                        if (_formKey.currentState!.validate()) {
-                          _formKey.currentState!.save();
-                          if (!FocusScope.of(context).hasPrimaryFocus) {
-                            FocusManager.instance.primaryFocus!.unfocus();
-                          }
-
-                          setState(() {
-                            loading = true;
-                          });
-
-                          String? newPid = await createNewPortfolio(name, public);
-                          // String? newPid = null;
-                          // await Future.delayed(Duration(seconds: 2));
-
-                          await Future.delayed(Duration(seconds: 1));
-
-                          if (newPid == null) {
-                            setState(() {
-                              error = true;
-                              loading = false;
-                            });
-                          } else {
-                            // pop true to indicate portfolio has been added
-                            Navigator.of(context).pop(newPid);
-                          }
-                        }
-                      },
-                child: loading
-                    ? Container(
-                        height: 25,
-                        width: 25,
-                        child: CircularProgressIndicator(
-                          strokeWidth: 3,
-                          valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
-                        ))
-                    : Text(
-                        'OK',
-                        style: TextStyle(color: Colors.white),
+        child: SingleChildScrollView(
+          child: Column(
+            children: [
+              Container(
+                  padding: EdgeInsets.only(bottom: 16),
+                  child: Text('New portfolio', style: TextStyle(fontSize: 20.0, fontWeight: FontWeight.w600))),
+              Form(
+                key: _formKey,
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 15),
+                  child: Column(
+                    children: [
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text('Name', style: TextStyle(fontSize: 16)),
+                          Container(
+                            width: 100,
+                            height: 40,
+                            child: TextFormField(
+                              decoration: InputDecoration(hintText: 'MyPortfolio'),
+                              onChanged: (String value) {
+                                name = value;
+                              },
+                              validator: (String? value) {
+                                if (value == '' || value == null) {
+                                  return 'Please enter valid portfolio name';
+                                } else if (value.length > 20) {
+                                  return 'Portfolio names must be 20 characters or less';
+                                } else {
+                                  return null;
+                                }
+                              },
+                            ),
+                          )
+                        ],
                       ),
+                      SizedBox(height: 30),
+                      Align(
+                        child: Text('Description', style: TextStyle(fontSize: 16)),
+                        alignment: Alignment.centerLeft,
+                      ),
+                      SizedBox(height: 10),
+                      Container(
+                        // width: 100,
+                        height: 120,
+                        child: TextFormField(
+                          maxLines: null,
+                          minLines: 6,
+                          keyboardType: TextInputType.multiline,
+                          decoration: InputDecoration(hintText: 'A really wild portfolio...'),
+                          onChanged: (String value) {
+                            _description = value;
+                          },
+                          validator: (String? value) {
+                            if (value == null) {
+                              return null;
+                            }
+                            if (value.length > 2000) {
+                              return 'Description too long';
+                            }
+                          },
+                        ),
+                      ),
+                      SizedBox(height: 20),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text('Public', style: TextStyle(fontSize: 16)),
+                          Switch(
+                            value: public,
+                            onChanged: (value) {
+                              setState(() {
+                                public = value;
+                              });
+                            },
+                            activeTrackColor: Colors.lightBlueAccent,
+                            activeColor: Colors.blue,
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
               ),
-            )
-          ],
+              Text(
+                'Public portfolios will be entered into the leaderboard and will be viewable by other users.',
+                style: TextStyle(fontSize: 12),
+                textAlign: TextAlign.center,
+              ),
+              SizedBox(height: 15),
+              error
+                  ? Text(
+                      'There was an error creating a new portfolio. Please try again later',
+                      style: TextStyle(color: Colors.red),
+                      textAlign: TextAlign.center,
+                    )
+                  : Container(),
+              error ? SizedBox(height: 15) : Container(),
+              Align(
+                alignment: Alignment.bottomRight,
+                child: TextButton(
+                  style: ButtonStyle(
+                    overlayColor: MaterialStateProperty.all<Color>(Colors.blue[400]!),
+                    backgroundColor: MaterialStateProperty.all<Color>(Colors.blue[400]!),
+                    // shape: MaterialStateProperty.all<OutlinedBorder>(RoundedRectangleBorder(borderRadius: BorderRadius.circular(20.0))),
+                  ),
+                  onPressed: error
+                      ? () {
+                          Navigator.of(context).pop(null);
+                        }
+                      : () async {
+                          if (_formKey.currentState!.validate()) {
+                            _formKey.currentState!.save();
+                            if (!FocusScope.of(context).hasPrimaryFocus) {
+                              FocusManager.instance.primaryFocus!.unfocus();
+                            }
+
+                            setState(() {
+                              loading = true;
+                            });
+
+                            String? newPid = await createNewPortfolio(name, public, _description);
+                            // String? newPid = null;
+                            // await Future.delayed(Duration(seconds: 2));
+
+                            await Future.delayed(Duration(seconds: 1));
+
+                            if (newPid == null) {
+                              setState(() {
+                                error = true;
+                                loading = false;
+                              });
+                            } else {
+                              // pop true to indicate portfolio has been added
+                              Navigator.of(context).pop(newPid);
+                            }
+                          }
+                        },
+                  child: loading
+                      ? Container(
+                          height: 25,
+                          width: 25,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 3,
+                            valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                          ))
+                      : Text(
+                          'OK',
+                          style: TextStyle(color: Colors.white),
+                        ),
+                ),
+              )
+            ],
+          ),
         ),
       ),
     );
@@ -503,8 +543,8 @@ class _PortfolioSettingsDialogueState extends State<PortfolioSettingsDialogue> {
 
   @override
   void initState() {
-    init_values = {'name': widget.portfolio!.name, 'public': widget.portfolio!.public};
-    output = {'name': widget.portfolio!.name, 'public': widget.portfolio!.public};
+    init_values = {'name': widget.portfolio!.name, 'public': widget.portfolio!.public, 'description': widget.portfolio!.description};
+    output = {'name': widget.portfolio!.name, 'public': widget.portfolio!.public, 'description': widget.portfolio!.description};
     super.initState();
   }
 
@@ -515,7 +555,7 @@ class _PortfolioSettingsDialogueState extends State<PortfolioSettingsDialogue> {
       elevation: 0.0,
       backgroundColor: Colors.transparent,
       child: Container(
-        height: 300,
+        height: 500,
         padding: EdgeInsets.only(top: 16, left: 16, right: 16),
         decoration: BoxDecoration(
           color: Colors.white,
@@ -523,184 +563,217 @@ class _PortfolioSettingsDialogueState extends State<PortfolioSettingsDialogue> {
           borderRadius: BorderRadius.circular(16),
           boxShadow: [BoxShadow(color: Colors.black26, blurRadius: 10.0, offset: const Offset(0.0, 10.0))],
         ),
-        child: Column(
-          children: [
-            Container(
-                padding: EdgeInsets.only(bottom: 16),
-                child: Text('Portfolio Setings', style: TextStyle(fontSize: 20.0, fontWeight: FontWeight.w600))),
-            Form(
-              key: _formKey,
-              child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 15),
-                child: Column(
-                  children: [
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Text('Name', style: TextStyle(fontSize: 16)),
-                        Container(
-                          width: 150,
-                          height: 40,
-                          child: TextFormField(
-                            initialValue: widget.portfolio!.name,
-                            decoration: InputDecoration(hintText: 'MyPortfolio'),
-                            onChanged: (String value) {
-                              output['name'] = value;
-                            },
-                            validator: (String? value) {
-                              if (value == '' || value == null) {
-                                return 'Please enter valid portfolio name';
-                              } else if (value.length > 20) {
-                                return 'Portfolio names must be 20 characters or less';
-                              } else {
-                                return null;
-                              }
-                            },
-                          ),
-                        )
-                      ],
-                    ),
-                    SizedBox(height: 20),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Text('Public', style: TextStyle(fontSize: 16)),
-                        Switch(
-                          value: output['public'],
-                          onChanged: (value) {
-                            setState(() {
-                              output['public'] = value;
-                            });
+        child: SingleChildScrollView(
+          child: Column(
+            children: [
+              Container(
+                  padding: EdgeInsets.only(bottom: 16),
+                  child: Text('Portfolio Setings', style: TextStyle(fontSize: 20.0, fontWeight: FontWeight.w600))),
+              Form(
+                key: _formKey,
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 15),
+                  child: Column(
+                    children: [
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text('Name', style: TextStyle(fontSize: 16)),
+                          Container(
+                            width: 150,
+                            height: 40,
+                            child: TextFormField(
+                              initialValue: widget.portfolio!.name,
+                              decoration: InputDecoration(hintText: 'MyPortfolio'),
+                              onChanged: (String value) {
+                                output['name'] = value;
+                              },
+                              validator: (String? value) {
+                                if (value == '' || value == null) {
+                                  return 'Please enter valid portfolio name';
+                                } else if (value.length > 20) {
+                                  return 'Portfolio names must be 20 characters or less';
+                                } else {
+                                  return null;
+                                }
+                              },
+                            ),
+                          )
+                        ],
+                      ),
+                      SizedBox(height: 30),
+                      Align(
+                        child: Text('Description', style: TextStyle(fontSize: 16)),
+                        alignment: Alignment.centerLeft,
+                      ),
+                      SizedBox(height: 10),
+                      Container(
+                        // width: 100,
+                        height: 120,
+                        child: TextFormField(
+                          initialValue: widget.portfolio!.description,
+                          maxLines: null,
+                          minLines: 6,
+                          keyboardType: TextInputType.multiline,
+                          decoration: InputDecoration(hintText: 'A really wild portfolio...'),
+                          onChanged: (String value) {
+                            output['description'] = value;
                           },
-                          activeTrackColor: Colors.lightBlueAccent,
-                          activeColor: Colors.blue,
+                          validator: (String? value) {
+                            if (value == null) {
+                              return null;
+                            }
+                            if (value.length > 2000) {
+                              return 'Description too long';
+                            }
+                          },
                         ),
-                      ],
-                    ),
-                  ],
+                      ),
+                      SizedBox(height: 20),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text('Public', style: TextStyle(fontSize: 16)),
+                          Switch(
+                            value: output['public'],
+                            onChanged: (value) {
+                              setState(() {
+                                output['public'] = value;
+                              });
+                            },
+                            activeTrackColor: Colors.lightBlueAccent,
+                            activeColor: Colors.blue,
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
                 ),
               ),
-            ),
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 12.0),
-              child: Text(
-                'Public portfolios will be entered into the leaderboard and will be viewable by other users.',
-                style: TextStyle(fontSize: 12),
-                textAlign: TextAlign.center,
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 12.0),
+                child: Text(
+                  'Public portfolios will be entered into the leaderboard and will be viewable by other users.',
+                  style: TextStyle(fontSize: 12),
+                  textAlign: TextAlign.center,
+                ),
               ),
-            ),
-            SizedBox(height: 15),
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 15),
-              child: Row(
-                // alignment: Alignment.bottomRight,
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  TextButton(
-                    onPressed: () async {
-                      bool? delete = await showDialog(
-                          context: context,
-                          builder: (context) {
-                            return DeletePortfolioDiaglogue(widget.portfolio!.name);
-                          });
+              SizedBox(height: 15),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 15),
+                child: Row(
+                  // alignment: Alignment.bottomRight,
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    TextButton(
+                      onPressed: () async {
+                        bool? delete = await showDialog(
+                            context: context,
+                            builder: (context) {
+                              return DeletePortfolioDiaglogue(widget.portfolio!.name);
+                            });
 
-                      // if we want to delete
-                      if (delete ?? false) {
-                        // set the delete wheel spinning
-                        setState(() {
-                          deleting = true;
-                        });
-                        // delete the portfolio and wait some more
-                        await deletePortfolio(widget.portfolio!.id);
-                        await Future.delayed(Duration(seconds: 2));
-
-                        // stop the wheel spinning
-                        setState(() {
-                          deleting = false;
-                        });
-
-                        // pause
-                        await Future.delayed(Duration(milliseconds: 800));
-
-                        // pop 'deleted'
-                        Navigator.of(context).pop('deleted');
-                      }
-                    },
-                    child: deleting
-                        ? Container(
-                            height: 25,
-                            width: 25,
-                            child: CircularProgressIndicator(
-                              strokeWidth: 3,
-                              valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
-                            ))
-                        : Text(
-                            'Delete',
-                            style: TextStyle(color: Colors.white),
-                          ),
-                    style: ButtonStyle(
-                      overlayColor: MaterialStateProperty.all<Color>(Colors.red[400]!),
-                      backgroundColor: MaterialStateProperty.all<Color>(Colors.red[400]!),
-                      // shape: MaterialStateProperty.all<OutlinedBorder>(
-                      //   RoundedRectangleBorder(borderRadius: BorderRadius.circular(20.0)),
-                      // ),
-                    ),
-                  ),
-                  TextButton(
-                    style: ButtonStyle(
-                      overlayColor: MaterialStateProperty.all<Color>(Colors.blue[400]!),
-                      backgroundColor: MaterialStateProperty.all<Color>(Colors.blue[400]!),
-                      // shape: MaterialStateProperty.all<OutlinedBorder>(
-                      //   RoundedRectangleBorder(borderRadius: BorderRadius.circular(20.0)),
-                      // ),
-                    ),
-                    onPressed: () async {
-                      if (_formKey.currentState!.validate()) {
-                        _formKey.currentState!.save();
-
-                        if (!FocusScope.of(context).hasPrimaryFocus) {
-                          FocusManager.instance.primaryFocus!.unfocus();
-                        }
-
-                        if ((output['name'] == init_values['name']) && (output['public'] == init_values['public'])) {
-                          // pop bool indicating whether changes were made
-                          Navigator.of(context).pop(null);
-                        } else {
+                        // if we want to delete
+                        if (delete ?? false) {
+                          // set the delete wheel spinning
                           setState(() {
-                            loading = true;
+                            deleting = true;
                           });
-                          await Future.delayed(Duration(seconds: 1));
-                          await FirebaseFirestore.instance
-                              .collection('portfolios')
-                              .doc(widget.portfolio!.id)
-                              .update(output)
-                              .then((value) => print("User Updated"))
-                              .catchError((error) => print("Failed to update user portfolio: $error"));
+                          // delete the portfolio and wait some more
+                          await deletePortfolio(widget.portfolio!.id);
+                          await Future.delayed(Duration(seconds: 2));
 
-                          widget.portfolio!.name = output['name'];
-                          widget.portfolio!.public = output['public'];
-                          // pop bool indicating whether changes were made
-                          Navigator.of(context).pop('updated');
+                          // stop the wheel spinning
+                          setState(() {
+                            deleting = false;
+                          });
+
+                          // pause
+                          await Future.delayed(Duration(milliseconds: 800));
+
+                          // pop 'deleted'
+                          Navigator.of(context).pop('deleted');
                         }
-                      }
-                    },
-                    child: loading
-                        ? Container(
-                            height: 25,
-                            width: 25,
-                            child: CircularProgressIndicator(
-                              strokeWidth: 3,
-                              valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
-                            ))
-                        : Text(
-                            'OK',
-                            style: TextStyle(color: Colors.white),
-                          ),
-                  )
-                ],
-              ),
-            )
-          ],
+                      },
+                      child: deleting
+                          ? Container(
+                              height: 25,
+                              width: 25,
+                              child: CircularProgressIndicator(
+                                strokeWidth: 3,
+                                valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                              ))
+                          : Text(
+                              'Delete',
+                              style: TextStyle(color: Colors.white),
+                            ),
+                      style: ButtonStyle(
+                        overlayColor: MaterialStateProperty.all<Color>(Colors.red[400]!),
+                        backgroundColor: MaterialStateProperty.all<Color>(Colors.red[400]!),
+                        // shape: MaterialStateProperty.all<OutlinedBorder>(
+                        //   RoundedRectangleBorder(borderRadius: BorderRadius.circular(20.0)),
+                        // ),
+                      ),
+                    ),
+                    TextButton(
+                      style: ButtonStyle(
+                        overlayColor: MaterialStateProperty.all<Color>(Colors.blue[400]!),
+                        backgroundColor: MaterialStateProperty.all<Color>(Colors.blue[400]!),
+                        // shape: MaterialStateProperty.all<OutlinedBorder>(
+                        //   RoundedRectangleBorder(borderRadius: BorderRadius.circular(20.0)),
+                        // ),
+                      ),
+                      onPressed: () async {
+                        if (_formKey.currentState!.validate()) {
+                          _formKey.currentState!.save();
+
+                          if (!FocusScope.of(context).hasPrimaryFocus) {
+                            FocusManager.instance.primaryFocus!.unfocus();
+                          }
+
+                          if ((output['name'] == init_values['name']) &&
+                              (output['public'] == init_values['public']) &&
+                              (output['description'] == init_values['description'])) {
+                            // pop bool indicating whether changes were made
+                            Navigator.of(context).pop(null);
+                          } else {
+                            setState(() {
+                              loading = true;
+                            });
+                            await Future.delayed(Duration(seconds: 1));
+                            await fire.FirebaseFirestore.instance
+                                .collection('portfolios')
+                                .doc(widget.portfolio!.id)
+                                .update(output)
+                                .then((value) => print("User Updated"))
+                                .catchError((error) => print("Failed to update user portfolio: $error"));
+
+                            widget.portfolio!.name = output['name'];
+                            widget.portfolio!.public = output['public'];
+                            widget.portfolio!.description = output['description'];
+                            // pop bool indicating whether changes were made
+                            Navigator.of(context).pop('updated');
+                          }
+                        }
+                      },
+                      child: loading
+                          ? Container(
+                              height: 25,
+                              width: 25,
+                              child: CircularProgressIndicator(
+                                strokeWidth: 3,
+                                valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                              ))
+                          : Text(
+                              'OK',
+                              style: TextStyle(color: Colors.white),
+                            ),
+                    )
+                  ],
+                ),
+              )
+            ],
+          ),
         ),
       ),
     );

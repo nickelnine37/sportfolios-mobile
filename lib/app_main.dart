@@ -2,7 +2,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'screens/leaderboard/leaderboard.dart';
 import 'screens/portfolio/portfolio_page.dart';
-import 'screens/settings.dart';
+import 'screens/settings/settings.dart';
 import 'screens/home/home.dart';
 
 /// Main app widget. This is the four pages, Home, Portfolio, LeaderBoard, Settings

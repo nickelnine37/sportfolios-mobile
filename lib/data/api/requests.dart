@@ -8,7 +8,7 @@ import '../../utils/authentication/authenication_provider.dart';
 
 String __version__ = '0.0';
 
-Future<String?> createNewPortfolio(String name, bool public) async {
+Future<String?> createNewPortfolio(String name, bool public, String description) async {
 
   Uri url = createPortfolioURL();
 
@@ -18,6 +18,7 @@ Future<String?> createNewPortfolio(String name, bool public) async {
   }, body: {
     'name': name,
     'public': public.toString(),
+    'description': description,
   });
 
   if (response.statusCode == 200) {

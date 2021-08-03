@@ -1,5 +1,5 @@
 import 'package:cached_network_image/cached_network_image.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:cloud_firestore/cloud_firestore.dart' as fire;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -17,24 +17,40 @@ import '../../../data/objects/portfolios.dart';
 import '../../../plots/payout_graph.dart';
 import '../../../utils/numerical/arrays.dart';
 
-
 /// this can be used to notify other widgets that a purchase has been made
 final purchaseCompleteProvider = ChangeNotifierProvider<PurchaseCompleteChangeNotifier>((ref) {
   return PurchaseCompleteChangeNotifier();
 });
 
 class PurchaseCompleteChangeNotifier with ChangeNotifier {
-  String? _portfolio;
+  int? _transactionId;
+  Transaction? _transaction;
+  String? _portfolioId;
 
-  String? get portfolio => _portfolio;
+  String? get portfolio => _portfolioId;
+  Transaction? get transaction => _transaction;
+  int? get transactionId => _transactionId;
 
-  void setPortfolio(String? portfolioId) {
-    if (_portfolio != portfolioId) {
-      _portfolio = portfolioId;
-      print('Purchase made! notifying listeners!!!!!!!');
-      notifyListeners();
-      // _portfolio = null;
+  // void setPortfolio(String? portfolioId) {
+  //   if (_portfolioId != portfolioId) {
+  //     _portfolioId = portfolioId;
+  //     print('Purchase made! notifying listeners!!!!!!!');
+  //     notifyListeners();
+  //     // _portfolio = null;
+  //   }
+  // }
+
+  void registrNewTransaction(String portfolioId, Transaction transaction) {
+    if (_transactionId == null) {
+      _transactionId = 0;
+    } else {
+      _transactionId = _transactionId! + 1;
     }
+
+    _transaction = transaction;
+    _portfolioId = portfolioId;
+
+    notifyListeners();
   }
 }
 
@@ -61,7 +77,7 @@ class _BuyMarketState extends State<BuyMarket> {
   Future<List<Portfolio>> _getPortfolios() async {
     AuthService _authService = AuthService();
     List<Portfolio> out = [];
-    DocumentSnapshot userSnapshot = await FirebaseFirestore.instance.collection('users').doc(_authService.currentUid).get();
+    fire.DocumentSnapshot userSnapshot = await fire.FirebaseFirestore.instance.collection('users').doc(_authService.currentUid).get();
     List<String> portfolioIds = List<String>.from(userSnapshot['portfolios']);
     for (String portfolioId in portfolioIds) {
       out.add((await getPortfolioById(portfolioId))!);
@@ -74,7 +90,7 @@ class _BuyMarketState extends State<BuyMarket> {
     return Padding(
       padding: EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom),
       child: Container(
-        height: widget.market.id.contains('T') ? 610 : 450, 
+        height: widget.market.id.contains('T') ? 610 : 450,
         decoration: BoxDecoration(
           color: Theme.of(context).canvasColor,
           borderRadius: BorderRadius.only(
@@ -133,7 +149,7 @@ class _BuyMarketState extends State<BuyMarket> {
                           ),
                         ]),
                         Divider(thickness: 2, height: 25),
-                        widget.market.id.contains('T') ? PayoutGraph(q:  widget.unitQuantity, tappable: true) : Container(),
+                        widget.market.id.contains('T') ? PayoutGraph(q: widget.unitQuantity, tappable: true) : Container(),
                         SizedBox(height: 0),
                         FutureBuilder(
                             future: _portfoliosFuture,
@@ -196,7 +212,7 @@ class _BuyFormState extends State<BuyForm> {
       _selectedPortfolioId = widget.portfolios![0].id;
     }
     team = widget.market.id.contains('T');
-    
+
     return Form(
       key: _formKey,
       child: Padding(
@@ -210,9 +226,12 @@ class _BuyFormState extends State<BuyForm> {
                 Row(
                   children: [
                     Text('Portfolio', style: TextStyle(fontSize: 17, color: Colors.grey[850])),
-                    IconButton(icon: Icon(Icons.info_outline), onPressed: () {
-                      print('Portfolio Info ');
-                    }, iconSize: 20)
+                    IconButton(
+                        icon: Icon(Icons.info_outline),
+                        onPressed: () {
+                          print('Portfolio Info ');
+                        },
+                        iconSize: 20)
                   ],
                 ),
                 Container(
@@ -222,8 +241,13 @@ class _BuyFormState extends State<BuyForm> {
                     child: DropdownButtonFormField(
                       itemHeight: 100,
                       value: _selectedPortfolioId,
-                      items: List<DropdownMenuItem<String>>.from(widget.portfolios!
-                              .map((portfolio) => DropdownMenuItem(onTap: () {}, value: portfolio.id, child: Text(portfolio.name, style: TextStyle(color: Colors.grey[850]),)))) +
+                      items: List<DropdownMenuItem<String>>.from(widget.portfolios!.map((portfolio) => DropdownMenuItem(
+                              onTap: () {},
+                              value: portfolio.id,
+                              child: Text(
+                                portfolio.name,
+                                style: TextStyle(color: Colors.grey[850]),
+                              )))) +
                           <DropdownMenuItem<String>>[
                             DropdownMenuItem(
                               value: 'new',
@@ -248,7 +272,6 @@ class _BuyFormState extends State<BuyForm> {
                           _selectedPortfolioId = id;
                         });
                       },
-
                       onSaved: (String? id) {
                         // _selectedPortfolio = widget.portfolios.firstWhere((Portfolio p) => p.id == id);
                         _selectedPortfolioId = id;
@@ -327,7 +350,7 @@ class _BuyFormState extends State<BuyForm> {
               children: [
                 Text(
                   'Price:',
-                   style: TextStyle(fontSize: 17, color: Colors.grey[850]),
+                  style: TextStyle(fontSize: 17, color: Colors.grey[850]),
                 ),
                 Text(
                   formatCurrency(price, 'GBP'),
@@ -345,13 +368,15 @@ class _BuyFormState extends State<BuyForm> {
                       : complete
                           ? Icon(Icons.done, color: Colors.white)
                           : Text('OK', style: TextStyle(color: Colors.white)),
-                  style: ButtonStyle(overlayColor: MaterialStateProperty.all<Color>(Colors.blue), backgroundColor: MaterialStateProperty.all<Color>(Colors.blue), ),
+                  style: ButtonStyle(
+                    overlayColor: MaterialStateProperty.all<Color>(Colors.blue),
+                    backgroundColor: MaterialStateProperty.all<Color>(Colors.blue),
+                  ),
                   onPressed: () async {
                     if (!complete) {
                       if (_formKey.currentState!.validate()) {
                         _formKey.currentState!.save();
-                      }
-                      else {
+                      } else {
                         return;
                       }
 
@@ -359,15 +384,19 @@ class _BuyFormState extends State<BuyForm> {
                         FocusManager.instance.primaryFocus!.unfocus();
                       }
 
+                      // off we go...
                       setState(() {
                         loading = true;
                       });
 
+                      // set the quantity being purchased
                       Array qPurchase = widget.unitQuantity.scale(units);
 
+                      // make a new purchase request
                       Map<String, dynamic>? purchaseRequestResult =
                           await makePurchaseRequest(widget.market.id, _selectedPortfolioId!, qPurchase, price);
 
+                      // something fucked up happened ...
                       if (purchaseRequestResult == null) {
                         showDialog(
                             context: context,
@@ -379,19 +408,29 @@ class _BuyFormState extends State<BuyForm> {
                         return;
                       }
 
+                      // we need this to congratulate etc
                       SharedPreferences prefs = await SharedPreferences.getInstance();
 
                       await Future.delayed(Duration(seconds: 1));
 
+                      // everything went according to plan
                       if (purchaseRequestResult['success']) {
                         setState(() {
                           loading = false;
                           complete = true;
                         });
 
-                        // Notify portfolios that a new purchase has been made
+                        // Notify portfolios that a new transaction has been made
                         print('Notifying!!');
-                        context.read(purchaseCompleteProvider).setPortfolio(_selectedPortfolioId!);
+
+                        Transaction transaction = Transaction(
+                          widget.market,
+                          DateTime.now().millisecondsSinceEpoch / 1000,
+                          price,
+                          qPurchase,
+                        );
+
+                        context.read(purchaseCompleteProvider).registrNewTransaction(_selectedPortfolioId!, transaction);
 
                         showDialog(
                             context: context,
@@ -402,6 +441,7 @@ class _BuyFormState extends State<BuyForm> {
                         await Future.delayed(Duration(milliseconds: 800));
                         Navigator.of(context).pop();
 
+                        // if this is null, lets congratulate
                         bool? done = prefs.getBool('firstPurchaseComplete');
 
                         if (done == null) {
@@ -416,7 +456,10 @@ class _BuyFormState extends State<BuyForm> {
                         await Future.delayed(Duration(milliseconds: 500));
 
                         Navigator.pop(context);
-                      } else {
+                      }
+
+                      // the price was not as expected
+                      else {
                         setState(() {
                           loading = false;
                           complete = false;
@@ -431,6 +474,7 @@ class _BuyFormState extends State<BuyForm> {
 
                         bool ok = await respondToNewPrice(confirm, purchaseRequestResult['cancelId']);
 
+                        // they want to confirm, but there is a problem
                         if (confirm && !ok) {
                           showDialog(
                               context: context,
@@ -439,13 +483,26 @@ class _BuyFormState extends State<BuyForm> {
                               });
                           await Future.delayed(Duration(seconds: 1));
                           Navigator.of(context).pop();
-                        } else if (confirm && ok) {
+                        }
+
+                        // they want to confirm and there's no problem
+                        else if (confirm && ok) {
                           setState(() {
                             price = purchaseRequestResult['price'];
                             loading = false;
                             complete = true;
                           });
 
+                          Transaction transaction = Transaction(
+                            widget.market,
+                            DateTime.now().millisecondsSinceEpoch / 1000,
+                             purchaseRequestResult['price'],
+                            qPurchase,
+                          );
+
+                          context.read(purchaseCompleteProvider).registrNewTransaction(_selectedPortfolioId!, transaction);
+
+                          // check for congrats
                           bool? done = prefs.getBool('firstPurchaseComplete');
 
                           if (done == null) {
@@ -458,7 +515,10 @@ class _BuyFormState extends State<BuyForm> {
                           }
                           await Future.delayed(Duration(milliseconds: 600));
                           Navigator.of(context).pop();
-                        } else if (!confirm) {
+                        } 
+                        
+                        // they rejected the new price
+                        else if (!confirm) {
                           await Future.delayed(Duration(milliseconds: 600));
                           Navigator.of(context).pop();
                         }
@@ -584,7 +644,9 @@ class _ConfirmPurchaseState extends State<ConfirmPurchase> {
             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
             children: [
               TextButton(
-                style: ButtonStyle(overlayColor: MaterialStateProperty.all<Color>(Colors.blue[400]!), backgroundColor: MaterialStateProperty.all<Color>(Colors.blue)),
+                style: ButtonStyle(
+                    overlayColor: MaterialStateProperty.all<Color>(Colors.blue[400]!),
+                    backgroundColor: MaterialStateProperty.all<Color>(Colors.blue)),
                 onPressed: () async {
                   setState(() {
                     contentId = 1;
@@ -598,7 +660,9 @@ class _ConfirmPurchaseState extends State<ConfirmPurchase> {
                 ),
               ),
               TextButton(
-                style: ButtonStyle(overlayColor: MaterialStateProperty.all<Color>(Colors.blue[400]!), backgroundColor: MaterialStateProperty.all<Color>(Colors.blue[400]!)),
+                style: ButtonStyle(
+                    overlayColor: MaterialStateProperty.all<Color>(Colors.blue[400]!),
+                    backgroundColor: MaterialStateProperty.all<Color>(Colors.blue[400]!)),
                 onPressed: () async {
                   setState(() {
                     contentId = 2;
@@ -726,7 +790,10 @@ class _CongratualtionsDialogueState extends State<CongratualtionsDialogue> {
             Align(
               alignment: Alignment.bottomRight,
               child: TextButton(
-                style: ButtonStyle(overlayColor: MaterialStateProperty.all<Color>(Colors.blue[400]!), backgroundColor:  MaterialStateProperty.all<Color>(Colors.blue[400]!),),
+                style: ButtonStyle(
+                  overlayColor: MaterialStateProperty.all<Color>(Colors.blue[400]!),
+                  backgroundColor: MaterialStateProperty.all<Color>(Colors.blue[400]!),
+                ),
                 onPressed: () {
                   Navigator.of(context).pop(); // To close the dialog
                 },

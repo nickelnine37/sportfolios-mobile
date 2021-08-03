@@ -4,7 +4,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../data/objects/portfolios.dart';
 import '../utils/numerical/array_operations.dart';
-import '../utils/design/colors.dart';
 import '../utils/strings/number_format.dart';
 
 /// this can be used to notify other widgets that a certian chunk has been selected

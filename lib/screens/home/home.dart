@@ -35,41 +35,14 @@ class Home extends StatefulWidget {
   _HomeState createState() => _HomeState();
 }
 
-class _HomeState extends State<Home>   {
+class _HomeState extends State<Home> {
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
   String _selectedSport = 'Football';
-
-  // this is the header for the drawer
-  DrawerHeader header = DrawerHeader(
-    child: Center(
-      child: Image.asset(
-        'assets/images/sportfolios.png',
-        width: 200,
-      ),
-    ),
-    decoration: BoxDecoration(
-      gradient: LinearGradient(
-        begin: Alignment.topCenter,
-        end: Alignment.bottomCenter,
-        colors: [Colors.blue[300]!, Colors.grey[50]!],
-      ),
-    ),
-  );
 
   // this is a special about tile
   // Does Google just insist on this for no reason...?
   // https://api.flutter.dev/flutter/material/AboutListTile-class.html
-  AboutListTile aboutTile = AboutListTile(
-    icon: Icon(Icons.info),
-    applicationIcon: FlutterLogo(size: 43),
-    applicationName: 'Sportfolios',
-    applicationVersion: 'V0.1 - January 2021',
-    // applicationLegalese: '\u{a9} 2014 The Flutter Authors',
-    aboutBoxChildren: [
-      SizedBox(height: 24),
-      Text('Sportfolios is a ' + 'blah ' * 20, textAlign: TextAlign.justify),
-    ],
-  );
+  // AboutListTile aboutTile = ;
 
   @override
   Widget build(BuildContext context) {
@@ -81,9 +54,33 @@ class _HomeState extends State<Home>   {
           itemCount: widget.sports.length + 2,
           itemBuilder: (BuildContext context, int index) {
             if (index == 0)
-              return header;
+              return DrawerHeader(
+                child: Center(
+                  child: Image.asset(
+                    'assets/images/sportfolios.png',
+                    width: 200,
+                  ),
+                ),
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    begin: Alignment.topCenter,
+                    end: Alignment.bottomCenter,
+                    colors: [Colors.blue[300]!, Colors.grey[50]!],
+                  ),
+                ),
+              );
             else if (index == widget.sports.length + 1)
-              return aboutTile;
+              return AboutListTile(
+                icon: Icon(Icons.info),
+                applicationIcon: FlutterLogo(size: 43),
+                applicationName: 'Sportfolios',
+                applicationVersion: 'V0.1 - January 2021',
+                // applicationLegalese: '\u{a9} 2014 The Flutter Authors',
+                aboutBoxChildren: [
+                  SizedBox(height: 24),
+                  Text('Sportfolios is a ' + 'blah ' * 20, textAlign: TextAlign.justify),
+                ],
+              );
             else
               return ListTile(
                 title: Text(widget.sports[index - 1]),

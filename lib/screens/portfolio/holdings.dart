@@ -1,5 +1,6 @@
 import 'dart:collection';
-import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:cloud_firestore/cloud_firestore.dart' as fire;
+import 'package:flutter/services.dart';
 import 'package:flutter_colorpicker/flutter_colorpicker.dart';
 
 import 'package:cached_network_image/cached_network_image.dart';
@@ -91,16 +92,16 @@ class _HoldingsState extends State<Holdings> {
     setState(() {});
   }
 
-  Future<void> fullRefresh() async {
-    await widget.portfolio!.populateMarketsFirebase();
-    await widget.portfolio!.populateMarketsServer();
-    widget.portfolio!.getCurrentValue();
-    widget.portfolio!.getHistoricalValue();
-  }
+  // Future<void> fullRefresh() async {
+  //   await widget.portfolio!.populateMarketsFirebase();
+  //   await widget.portfolio!.populateMarketsServer();
+  //   widget.portfolio!.getCurrentValue();
+  //   widget.portfolio!.getHistoricalValue();
+  // }
 
   @override
   Widget build(BuildContext context) {
-    if (isExpanded == null) {
+    if (isExpanded == null || isExpanded!.length != widget.portfolio!.markets.length) {
       isExpanded = range(widget.portfolio!.markets.length).map((int i) => false).toList();
     }
 
@@ -115,6 +116,16 @@ class _HoldingsState extends State<Holdings> {
               onRefresh: refreshHoldings,
               child: SingleChildScrollView(
                 child: Column(children: <Widget>[
+                  SizedBox(height: 20),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 20),
+                    child: Align(
+                        child: Text(
+                          widget.portfolio!.description,
+                          style: TextStyle(),
+                        ),
+                        alignment: Alignment.centerLeft),
+                  ),
                   Stack(
                     children: [
                       AnimatedDonutChart(widget.portfolio),
@@ -133,10 +144,10 @@ class _HoldingsState extends State<Holdings> {
                                       onPressed: () async {
                                         Color? color = await showDialog(
                                           context: context,
-                                          builder: (context) => PickAColor(),
+                                          builder: (context) => PickAColor(widget.portfolio!.markets[asset]!),
                                         );
                                         if (color != null) {
-                                          await FirebaseFirestore.instance
+                                          await fire.FirebaseFirestore.instance
                                               .collection('portfolios')
                                               .doc(widget.portfolio!.id)
                                               .update({'colours.${asset}': toHex(color)});
@@ -182,7 +193,9 @@ class _HoldingsState extends State<Holdings> {
                       ],
                     ),
                   ),
-                  SizedBox(height: 25),
+                  // FadedText(text: 'hahahaha', maxHeight: 100),
+
+                  SizedBox(height: 20),
                   Text(
                     'Holdings',
                     style: TextStyle(fontSize: 19, color: Colors.grey[800], fontWeight: FontWeight.w400),
@@ -197,9 +210,9 @@ class _HoldingsState extends State<Holdings> {
                           elevation: 2,
                           animationDuration: Duration(milliseconds: 600),
                           expansionCallback: (int i, bool itemIsExpanded) {
-                              setState(() {
-                                isExpanded![i] = !itemIsExpanded;
-                              });
+                            setState(() {
+                              isExpanded![i] = !itemIsExpanded;
+                            });
                           },
                           children: range(sortedValues.length).map<ExpansionPanel>((int i) {
                             //
@@ -264,22 +277,31 @@ class _HoldingsState extends State<Holdings> {
                                                       widget.owner
                                                           ? OutlinedButton(
                                                               onPressed: () async {
-                                                                bool saleComplete = await showModalBottomSheet(
+                                                                Transaction? newSaleTransaction = await showModalBottomSheet(
                                                                       isScrollControlled: true,
                                                                       elevation: 100,
                                                                       shape: RoundedRectangleBorder(
                                                                           borderRadius: BorderRadius.vertical(top: Radius.circular(25.0))),
                                                                       context: context,
                                                                       builder: (context) {
-                                                                        return SellMarket(widget.portfolio, market,
-                                                                            widget.portfolio!.holdings[marketId]!);
+                                                                        return marketId.contains('T')
+                                                                            ? SellTeam(
+                                                                                widget.portfolio,
+                                                                                market,
+                                                                                widget.portfolio!.holdings[marketId]!,
+                                                                              )
+                                                                            : SellPlayer(
+                                                                                widget.portfolio,
+                                                                                market,
+                                                                                widget.portfolio!.holdings[marketId]!,
+                                                                              );
                                                                       },
                                                                     ) ??
-                                                                    false;
+                                                                    null;
 
-                                                                if (saleComplete) {
+                                                                if (newSaleTransaction != null) {
                                                                   setState(() {
-                                                                    portfolioUpdateFuture = fullRefresh();
+                                                                    widget.portfolio!.addTransaction(newSaleTransaction);
                                                                   });
                                                                 }
                                                               },
@@ -304,11 +326,7 @@ class _HoldingsState extends State<Holdings> {
                               body: Column(
                                 // crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
-                                  Padding(
-                                    padding: const EdgeInsets.symmetric(horizontal: 8.0),
-                                    child: LeagueProgressBar(leagueOrMarket: market, textColor: Colors.grey[800]!),
-                                  ), 
-                                  SizedBox(height: 4), 
+                                  // SizedBox(height: 4),
                                   marketId.contains('T')
                                       ? Container(
                                           height: 220,
@@ -326,6 +344,10 @@ class _HoldingsState extends State<Holdings> {
                                               padding: const EdgeInsets.symmetric(horizontal: 25),
                                               child: LongShortGraph(quantity: holding, height: 75)),
                                         ),
+                                  Padding(
+                                    padding: const EdgeInsets.only(left: 8.0, right: 8, bottom: 15),
+                                    child: LeagueProgressBar(leagueOrMarket: market, textColor: Colors.grey[800]!),
+                                  ),
                                 ],
                               ),
                               isExpanded: isExpanded![i],
@@ -344,8 +366,32 @@ class _HoldingsState extends State<Holdings> {
   }
 }
 
+// class FadedText extends StatefulWidget {
+//   final String text;
+//   final double maxHeight;
+//   FadedText({required this.text, required this.maxHeight});
+
+//   @override
+//   _FadedTextState createState() => _FadedTextState();
+// }
+
+// class _FadedTextState extends State<FadedText> {
+//   @override
+//   Widget build(BuildContext context) {
+
+//     Text text = Text(widget.text);
+
+//     text.
+//     return Container(
+//       child: null,
+//     );
+//   }
+// }
+
 class PickAColor extends StatefulWidget {
-  const PickAColor({Key? key}) : super(key: key);
+  final Market market;
+
+  PickAColor(this.market);
 
   @override
   _PickAColorState createState() => _PickAColorState();
@@ -357,7 +403,7 @@ class _PickAColorState extends State<PickAColor> {
   @override
   Widget build(BuildContext context) {
     return AlertDialog(
-      title: const Text('Pick a color!'),
+      title: Text('Pick a color for ${widget.market.name}'),
       content: SingleChildScrollView(
         child: ColorPicker(
           pickerColor: color,
@@ -370,7 +416,7 @@ class _PickAColorState extends State<PickAColor> {
       ),
       actions: <Widget>[
         TextButton(
-          child: const Text('Got it'),
+          child: const Text('OK'),
           onPressed: () {
             Navigator.of(context).pop(color);
           },
@@ -383,29 +429,31 @@ class _PickAColorState extends State<PickAColor> {
 class LongShortGraph extends StatelessWidget {
   final Array quantity;
   final double height;
+  final double? qmax;
 
-  LongShortGraph({required this.quantity, required this.height});
+  LongShortGraph({required this.quantity, required this.height, this.qmax});
 
   @override
   Widget build(BuildContext context) {
     return Container(
       width: double.infinity,
       height: height,
-      child: CustomPaint(painter: LongShortGraphPainter(quantity)),
+      child: CustomPaint(painter: LongShortGraphPainter(quantity, qmax ?? quantity.max)),
     );
   }
 }
 
 class LongShortGraphPainter extends CustomPainter {
   final Array quantity;
+  final double qmax;
 
-  LongShortGraphPainter(this.quantity);
+  LongShortGraphPainter(this.quantity, this.qmax);
 
   @override
   void paint(Canvas canvas, Size size) {
     TextPainter longPainter = TextPainter(
         text: TextSpan(
-          text: 'Units Long\n${quantity[0]}',
+          text: 'Units Long\n${quantity[0].toStringAsFixed(2)}',
           style: TextStyle(color: Colors.grey[850], fontSize: 13, fontWeight: FontWeight.w400),
         ),
         textDirection: TextDirection.ltr,
@@ -413,7 +461,7 @@ class LongShortGraphPainter extends CustomPainter {
 
     TextPainter shortPainter = TextPainter(
         text: TextSpan(
-          text: 'Units Short\n${quantity[1]}',
+          text: 'Units Short\n${quantity[1].toStringAsFixed(2)}',
           style: TextStyle(color: Colors.grey[850], fontSize: 13, fontWeight: FontWeight.w400),
         ),
         textDirection: TextDirection.ltr,
@@ -426,11 +474,11 @@ class LongShortGraphPainter extends CustomPainter {
 
     Rect rect1 = Rect.fromPoints(
       Offset(p0, 2 * size.height / 7),
-      Offset((size.width - p0) * quantity[0] / quantity.max + p0, size.height / 7),
+      Offset((size.width - p0) * quantity[0] / qmax + p0, size.height / 7),
     );
     Rect rect2 = Rect.fromPoints(
       Offset(shortPainter.width + 15, 4 * size.height / 7),
-      Offset((size.width - p0) * quantity[1] / quantity.max + p0, 3 * size.height / 7),
+      Offset((size.width - p0) * quantity[1] / qmax + p0, 3 * size.height / 7),
     );
 
     Paint paint1 = Paint()..color = Colors.green[500]!;
