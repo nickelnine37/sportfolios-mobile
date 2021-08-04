@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:sportfolios_alpha/plots/mini_donut_chart.dart';
+import 'package:sportfolios_alpha/screens/portfolio/comments.dart';
 import 'package:sportfolios_alpha/screens/portfolio/holdings.dart';
 import 'package:sportfolios_alpha/screens/portfolio/performance.dart';
 import '../../data/objects/portfolios.dart';
-
 
 class ViewPortfolio extends StatefulWidget {
   final Portfolio portfolio;
@@ -15,6 +15,7 @@ class ViewPortfolio extends StatefulWidget {
 
 class _ViewPortfolioState extends State<ViewPortfolio> {
   Future<void>? portfoliosFuture;
+  bool liked = false;
 
   @override
   void initState() {
@@ -39,7 +40,7 @@ class _ViewPortfolioState extends State<ViewPortfolio> {
         }
 
         return DefaultTabController(
-          length: 2,
+          length: 3,
           child: Scaffold(
             appBar: AppBar(
               // automaticallyImplyLeading: false,
@@ -48,48 +49,65 @@ class _ViewPortfolioState extends State<ViewPortfolio> {
               toolbarHeight: 110,
               title: Column(children: [
                 // Padding(
-                  // padding: const EdgeInsets.only(left: 0.0),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.start,
-                    children: [
-                      SizedBox(width: 5),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.start,
-                        crossAxisAlignment: CrossAxisAlignment.center,
-                        children: [
-                          SizedBox(width: 10),
-                          Container(
-                            height: 25,
-                            width: 25,
-                            child: MiniDonutChart(widget.portfolio, strokeWidth: 8),
-                          ),
-                          SizedBox(width: 17),
-                          Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(widget.portfolio.name, style: TextStyle(fontSize: 25.0, color: Colors.white)),
-                              SizedBox(height: 2),
-                              Text(widget.portfolio.username, style: TextStyle(color: Colors.white, fontSize: 14),)
-                            ],
-                          ),
-                        ],
-                      ),
-                    ],
-                  ),
+                // padding: const EdgeInsets.only(left: 0.0),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.start,
+                  children: [
+                    SizedBox(width: 5),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.start,
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      children: [
+                        SizedBox(width: 10),
+                        Container(
+                          height: 25,
+                          width: 25,
+                          child: MiniDonutChart(widget.portfolio, strokeWidth: 8),
+                        ),
+                        SizedBox(width: 17),
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(widget.portfolio.name, style: TextStyle(fontSize: 25.0, color: Colors.white)),
+                            SizedBox(height: 2),
+                            Text(
+                              widget.portfolio.username,
+                              style: TextStyle(color: Colors.white, fontSize: 14),
+                            )
+                          ],
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
                 // ),
               ]),
+              actions: [
+                IconButton(
+                    icon: Icon(liked ? Icons.favorite : Icons.favorite_border, color: Colors.white),
+                    onPressed: () {
+                      setState(() {
+                        liked = !liked;
+                      });
+                    }),
+              ],
               bottom: TabBar(
                 labelPadding: EdgeInsets.all(5),
                 tabs: <Row>[
                   Row(mainAxisAlignment: MainAxisAlignment.center, children: [
-                    Text('Holdings', style: TextStyle(fontSize: 16.0, color: Colors.white)),
+                    Text('Holdings', style: TextStyle(fontSize: 14.0, color: Colors.white)),
                     SizedBox(width: 8),
                     Icon(Icons.donut_large, color: Colors.white, size: 17)
                   ]),
                   Row(mainAxisAlignment: MainAxisAlignment.center, children: [
-                    Text('Performance', style: TextStyle(fontSize: 16.0, color: Colors.white)),
+                    Text('Performance', style: TextStyle(fontSize: 14.0, color: Colors.white)),
                     SizedBox(width: 8),
                     Icon(Icons.show_chart, color: Colors.white, size: 17)
+                  ]),
+                  Row(mainAxisAlignment: MainAxisAlignment.center, children: [
+                    Text('Comments', style: TextStyle(fontSize: 14.0, color: Colors.white)),
+                    SizedBox(width: 8),
+                    Icon(Icons.chat_bubble, color: Colors.white, size: 17)
                   ]),
                 ],
               ),
@@ -102,6 +120,7 @@ class _ViewPortfolioState extends State<ViewPortfolio> {
                   owner: false,
                 ),
                 Performance(widget.portfolio),
+                PortfolioComments(portfolio: widget.portfolio),
               ],
             ),
           ),

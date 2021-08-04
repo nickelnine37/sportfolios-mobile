@@ -109,6 +109,7 @@ class Portfolio {
   late DocumentSnapshot doc; //                     doc object used for ordering queries
   Map<String, Market> markets = {}; //              holds all the unique markets ever used in this portfolio
   late Map<String, Color> colours;
+  late Map<String, Map<String, dynamic>> comments;
 
   // ----- current value attributes -----
   late double cash; //                              current amount of cash in portfolio
@@ -138,6 +139,8 @@ class Portfolio {
     user = snapshot['user'];
     cash = snapshot['cash'] + 0.0;
     description = snapshot['description'];
+    comments = Map<String, Map<String, dynamic>>.from(snapshot['comments']);
+    
     currentValues = Map<String, double>.from(snapshot['current_values']);
     colours = Map<String, String>.from(snapshot['colours']!).map((key, value) => MapEntry(key, fromHex(value)));
 
