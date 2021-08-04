@@ -115,7 +115,11 @@ class _LeaderboardScrollState extends State<LeaderboardScroll> with AutomaticKee
                   child: Center(child: Text("Sorry, no results :'(")),
                 );
               } else {
-                return PortfolioTile(portfolio: portfolioFetcher!.loadedResults[index], returnsPeriod: widget.timeHorizon);
+                return PortfolioTile(
+                  portfolio: portfolioFetcher!.loadedResults[index],
+                  returnsPeriod: widget.timeHorizon,
+                  index: index,
+                );
               }
             },
             separatorBuilder: (context, index) => Divider(
@@ -138,6 +142,7 @@ class _LeaderboardScrollState extends State<LeaderboardScroll> with AutomaticKee
 class PortfolioTile extends StatelessWidget {
   final Portfolio portfolio;
   final String returnsPeriod;
+  final int index;
 
   final double height = 100.0;
   final double imageHeight = 50.0;
@@ -147,10 +152,7 @@ class PortfolioTile extends StatelessWidget {
   final double lowerTextSize = 12.0;
   final double spacing = 3.0;
 
-  PortfolioTile({
-    required this.portfolio,
-    required this.returnsPeriod,
-  });
+  PortfolioTile({required this.portfolio, required this.returnsPeriod, required this.index});
 
   @override
   Widget build(BuildContext context) {
@@ -165,6 +167,8 @@ class PortfolioTile extends StatelessWidget {
         padding: padding,
         child: Row(children: [
           SizedBox(width: 10),
+          Text('${index + 1}'),
+          SizedBox(width: 25),
           Container(
             height: 40,
             width: 40,

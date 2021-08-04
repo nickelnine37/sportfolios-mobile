@@ -30,8 +30,6 @@ class _PerformanceState extends State<Performance> {
       isExpanded = range(widget.portfolio!.transactions.length).map((int i) => false).toList();
     }
 
-    print(widget.portfolio!.transactions);
-
     return SingleChildScrollView(
       child: Column(children: [
         SizedBox(height: 25),

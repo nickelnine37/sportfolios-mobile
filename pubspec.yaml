@@ -39,7 +39,12 @@ dependencies:
   http: ^0.13.3
   shimmer: ^2.0.0
   confetti: ^0.6.0-nullsafety
+<<<<<<< HEAD
   flutter_colorpicker: ^0.4.0
+=======
+  flutter_colorpicker: 0.4.0
+  uuid: ^3.0.4
+>>>>>>> a2e508c3e50a2e57f48ba198c19d252650be2ee6
   
 dev_dependencies:
   flutter_test:

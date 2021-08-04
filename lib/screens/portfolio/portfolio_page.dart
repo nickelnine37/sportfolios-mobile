@@ -6,6 +6,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:sportfolios_alpha/data/api/requests.dart';
 import 'package:sportfolios_alpha/plots/mini_donut_chart.dart';
 import 'package:sportfolios_alpha/screens/home/options/buy_contract.dart';
+import 'package:sportfolios_alpha/screens/portfolio/comments.dart';
 
 import '../../data/firebase/portfolios.dart';
 import '../../utils/authentication/authenication_provider.dart';
@@ -144,7 +145,7 @@ class _PortfolioPageState extends State<PortfolioPage> {
           }
 
           return DefaultTabController(
-            length: 2,
+            length: portfolios[selectedPortfolioId]!.public ? 3 : 2,
             child: Scaffold(
               appBar: AppBar(
                 automaticallyImplyLeading: false,
@@ -242,25 +243,34 @@ class _PortfolioPageState extends State<PortfolioPage> {
                 bottom: TabBar(
                   labelPadding: EdgeInsets.all(5),
                   tabs: <Row>[
-                    Row(mainAxisAlignment: MainAxisAlignment.center, children: [
-                      Text('Holdings', style: TextStyle(fontSize: 16.0, color: Colors.white)),
-                      SizedBox(width: 8),
-                      Icon(Icons.donut_large, color: Colors.white, size: 17)
-                    ]),
-                    Row(mainAxisAlignment: MainAxisAlignment.center, children: [
-                      Text('Performance', style: TextStyle(fontSize: 16.0, color: Colors.white)),
-                      SizedBox(width: 8),
-                      Icon(Icons.show_chart, color: Colors.white, size: 17)
-                    ]),
-                  ],
+                        Row(mainAxisAlignment: MainAxisAlignment.center, children: [
+                          Text('Holdings', style: TextStyle(fontSize: 14.0, color: Colors.white)),
+                          SizedBox(width: 8), 
+                          Icon(Icons.donut_large, color: Colors.white, size: 17)
+                        ]),
+                        Row(mainAxisAlignment: MainAxisAlignment.center, children: [
+                          Text('Performance', style: TextStyle(fontSize: 14.0, color: Colors.white)),
+                          SizedBox(width: 8),
+                          Icon(Icons.show_chart, color: Colors.white, size: 17)
+                        ]),
+                      ] +
+                      (portfolios[selectedPortfolioId]!.public
+                          ? <Row>[
+                              Row(mainAxisAlignment: MainAxisAlignment.center, children: [
+                                Text('Comments', style: TextStyle(fontSize: 14.0, color: Colors.white)),
+                                SizedBox(width: 8),
+                                Icon(Icons.chat_bubble, color: Colors.white, size: 17)
+                              ])
+                            ]
+                          : <Row>[]),
                 ),
               ),
               body: TabBarView(
                 physics: NeverScrollableScrollPhysics(),
-                children: [
+                children: <Widget>[
                   Holdings(portfolio: portfolios[selectedPortfolioId], owner: true),
                   Performance(portfolios[selectedPortfolioId]),
-                ],
+                ] + (portfolios[selectedPortfolioId]!.public ? <Widget>[PortfolioComments(portfolio: portfolios[selectedPortfolioId]!)] : <Widget>[]),
               ),
             ),
           );

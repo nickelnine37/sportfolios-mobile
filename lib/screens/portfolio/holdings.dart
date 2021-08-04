@@ -345,7 +345,7 @@ class _HoldingsState extends State<Holdings> {
                                               child: LongShortGraph(quantity: holding, height: 75)),
                                         ),
                                   Padding(
-                                    padding: const EdgeInsets.only(left: 8.0, right: 8, bottom: 15),
+                                    padding: const EdgeInsets.only(left: 15.0, right: 15, bottom: 15),
                                     child: LeagueProgressBar(leagueOrMarket: market, textColor: Colors.grey[800]!),
                                   ),
                                 ],
