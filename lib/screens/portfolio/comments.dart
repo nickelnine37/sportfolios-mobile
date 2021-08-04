@@ -38,7 +38,7 @@ class _PortfolioCommentsState extends State<PortfolioComments> {
         } else {
           return Container(
             // width: double.infinity,
-            padding: EdgeInsets.symmetric(horizontal: 12),
+            padding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
             child: TextField(
               controller: _textController,
               onSubmitted: (String? comment) {},
