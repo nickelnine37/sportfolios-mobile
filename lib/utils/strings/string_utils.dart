@@ -7,16 +7,38 @@ String formatOrdinal(int i) {
   String last = numbers.last;
 
   if (numbers.length > 1) {
-    if (numbers[numbers.length - 2] == '1') 
-      return 'th';
+    if (numbers[numbers.length - 2] == '1') return 'th';
   }
-  if (last == '1') 
+  if (last == '1')
     return 'st';
-  else if (last == '2') 
+  else if (last == '2')
     return 'nd';
-  else if (last == '3') 
+  else if (last == '3')
     return 'rd';
-  else 
+  else
     return 'th';
+}
+
+List<String> getSearchTerms(String name) {
+  List<String> out = [];
+
+  for (String _name in name.split(' ')) {
+    for (int i = 0; i < _name.length - 1; i++) {
+      out.add(_name.substring(0, i + 1).toLowerCase());
+    }
+  }
+
+  return out.toSet().toList();
+}
+
+List<String> getAllSearchTerms(List<String> allNames) {
+  
+  List<String> out = [];
+
+  for (String name in allNames) {
+    out.addAll(getSearchTerms(name));
+  }
+
+  return out.toSet().toList();
 
 }

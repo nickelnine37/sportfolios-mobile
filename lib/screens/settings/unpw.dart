@@ -112,12 +112,32 @@ class _ChangeUsernameState extends State<ChangeUsername> {
 
                               // register user and check for problems
                               String? error = await _auth.updateUsername(_username!);
-                              DocumentSnapshot result = await FirebaseFirestore.instance.collection('users').doc(_auth.currentUid).get();
+                              DocumentSnapshot userDoc = await FirebaseFirestore.instance.collection('users').doc(_auth.currentUid).get();
 
-                              for (String pid in result['portfolios']) {
+                              for (String pid in userDoc['portfolios']) {
                                 DocumentReference portfolioDoc = await FirebaseFirestore.instance.collection('portfolios').doc(pid);
                                 await portfolioDoc.update({'username': _username});
                               }
+                              
+                              // update usernames on all the comments
+                              Map<String, List<String>> commentPortfolioIds = {};
+                              Map<String, String>.from(userDoc['comments']).forEach((String commentId, String portfolioId) {
+                                if (commentPortfolioIds.keys.contains(portfolioId)) {
+                                  commentPortfolioIds[portfolioId]!.add(commentId);
+                                } else {
+                                  commentPortfolioIds[portfolioId] = [commentId];
+                                }
+                              });
+
+                              commentPortfolioIds.forEach((String portfolioId, List<String> commentIds) {
+                                Map<String, String> docUpdate = {};
+                                for (String commentId in commentIds) {
+                                  docUpdate['comments.${commentId}.username'] = _username!;
+                                }
+                                 FirebaseFirestore.instance.collection('portfolios').doc(portfolioId).update(docUpdate);
+                              });
+
+                              // for (MapEntry comment in {'hey': 5}.for) {}
 
                               await Future.delayed(Duration(seconds: 2));
 
