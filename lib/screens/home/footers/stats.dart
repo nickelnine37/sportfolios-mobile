@@ -51,7 +51,6 @@ class _StatsShowState extends State<StatsShow>
     return FutureBuilder(
         future: statsFuture,
         builder: (BuildContext context, AsyncSnapshot snapshot) {
-
           if (snapshot.connectionState == ConnectionState.done) {
             if (seasons == null) {
               seasons = widget.market!.stats!.keys.toList();
@@ -292,83 +291,117 @@ class TeamDetails extends StatelessWidget {
             Padding(
               padding: const EdgeInsets.all(8.0),
               child: DataTable(columns: [
+                // Cole final edits
                 DataColumn(
-                  label: Text('Home ground',
-              style: TextStyle(
-                  color: Colors.grey[700],
-                  height: 1.5,
-                  fontSize: 14,
-                  fontWeight: FontWeight.normal),),
+                  label: Text(
+                    'Home ground',
+                    style: TextStyle(
+                        color: Colors.grey[700],
+                        height: 1.5,
+                        fontSize: 14,
+                        fontWeight: FontWeight.normal),
+                    overflow: TextOverflow.fade,
+                    maxLines: 1,
+                    softWrap: false,
+                  ),
                 ),
+                // Cole final edits
                 DataColumn(
-                  label: Text(market.details!['home_ground'].toString(),
-              style: TextStyle(
-                  color: Colors.grey[700],
-                  height: 1.5,
-                  fontSize: 14,
-                  fontWeight: FontWeight.normal),),
+                  label: Container(
+                      child: Text(
+                        market.details!['home_ground'].toString(),
+                        style: TextStyle(
+                            color: Colors.grey[700],
+                            height: 1.5,
+                            fontSize: 14,
+                            fontWeight: FontWeight.normal),
+                        overflow: TextOverflow.fade,
+                        maxLines: 3,
+                        softWrap: true,
+                      ),
+                      width: 150),
                 )
               ], rows: [
                 DataRow(cells: [
-                  DataCell(Text('Capacity',
-              style: TextStyle(
-                  color: Colors.grey[700],
-                  height: 1.5,
-                  fontSize: 14,
-                  fontWeight: FontWeight.normal),)),
-                  DataCell(Text(market.details!['capacity'].toString(),
-              style: TextStyle(
-                  color: Colors.grey[700],
-                  height: 1.5,
-                  fontSize: 14,
-                  fontWeight: FontWeight.normal),))
+                  DataCell(Text(
+                    'Capacity',
+                    style: TextStyle(
+                        color: Colors.grey[700],
+                        height: 1.5,
+                        fontSize: 14,
+                        fontWeight: FontWeight.normal),
+                  )),
+                  DataCell(Text(
+                    market.details!['capacity'].toString(),
+                    style: TextStyle(
+                        color: Colors.grey[700],
+                        height: 1.5,
+                        fontSize: 14,
+                        fontWeight: FontWeight.normal),
+                  ))
                 ]),
                 DataRow(cells: [
-                  DataCell(Text('City',
-              style: TextStyle(
-                  color: Colors.grey[700],
-                  height: 1.5,
-                  fontSize: 14,
-                  fontWeight: FontWeight.normal),)),
-                  DataCell(Text(market.details!['city'].toString(),
-              style: TextStyle(
-                  color: Colors.grey[700],
-                  height: 1.5,
-                  fontSize: 14,
-                  fontWeight: FontWeight.normal),))
+                  DataCell(Text(
+                    'City',
+                    style: TextStyle(
+                        color: Colors.grey[700],
+                        height: 1.5,
+                        fontSize: 14,
+                        fontWeight: FontWeight.normal),
+                  )),
+                  DataCell(Text(
+                    market.details!['city'].toString(),
+                    style: TextStyle(
+                        color: Colors.grey[700],
+                        height: 1.5,
+                        fontSize: 14,
+                        fontWeight: FontWeight.normal),
+                  ))
                 ]),
                 DataRow(cells: [
-                  DataCell(Text('Founded',
-              style: TextStyle(
-                  color: Colors.grey[700],
-                  height: 1.5,
-                  fontSize: 14,
-                  fontWeight: FontWeight.normal),)),
-                  DataCell(Text(market.details!['founded'].toString(),
-              style: TextStyle(
-                  color: Colors.grey[700],
-                  height: 1.5,
-                  fontSize: 14,
-                  fontWeight: FontWeight.normal),))
+                  DataCell(Text(
+                    'Founded',
+                    style: TextStyle(
+                        color: Colors.grey[700],
+                        height: 1.5,
+                        fontSize: 14,
+                        fontWeight: FontWeight.normal),
+                  )),
+                  DataCell(Text(
+                    market.details!['founded'].toString(),
+                    style: TextStyle(
+                        color: Colors.grey[700],
+                        height: 1.5,
+                        fontSize: 14,
+                        fontWeight: FontWeight.normal),
+                  ))
                 ]),
                 DataRow(cells: [
-                  DataCell(Text('Surface',
-              style: TextStyle(
-                  color: Colors.grey[700],
-                  height: 1.5,
-                  fontSize: 14,
-                  fontWeight: FontWeight.normal),)),
-                  DataCell(Text(market.details!['surface'].toString(),
-              style: TextStyle(
-                  color: Colors.grey[700],
-                  height: 1.5,
-                  fontSize: 14,
-                  fontWeight: FontWeight.normal),))
+                  DataCell(Text(
+                    'Surface',
+                    style: TextStyle(
+                        color: Colors.grey[700],
+                        height: 1.5,
+                        fontSize: 14,
+                        fontWeight: FontWeight.normal),
+                  )),
+                  DataCell(Text(
+                    market.details!['surface'].toString(),
+                    style: TextStyle(
+                        color: Colors.grey[700],
+                        height: 1.5,
+                        fontSize: 14,
+                        fontWeight: FontWeight.normal),
+                  ))
                 ]),
               ]),
             ),
-            CachedNetworkImage(
-                imageUrl: market.details!['image_path'].toString(), height: 220)
+            // Cole final edits
+            market.details!['image_path'] == null
+                ? Text('')
+                : CachedNetworkImage(
+                    imageUrl: market.details!['image_path'].toString(),
+                    height: 220)
           ],
         ),
       ),
@@ -393,7 +426,8 @@ class PlayerDetails extends StatelessWidget {
               child: DataTable(columns: [
                 DataColumn(
                   label: Text(
-                    'Birth country: \n' + market.details!['birthcountry'].toString(),
+                    'Birth country: \n' +
+                        market.details!['birthcountry'].toString(),
                     style: TextStyle(
                         color: Colors.grey[700],
                         height: 1.5,
@@ -415,25 +449,26 @@ class PlayerDetails extends StatelessWidget {
                 DataRow(cells: [
                   DataCell(Text(
                     'Height: \n' + market.details!['height'].toString(),
-                    style:
-                        TextStyle(color: Colors.grey[700], height: 1.5, fontSize: 14),
+                    style: TextStyle(
+                        color: Colors.grey[700], height: 1.5, fontSize: 14),
                   )),
                   DataCell(Text(
                     'Weight: \n' + market.details!['weight'].toString(),
-                    style:
-                        TextStyle(color: Colors.grey[700], height: 1.5, fontSize: 14),
+                    style: TextStyle(
+                        color: Colors.grey[700], height: 1.5, fontSize: 14),
                   ))
                 ]),
                 DataRow(cells: [
                   DataCell(Text(
-                    'Nationality: \n' + market.details!['nationality'].toString(),
-                    style:
-                        TextStyle(color: Colors.grey[700], height: 1.5, fontSize: 14),
+                    'Nationality: \n' +
+                        market.details!['nationality'].toString(),
+                    style: TextStyle(
+                        color: Colors.grey[700], height: 1.5, fontSize: 14),
                   )),
                   DataCell(Text(
                     'Position: \n' + market.details!['position'].toString(),
-                    style:
-                        TextStyle(color: Colors.grey[700], height: 1.5, fontSize: 14),
+                    style: TextStyle(
+                        color: Colors.grey[700], height: 1.5, fontSize: 14),
                   ))
                 ]),
               ]),
@@ -462,107 +497,152 @@ class TeamStats extends StatelessWidget {
               padding: const EdgeInsets.all(8.0),
               child: DataTable(columns: [
                 DataColumn(
-                  label: Text('Wins',
+                  label: Text(
+                    'Table position',
                     style: TextStyle(
                         color: Colors.grey[700],
                         height: 1.5,
                         fontSize: 14,
-                        fontWeight: FontWeight.normal),),
+                        fontWeight: FontWeight.normal),
+                  ),
                 ),
                 DataColumn(
-                  label: Text(new_season['wins'].toString(),
+                  label: Text(
+                    new_season['ranking'].toString(),
                     style: TextStyle(
                         color: Colors.grey[700],
                         height: 1.5,
                         fontSize: 14,
-                        fontWeight: FontWeight.normal),),
+                        fontWeight: FontWeight.normal),
+                  ),
                 )
               ], rows: [
                 DataRow(cells: [
-                  DataCell(Text('Draws',
-                    style: TextStyle(
-                        color: Colors.grey[700],
-                        height: 1.5,
-                        fontSize: 14,
-                        fontWeight: FontWeight.normal),)),
-                  DataCell(Text(new_season['draws'].toString(),
-                    style: TextStyle(
-                        color: Colors.grey[700],
-                        height: 1.5,
-                        fontSize: 14,
-                        fontWeight: FontWeight.normal),))
-                ]),
-                DataRow(cells: [
-                  DataCell(Text('Losses',
-                    style: TextStyle(
-                        color: Colors.grey[700],
-                        height: 1.5,
-                        fontSize: 14,
-                        fontWeight: FontWeight.normal),)),
-                  DataCell(Text(new_season['losses'].toString(),
-                    style: TextStyle(
-                        color: Colors.grey[700],
-                        height: 1.5,
-                        fontSize: 14,
-                        fontWeight: FontWeight.normal),))
-                ]),
-                DataRow(cells: [
-                  DataCell(Text('Goals for',
-                    style: TextStyle(
-                        color: Colors.grey[700],
-                        height: 1.5,
-                        fontSize: 14,
-                        fontWeight: FontWeight.normal),)),
-                  DataCell(Text(new_season['goals_for'].toString(),
-                    style: TextStyle(
-                        color: Colors.grey[700],
-                        height: 1.5,
-                        fontSize: 14,
-                        fontWeight: FontWeight.normal),))
-                ]),
-                DataRow(cells: [
-                  DataCell(Text('Goals against',
-                    style: TextStyle(
-                        color: Colors.grey[700],
-                        height: 1.5,
-                        fontSize: 14,
-                        fontWeight: FontWeight.normal),)),
-                  DataCell(Text(new_season['goals_against'].toString(),
-                    style: TextStyle(
-                        color: Colors.grey[700],
-                        height: 1.5,
-                        fontSize: 14,
-                        fontWeight: FontWeight.normal),))
-                ]),
-                DataRow(cells: [
-                  DataCell(Text('Goal difference',
-                    style: TextStyle(
-                        color: Colors.grey[700],
-                        height: 1.5,
-                        fontSize: 14,
-                        fontWeight: FontWeight.normal),)),
                   DataCell(Text(
-                      (new_season['goals_for'] - new_season['goals_against'])
-                          .toString(),
+                    'Wins',
                     style: TextStyle(
                         color: Colors.grey[700],
                         height: 1.5,
                         fontSize: 14,
-                        fontWeight: FontWeight.normal),))
+                        fontWeight: FontWeight.normal),
+                  )),
+                  DataCell(Text(
+                    new_season['wins'].toString(),
+                    style: TextStyle(
+                        color: Colors.grey[700],
+                        height: 1.5,
+                        fontSize: 14,
+                        fontWeight: FontWeight.normal),
+                  ))
                 ]),
                 DataRow(cells: [
-                  DataCell(Text('Points',
+                  DataCell(Text(
+                    'Draws',
                     style: TextStyle(
                         color: Colors.grey[700],
                         height: 1.5,
                         fontSize: 14,
-                        fontWeight: FontWeight.normal),)),
-                  DataCell(Text(new_season['points'].toString(),
+                        fontWeight: FontWeight.normal),
+                  )),
+                  DataCell(Text(
+                    new_season['draws'].toString(),
                     style: TextStyle(
                         color: Colors.grey[700],
                         height: 1.5,
                         fontSize: 14,
-                        fontWeight: FontWeight.normal),))
+                        fontWeight: FontWeight.normal),
+                  ))
+                ]),
+                DataRow(cells: [
+                  DataCell(Text(
+                    'Losses',
+                    style: TextStyle(
+                        color: Colors.grey[700],
+                        height: 1.5,
+                        fontSize: 14,
+                        fontWeight: FontWeight.normal),
+                  )),
+                  DataCell(Text(
+                    new_season['losses'].toString(),
+                    style: TextStyle(
+                        color: Colors.grey[700],
+                        height: 1.5,
+                        fontSize: 14,
+                        fontWeight: FontWeight.normal),
+                  ))
+                ]),
+                DataRow(cells: [
+                  DataCell(Text(
+                    'Goals for',
+                    style: TextStyle(
+                        color: Colors.grey[700],
+                        height: 1.5,
+                        fontSize: 14,
+                        fontWeight: FontWeight.normal),
+                  )),
+                  DataCell(Text(
+                    new_season['goals_for'].toString(),
+                    style: TextStyle(
+                        color: Colors.grey[700],
+                        height: 1.5,
+                        fontSize: 14,
+                        fontWeight: FontWeight.normal),
+                  ))
+                ]),
+                DataRow(cells: [
+                  DataCell(Text(
+                    'Goals against',
+                    style: TextStyle(
+                        color: Colors.grey[700],
+                        height: 1.5,
+                        fontSize: 14,
+                        fontWeight: FontWeight.normal),
+                  )),
+                  DataCell(Text(
+                    new_season['goals_against'].toString(),
+                    style: TextStyle(
+                        color: Colors.grey[700],
+                        height: 1.5,
+                        fontSize: 14,
+                        fontWeight: FontWeight.normal),
+                  ))
+                ]),
+                DataRow(cells: [
+                  DataCell(Text(
+                    'Goal difference',
+                    style: TextStyle(
+                        color: Colors.grey[700],
+                        height: 1.5,
+                        fontSize: 14,
+                        fontWeight: FontWeight.normal),
+                  )),
+                  DataCell(Text(
+                    (new_season['goals_for'] - new_season['goals_against'])
+                        .toString(),
+                    style: TextStyle(
+                        color: Colors.grey[700],
+                        height: 1.5,
+                        fontSize: 14,
+                        fontWeight: FontWeight.normal),
+                  ))
+                ]),
+                DataRow(cells: [
+                  DataCell(Text(
+                    'Points',
+                    style: TextStyle(
+                        color: Colors.grey[700],
+                        height: 1.5,
+                        fontSize: 14,
+                        fontWeight: FontWeight.normal),
+                  )),
+                  DataCell(Text(
+                    new_season['points'].toString(),
+                    style: TextStyle(
+                        color: Colors.grey[700],
+                        height: 1.5,
+                        fontSize: 14,
+                        fontWeight: FontWeight.normal),
+                  ))
                 ]),
               ]),
             ),
@@ -581,346 +661,442 @@ class PlayerStats extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return market.details!['position'] == 'goalkeeper' ? SingleChildScrollView(
-      child: Padding(
-        padding: const EdgeInsets.only(top: 20.0),
-        child: Column(
-          children: [
-            Padding(
-              padding: const EdgeInsets.all(8.0),
-              child: DataTable(columns: [
-                DataColumn(
-                  label: Text('Saves',
-                    style: TextStyle(
-                        color: Colors.grey[700],
-                        height: 1.5,
-                        fontSize: 14,
-                        fontWeight: FontWeight.normal),),
-                ),
-                DataColumn(
-                  label: Text(new_season['saves'].toString(),
-                    style: TextStyle(
-                        color: Colors.grey[700],
-                        height: 1.5,
-                        fontSize: 14,
-                        fontWeight: FontWeight.normal),),
-                )
-              ], rows: [
-                DataRow(cells: [
-                  DataCell(Text('Inside box saves',
-                    style: TextStyle(
-                        color: Colors.grey[700],
-                        height: 1.5,
-                        fontSize: 14,
-                        fontWeight: FontWeight.normal),)),
-                  DataCell(Text(new_season['inside_box_saves'].toString(),
-                    style: TextStyle(
-                        color: Colors.grey[700],
-                        height: 1.5,
-                        fontSize: 14,
-                        fontWeight: FontWeight.normal),))
-                ]),
-                DataRow(cells: [
-                  DataCell(Text('Penalty saves',
-                    style: TextStyle(
-                        color: Colors.grey[700],
-                        height: 1.5,
-                        fontSize: 14,
-                        fontWeight: FontWeight.normal),)),
-                  DataCell(Text(new_season['penalty_saves'].toString(),
-                    style: TextStyle(
-                        color: Colors.grey[700],
-                        height: 1.5,
-                        fontSize: 14,
-                        fontWeight: FontWeight.normal),))
-                ]),
-                DataRow(cells: [
-                  DataCell(Text('Cleansheets',
-                    style: TextStyle(
-                        color: Colors.grey[700],
-                        height: 1.5,
-                        fontSize: 14,
-                        fontWeight: FontWeight.normal),)),
-                  DataCell(Text(new_season['cleansheets'].toString(),
-                    style: TextStyle(
-                        color: Colors.grey[700],
-                        height: 1.5,
-                        fontSize: 14,
-                        fontWeight: FontWeight.normal),))
-                ]),
-                DataRow(cells: [
-                  DataCell(Text('Points',
-                    style: TextStyle(
-                        color: Colors.grey[700],
-                        height: 1.5,
-                        fontSize: 14,
-                        fontWeight: FontWeight.normal),)),
-                  DataCell(Text(new_season['points'].toString(),
-                    style: TextStyle(
-                        color: Colors.grey[700],
-                        height: 1.5,
-                        fontSize: 14,
-                        fontWeight: FontWeight.normal),))
-                ]),
-                DataRow(cells: [
-                  DataCell(Text('Points per game',
-                    style: TextStyle(
-                        color: Colors.grey[700],
-                        height: 1.5,
-                        fontSize: 14,
-                        fontWeight: FontWeight.normal),)),
-                  DataCell(Text(new_season['points_per_game'].toString(),
-                    style: TextStyle(
-                        color: Colors.grey[700],
-                        height: 1.5,
-                        fontSize: 14,
-                        fontWeight: FontWeight.normal),))
-                ]),
-                DataRow(cells: [
-                  DataCell(Text('Ranking',
-                    style: TextStyle(
-                        color: Colors.grey[700],
-                        height: 1.5,
-                        fontSize: 14,
-                        fontWeight: FontWeight.normal),)),
-                  DataCell(Text(new_season['ranking'].toString(),
-                    style: TextStyle(
-                        color: Colors.grey[700],
-                        height: 1.5,
-                        fontSize: 14,
-                        fontWeight: FontWeight.normal),))
-                ]),
-              ]),
+    return market.details!['position'] == 'goalkeeper'
+        ? SingleChildScrollView(
+            child: Padding(
+              padding: const EdgeInsets.only(top: 20.0),
+              child: Column(
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.all(8.0),
+                    child: DataTable(columns: [
+                      DataColumn(
+                        label: Text(
+                          'Saves',
+                          style: TextStyle(
+                              color: Colors.grey[700],
+                              height: 1.5,
+                              fontSize: 14,
+                              fontWeight: FontWeight.normal),
+                        ),
+                      ),
+                      DataColumn(
+                        label: Text(
+                          new_season['saves'].toString(),
+                          style: TextStyle(
+                              color: Colors.grey[700],
+                              height: 1.5,
+                              fontSize: 14,
+                              fontWeight: FontWeight.normal),
+                        ),
+                      )
+                    ], rows: [
+                      DataRow(cells: [
+                        DataCell(Text(
+                          'Inside box saves',
+                          style: TextStyle(
+                              color: Colors.grey[700],
+                              height: 1.5,
+                              fontSize: 14,
+                              fontWeight: FontWeight.normal),
+                        )),
+                        DataCell(Text(
+                          new_season['inside_box_saves'].toString(),
+                          style: TextStyle(
+                              color: Colors.grey[700],
+                              height: 1.5,
+                              fontSize: 14,
+                              fontWeight: FontWeight.normal),
+                        ))
+                      ]),
+                      DataRow(cells: [
+                        DataCell(Text(
+                          'Penalty saves',
+                          style: TextStyle(
+                              color: Colors.grey[700],
+                              height: 1.5,
+                              fontSize: 14,
+                              fontWeight: FontWeight.normal),
+                        )),
+                        DataCell(Text(
+                          new_season['penalty_saves'].toString(),
+                          style: TextStyle(
+                              color: Colors.grey[700],
+                              height: 1.5,
+                              fontSize: 14,
+                              fontWeight: FontWeight.normal),
+                        ))
+                      ]),
+                      DataRow(cells: [
+                        DataCell(Text(
+                          'Cleansheets',
+                          style: TextStyle(
+                              color: Colors.grey[700],
+                              height: 1.5,
+                              fontSize: 14,
+                              fontWeight: FontWeight.normal),
+                        )),
+                        DataCell(Text(
+                          new_season['cleansheets'].toString(),
+                          style: TextStyle(
+                              color: Colors.grey[700],
+                              height: 1.5,
+                              fontSize: 14,
+                              fontWeight: FontWeight.normal),
+                        ))
+                      ]),
+                      DataRow(cells: [
+                        DataCell(Text(
+                          'Points',
+                          style: TextStyle(
+                              color: Colors.grey[700],
+                              height: 1.5,
+                              fontSize: 14,
+                              fontWeight: FontWeight.normal),
+                        )),
+                        // Cole final edits
+                        DataCell(new_season['points'] == null ? Text('0') : Text(
+                          new_season['points'].toString(),
+                          style: TextStyle(
+                              color: Colors.grey[700],
+                              height: 1.5,
+                              fontSize: 14,
+                              fontWeight: FontWeight.normal),
+                        ))
+                      ]),
+                      DataRow(cells: [
+                        DataCell(Text(
+                          'Points per game',
+                          style: TextStyle(
+                              color: Colors.grey[700],
+                              height: 1.5,
+                              fontSize: 14,
+                              fontWeight: FontWeight.normal),
+                        )),
+                        // Cole final edits
+                        DataCell(new_season['points_per_game'] == null ? Text('0') : Text(
+                          new_season['points_per_game'].toString(),
+                          style: TextStyle(
+                              color: Colors.grey[700],
+                              height: 1.5,
+                              fontSize: 14,
+                              fontWeight: FontWeight.normal),
+                        ))
+                      ]),
+                      DataRow(cells: [
+                        DataCell(Text(
+                          'Rank',
+                          style: TextStyle(
+                              color: Colors.grey[700],
+                              height: 1.5,
+                              fontSize: 14,
+                              fontWeight: FontWeight.normal),
+                        )),
+                        // Cole final edits
+                        DataCell(new_season['ranking'] == null ? Text('0') : Text(
+                          new_season['ranking'].toString(),
+                          style: TextStyle(
+                              color: Colors.grey[700],
+                              height: 1.5,
+                              fontSize: 14,
+                              fontWeight: FontWeight.normal),
+                        ))
+                      ]),
+                    ]),
+                  ),
+                ],
+              ),
             ),
-          ],
-        ),
-      ),
-    ) : SingleChildScrollView(
-      child: Padding(
-        padding: const EdgeInsets.only(top: 20.0),
-        child: Column(
-          children: [
-            Padding(
-              padding: const EdgeInsets.all(8.0),
-              child: DataTable(columns: [
-                DataColumn(
-                  label: Text('Goals',
-                    style: TextStyle(
-                        color: Colors.grey[700],
-                        height: 1.5,
-                        fontSize: 14,
-                        fontWeight: FontWeight.normal),),
-                ),
-                DataColumn(
-                  label: Text(new_season['goals'].toString(),
-                    style: TextStyle(
-                        color: Colors.grey[700],
-                        height: 1.5,
-                        fontSize: 14,
-                        fontWeight: FontWeight.normal),),
-                )
-              ], rows: [
-                DataRow(cells: [
-                  DataCell(Text('Assists',
-                    style: TextStyle(
-                        color: Colors.grey[700],
-                        height: 1.5,
-                        fontSize: 14,
-                        fontWeight: FontWeight.normal),)),
-                  DataCell(Text(new_season['assists'].toString(),
-                    style: TextStyle(
-                        color: Colors.grey[700],
-                        height: 1.5,
-                        fontSize: 14,
-                        fontWeight: FontWeight.normal),))
-                ]),
-                DataRow(cells: [
-                  DataCell(Text('Shots',
-                    style: TextStyle(
-                        color: Colors.grey[700],
-                        height: 1.5,
-                        fontSize: 14,
-                        fontWeight: FontWeight.normal),)),
-                  DataCell(Text(new_season['shots'].toString(),
-                    style: TextStyle(
-                        color: Colors.grey[700],
-                        height: 1.5,
-                        fontSize: 14,
-                        fontWeight: FontWeight.normal),))
-                ]),
-                DataRow(cells: [
-                  DataCell(Text('Shots on goal',
-                    style: TextStyle(
-                        color: Colors.grey[700],
-                        height: 1.5,
-                        fontSize: 14,
-                        fontWeight: FontWeight.normal),)),
-                  DataCell(Text(new_season['shots_on_goal'].toString(),
-                    style: TextStyle(
-                        color: Colors.grey[700],
-                        height: 1.5,
-                        fontSize: 14,
-                        fontWeight: FontWeight.normal),))
-                ]),
-                DataRow(cells: [
-                  DataCell(Text('Crosses',
-                    style: TextStyle(
-                        color: Colors.grey[700],
-                        height: 1.5,
-                        fontSize: 14,
-                        fontWeight: FontWeight.normal),)),
-                  DataCell(Text(new_season['crosses'].toString(),
-                    style: TextStyle(
-                        color: Colors.grey[700],
-                        height: 1.5,
-                        fontSize: 14,
-                        fontWeight: FontWeight.normal),))
-                ]),
-                DataRow(cells: [
-                  DataCell(Text('Accurate passes',
-                    style: TextStyle(
-                        color: Colors.grey[700],
-                        height: 1.5,
-                        fontSize: 14,
-                        fontWeight: FontWeight.normal),)),
-                  DataCell(Text(new_season['accurate_passes'].toString(),
-                    style: TextStyle(
-                        color: Colors.grey[700],
-                        height: 1.5,
-                        fontSize: 14,
-                        fontWeight: FontWeight.normal),))
-                ]),
-                DataRow(cells: [
-                  DataCell(Text('Fouls drawn',
-                    style: TextStyle(
-                        color: Colors.grey[700],
-                        height: 1.5,
-                        fontSize: 14,
-                        fontWeight: FontWeight.normal),)),
-                  DataCell(Text(new_season['fouls_drawn'].toString(),
-                    style: TextStyle(
-                        color: Colors.grey[700],
-                        height: 1.5,
-                        fontSize: 14,
-                        fontWeight: FontWeight.normal),))
-                ]),
-                DataRow(cells: [
-                  DataCell(Text('Fouls conceded',
-                    style: TextStyle(
-                        color: Colors.grey[700],
-                        height: 1.5,
-                        fontSize: 14,
-                        fontWeight: FontWeight.normal),)),
-                  DataCell(Text(new_season['fouls_conceded'].toString(),
-                    style: TextStyle(
-                        color: Colors.grey[700],
-                        height: 1.5,
-                        fontSize: 14,
-                        fontWeight: FontWeight.normal),))
-                ]),
-                DataRow(cells: [
-                  DataCell(Text('Interceptions',
-                    style: TextStyle(
-                        color: Colors.grey[700],
-                        height: 1.5,
-                        fontSize: 14,
-                        fontWeight: FontWeight.normal),)),
-                  DataCell(Text(new_season['interceptions'].toString(),
-                    style: TextStyle(
-                        color: Colors.grey[700],
-                        height: 1.5,
-                        fontSize: 14,
-                        fontWeight: FontWeight.normal),))
-                ]),
-                DataRow(cells: [
-                  DataCell(Text('Yellow cards',
-                    style: TextStyle(
-                        color: Colors.grey[700],
-                        height: 1.5,
-                        fontSize: 14,
-                        fontWeight: FontWeight.normal),)),
-                  DataCell(Text(new_season['yellow_cards'].toString(),
-                    style: TextStyle(
-                        color: Colors.grey[700],
-                        height: 1.5,
-                        fontSize: 14,
-                        fontWeight: FontWeight.normal),))
-                ]),
-                DataRow(cells: [
-                  DataCell(Text('Red cards',
-                    style: TextStyle(
-                        color: Colors.grey[700],
-                        height: 1.5,
-                        fontSize: 14,
-                        fontWeight: FontWeight.normal),)),
-                  DataCell(Text(new_season['red_cards'].toString(),
-                    style: TextStyle(
-                        color: Colors.grey[700],
-                        height: 1.5,
-                        fontSize: 14,
-                        fontWeight: FontWeight.normal),))
-                ]),
-                DataRow(cells: [
-                  DataCell(Text('Cleansheets',
-                    style: TextStyle(
-                        color: Colors.grey[700],
-                        height: 1.5,
-                        fontSize: 14,
-                        fontWeight: FontWeight.normal),)),
-                  DataCell(Text(new_season['cleansheets'].toString(),
-                    style: TextStyle(
-                        color: Colors.grey[700],
-                        height: 1.5,
-                        fontSize: 14,
-                        fontWeight: FontWeight.normal),))
-                ]),
-                DataRow(cells: [
-                  DataCell(Text('Points',
-                    style: TextStyle(
-                        color: Colors.grey[700],
-                        height: 1.5,
-                        fontSize: 14,
-                        fontWeight: FontWeight.normal),)),
-                  DataCell(Text(new_season['points'].toString(),
-                    style: TextStyle(
-                        color: Colors.grey[700],
-                        height: 1.5,
-                        fontSize: 14,
-                        fontWeight: FontWeight.normal),))
-                ]),
-                DataRow(cells: [
-                  DataCell(Text('Points per game',
-                    style: TextStyle(
-                        color: Colors.grey[700],
-                        height: 1.5,
-                        fontSize: 14,
-                        fontWeight: FontWeight.normal),)),
-                  DataCell(Text(new_season['points_per_game'].toString(),
-                    style: TextStyle(
-                        color: Colors.grey[700],
-                        height: 1.5,
-                        fontSize: 14,
-                        fontWeight: FontWeight.normal),))
-                ]),
-                DataRow(cells: [
-                  DataCell(Text('Ranking',
-                    style: TextStyle(
-                        color: Colors.grey[700],
-                        height: 1.5,
-                        fontSize: 14,
-                        fontWeight: FontWeight.normal),)),
-                  DataCell(Text(new_season['ranking'].toString(),
-                    style: TextStyle(
-                        color: Colors.grey[700],
-                        height: 1.5,
-                        fontSize: 14,
-                        fontWeight: FontWeight.normal),))
-                ]),
-              ]),
+          )
+        : SingleChildScrollView(
+            child: Padding(
+              padding: const EdgeInsets.only(top: 20.0),
+              child: Column(
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.all(8.0),
+                    child: DataTable(columns: [
+                      DataColumn(
+                        label: Text(
+                          'Goals',
+                          style: TextStyle(
+                              color: Colors.grey[700],
+                              height: 1.5,
+                              fontSize: 14,
+                              fontWeight: FontWeight.normal),
+                        ),
+                      ),
+                      DataColumn(
+                        label: Text(
+                          new_season['goals'].toString(),
+                          style: TextStyle(
+                              color: Colors.grey[700],
+                              height: 1.5,
+                              fontSize: 14,
+                              fontWeight: FontWeight.normal),
+                        ),
+                      )
+                    ], rows: [
+                      DataRow(cells: [
+                        DataCell(Text(
+                          'Assists',
+                          style: TextStyle(
+                              color: Colors.grey[700],
+                              height: 1.5,
+                              fontSize: 14,
+                              fontWeight: FontWeight.normal),
+                        )),
+                        DataCell(Text(
+                          new_season['assists'].toString(),
+                          style: TextStyle(
+                              color: Colors.grey[700],
+                              height: 1.5,
+                              fontSize: 14,
+                              fontWeight: FontWeight.normal),
+                        ))
+                      ]),
+                      DataRow(cells: [
+                        DataCell(Text(
+                          'Shots',
+                          style: TextStyle(
+                              color: Colors.grey[700],
+                              height: 1.5,
+                              fontSize: 14,
+                              fontWeight: FontWeight.normal),
+                        )),
+                        DataCell(Text(
+                          new_season['shots'].toString(),
+                          style: TextStyle(
+                              color: Colors.grey[700],
+                              height: 1.5,
+                              fontSize: 14,
+                              fontWeight: FontWeight.normal),
+                        ))
+                      ]),
+                      DataRow(cells: [
+                        DataCell(Text(
+                          'Shots on goal',
+                          style: TextStyle(
+                              color: Colors.grey[700],
+                              height: 1.5,
+                              fontSize: 14,
+                              fontWeight: FontWeight.normal),
+                        )),
+                        DataCell(Text(
+                          new_season['shots_on_goal'].toString(),
+                          style: TextStyle(
+                              color: Colors.grey[700],
+                              height: 1.5,
+                              fontSize: 14,
+                              fontWeight: FontWeight.normal),
+                        ))
+                      ]),
+                      DataRow(cells: [
+                        DataCell(Text(
+                          'Crosses',
+                          style: TextStyle(
+                              color: Colors.grey[700],
+                              height: 1.5,
+                              fontSize: 14,
+                              fontWeight: FontWeight.normal),
+                        )),
+                        DataCell(Text(
+                          new_season['crosses'].toString(),
+                          style: TextStyle(
+                              color: Colors.grey[700],
+                              height: 1.5,
+                              fontSize: 14,
+                              fontWeight: FontWeight.normal),
+                        ))
+                      ]),
+                      DataRow(cells: [
+                        DataCell(Text(
+                          'Accurate passes',
+                          style: TextStyle(
+                              color: Colors.grey[700],
+                              height: 1.5,
+                              fontSize: 14,
+                              fontWeight: FontWeight.normal),
+                        )),
+                        DataCell(Text(
+                          new_season['accurate_passes'].toString(),
+                          style: TextStyle(
+                              color: Colors.grey[700],
+                              height: 1.5,
+                              fontSize: 14,
+                              fontWeight: FontWeight.normal),
+                        ))
+                      ]),
+                      DataRow(cells: [
+                        DataCell(Text(
+                          'Fouls drawn',
+                          style: TextStyle(
+                              color: Colors.grey[700],
+                              height: 1.5,
+                              fontSize: 14,
+                              fontWeight: FontWeight.normal),
+                        )),
+                        DataCell(Text(
+                          new_season['fouls_drawn'].toString(),
+                          style: TextStyle(
+                              color: Colors.grey[700],
+                              height: 1.5,
+                              fontSize: 14,
+                              fontWeight: FontWeight.normal),
+                        ))
+                      ]),
+                      DataRow(cells: [
+                        DataCell(Text(
+                          'Fouls conceded',
+                          style: TextStyle(
+                              color: Colors.grey[700],
+                              height: 1.5,
+                              fontSize: 14,
+                              fontWeight: FontWeight.normal),
+                        )),
+                        DataCell(Text(
+                          new_season['fouls_conceded'].toString(),
+                          style: TextStyle(
+                              color: Colors.grey[700],
+                              height: 1.5,
+                              fontSize: 14,
+                              fontWeight: FontWeight.normal),
+                        ))
+                      ]),
+                      DataRow(cells: [
+                        DataCell(Text(
+                          'Interceptions',
+                          style: TextStyle(
+                              color: Colors.grey[700],
+                              height: 1.5,
+                              fontSize: 14,
+                              fontWeight: FontWeight.normal),
+                        )),
+                        DataCell(Text(
+                          new_season['interceptions'].toString(),
+                          style: TextStyle(
+                              color: Colors.grey[700],
+                              height: 1.5,
+                              fontSize: 14,
+                              fontWeight: FontWeight.normal),
+                        ))
+                      ]),
+                      DataRow(cells: [
+                        DataCell(Text(
+                          'Yellow cards',
+                          style: TextStyle(
+                              color: Colors.grey[700],
+                              height: 1.5,
+                              fontSize: 14,
+                              fontWeight: FontWeight.normal),
+                        )),
+                        DataCell(Text(
+                          new_season['yellow_cards'].toString(),
+                          style: TextStyle(
+                              color: Colors.grey[700],
+                              height: 1.5,
+                              fontSize: 14,
+                              fontWeight: FontWeight.normal),
+                        ))
+                      ]),
+                      DataRow(cells: [
+                        DataCell(Text(
+                          'Red cards',
+                          style: TextStyle(
+                              color: Colors.grey[700],
+                              height: 1.5,
+                              fontSize: 14,
+                              fontWeight: FontWeight.normal),
+                        )),
+                        DataCell(Text(
+                          new_season['red_cards'].toString(),
+                          style: TextStyle(
+                              color: Colors.grey[700],
+                              height: 1.5,
+                              fontSize: 14,
+                              fontWeight: FontWeight.normal),
+                        ))
+                      ]),
+                      DataRow(cells: [
+                        DataCell(Text(
+                          'Cleansheets',
+                          style: TextStyle(
+                              color: Colors.grey[700],
+                              height: 1.5,
+                              fontSize: 14,
+                              fontWeight: FontWeight.normal),
+                        )),
+                        DataCell(Text(
+                          new_season['cleansheets'].toString(),
+                          style: TextStyle(
+                              color: Colors.grey[700],
+                              height: 1.5,
+                              fontSize: 14,
+                              fontWeight: FontWeight.normal),
+                        ))
+                      ]),
+                      DataRow(cells: [
+                        DataCell(Text(
+                          'Points',
+                          style: TextStyle(
+                              color: Colors.grey[700],
+                              height: 1.5,
+                              fontSize: 14,
+                              fontWeight: FontWeight.normal),
+                        )),
+                        // Cole final edits
+                        DataCell(new_season['points'] == null ? Text('0') : Text(
+                          new_season['points'].toString(),
+                          style: TextStyle(
+                              color: Colors.grey[700],
+                              height: 1.5,
+                              fontSize: 14,
+                              fontWeight: FontWeight.normal),
+                        ))
+                      ]),
+                      DataRow(cells: [
+                        DataCell(Text(
+                          'Points per game',
+                          style: TextStyle(
+                              color: Colors.grey[700],
+                              height: 1.5,
+                              fontSize: 14,
+                              fontWeight: FontWeight.normal),
+                        )),
+                        // Cole final edits
+                        DataCell(new_season['points_per_game'] == null ? Text('0') : Text(
+                          new_season['points_per_game'].toString(),
+                          style: TextStyle(
+                              color: Colors.grey[700],
+                              height: 1.5,
+                              fontSize: 14,
+                              fontWeight: FontWeight.normal),
+                        ))
+                      ]),
+                      DataRow(cells: [
+                        DataCell(Text(
+                          'Rank',
+                          style: TextStyle(
+                              color: Colors.grey[700],
+                              height: 1.5,
+                              fontSize: 14,
+                              fontWeight: FontWeight.normal),
+                        )),
+                        // Cole final edits
+                        DataCell(new_season['ranking'] == null ? Text('0') : Text(
+                          new_season['ranking'].toString(),
+                          style: TextStyle(
+                              color: Colors.grey[700],
+                              height: 1.5,
+                              fontSize: 14,
+                              fontWeight: FontWeight.normal),
+                        ))
+                      ]),
+                    ]),
+                  ),
+                ],
+              ),
             ),
-          ],
-        ),
-      ),
-    );
+          );
   }
 }
