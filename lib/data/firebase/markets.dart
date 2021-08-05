@@ -16,7 +16,7 @@ Future<DocumentSnapshot> getMarketSnapshotById(String id) async {
 }
 
 class MarketFetcher {
-  DocumentSnapshot? lastDocument;
+  // DocumentSnapshot? lastDocument;
   late Query baseQuery;
   int? leagueID;
   String? marketType;
@@ -25,7 +25,6 @@ class MarketFetcher {
   List<Market>? alreadyLoaded;
 
   void setData({List<Market>? alreadyLoaded = null, String? search = null}) {
-
     this.alreadyLoaded = alreadyLoaded;
 
     if (alreadyLoaded != null) {
@@ -50,13 +49,19 @@ class MarketFetcher {
       if (results.docs.length > 0) {
         Map<String, dynamic>? holdings =
             await getMultipleCurrentHoldings(results.docs.map<String>((DocumentSnapshot snapshot) => snapshot.id).toList());
-        loadedResults.addAll(results.docs.map<Market>((DocumentSnapshot snapshot) {
-          if (snapshot.id.contains('T')) {
-            return TeamMarket.fromDocumentSnapshot(snapshot)..setCurrentHoldings(holdings![snapshot.id]);
-          } else {
-            return PlayerMarket.fromDocumentSnapshot(snapshot)..setCurrentHoldings(holdings![snapshot.id]);
+
+        List<String> loadedIds = loadedResults.map<String>((Market market) => market.id).toList();
+
+        results.docs.forEach((QueryDocumentSnapshot snapshot) {
+          if (!loadedIds.contains(snapshot.id)) {
+            if (snapshot.id.contains('T')) {
+              loadedResults.add(TeamMarket.fromDocumentSnapshot(snapshot)..setCurrentHoldings(holdings![snapshot.id]));
+            } else {
+              loadedResults.add(PlayerMarket.fromDocumentSnapshot(snapshot)..setCurrentHoldings(holdings![snapshot.id]));
+            }
           }
-        }));
+        });
+
       }
     }
   }
@@ -139,5 +144,3 @@ class TeamPlayerSearchMarketFetcher extends MarketFetcher {
     super.setData(alreadyLoaded: this.alreadyLoaded, search: search);
   }
 }
-
-

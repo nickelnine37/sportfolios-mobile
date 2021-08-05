@@ -24,7 +24,7 @@ class MarketTile extends StatelessWidget {
     this.imageHeight = 50.0,
     this.padding = const EdgeInsets.symmetric(vertical: 10, horizontal: 10),
   });
-
+  
   @override
   Widget build(BuildContext context) {
     return InkWell(
