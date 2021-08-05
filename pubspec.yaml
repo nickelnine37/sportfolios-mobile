@@ -41,6 +41,7 @@ dependencies:
   confetti: ^0.6.0-nullsafety
   flutter_colorpicker: ^0.4.0
   uuid: ^3.0.4
+  url_launcher: ^6.0.9
   
 dev_dependencies:
   flutter_test:
