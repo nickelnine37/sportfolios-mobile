@@ -1,13 +1,17 @@
 import 'package:flutter/material.dart';
-import 'package:sportfolios_alpha/plots/mini_donut_chart.dart';
-import 'package:sportfolios_alpha/screens/portfolio/comments.dart';
-import 'package:sportfolios_alpha/screens/portfolio/holdings.dart';
-import 'package:sportfolios_alpha/screens/portfolio/performance.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../plots/mini_donut_chart.dart';
+import '../portfolio/comments.dart';
+import '../portfolio/holdings.dart';
+import '../portfolio/performance.dart';
 import '../../data/objects/portfolios.dart';
+import 'leaderboard.dart';
+
 
 class ViewPortfolio extends StatefulWidget {
   final Portfolio portfolio;
-  ViewPortfolio(this.portfolio);
+
+  ViewPortfolio({required this.portfolio});
 
   @override
   _ViewPortfolioState createState() => _ViewPortfolioState();
@@ -15,11 +19,13 @@ class ViewPortfolio extends StatefulWidget {
 
 class _ViewPortfolioState extends State<ViewPortfolio> {
   Future<void>? portfoliosFuture;
-  bool liked = false;
+  bool? liked;
+  bool loading = false;
 
   @override
   void initState() {
     super.initState();
+    // liked = widget.userInfo.likedPortfolios.contains(widget.portfolio.id);
     portfoliosFuture = _getPortfolioInfo();
   }
 
@@ -32,6 +38,10 @@ class _ViewPortfolioState extends State<ViewPortfolio> {
 
   @override
   Widget build(BuildContext context) {
+    if (liked == null) {
+      liked = context.read(likedPortfolioProvider).portfolios.contains(widget.portfolio.id);
+    }
+
     return FutureBuilder(
       future: portfoliosFuture,
       builder: (BuildContext context, AsyncSnapshot snapshot) {
@@ -83,32 +93,62 @@ class _ViewPortfolioState extends State<ViewPortfolio> {
                 // ),
               ]),
               actions: [
-                IconButton(
-                    icon: Icon(liked ? Icons.favorite : Icons.favorite_border, color: Colors.white),
-                    onPressed: () {
-                      setState(() {
-                        liked = !liked;
-                      });
-                    }),
+                Stack(
+                  alignment: Alignment.center,
+                  children: [
+                    IconButton(
+                        icon: liked!
+                            ? Icon(
+                                Icons.favorite,
+                                color: Colors.red[400],
+                                size: 30,
+                              )
+                            : Icon(
+                                Icons.favorite_border,
+                                color: Colors.white,
+                                size: 30,
+                              ),
+                        onPressed: loading
+                            ? null
+                            : () async {
+                                setState(() {
+                                  loading = true;
+                                });
+
+                                if (liked!) {
+                                  context.read(likedPortfolioProvider).removeFavorite(widget.portfolio.id);
+                                  print('removing favourite: ${widget.portfolio.id}');
+                                } else {
+                                  context.read(likedPortfolioProvider).addNewFavorite(widget.portfolio.id);
+                                  print('adding favourite: ${widget.portfolio.id}');
+                                }
+
+                                await Future.delayed(Duration(seconds: 1));
+
+                                setState(() {
+                                  loading = false;
+                                  liked = !liked!;
+                                });
+                              }),
+                    Container(
+                      width: 10,
+                      height: 10,
+                      child: loading
+                          ? CircularProgressIndicator(
+                              color: Colors.white,
+                              strokeWidth: 2,
+                            )
+                          : null,
+                    )
+                  ],
+                ),
               ],
               bottom: TabBar(
                 labelPadding: EdgeInsets.all(5),
-                tabs: <Row>[
-                  Row(mainAxisAlignment: MainAxisAlignment.center, children: [
-                    Text('Holdings', style: TextStyle(fontSize: 14.0, color: Colors.white)),
-                    SizedBox(width: 8),
-                    Icon(Icons.donut_large, color: Colors.white, size: 17)
-                  ]),
-                  Row(mainAxisAlignment: MainAxisAlignment.center, children: [
-                    Text('Performance', style: TextStyle(fontSize: 14.0, color: Colors.white)),
-                    SizedBox(width: 8),
-                    Icon(Icons.show_chart, color: Colors.white, size: 17)
-                  ]),
-                  Row(mainAxisAlignment: MainAxisAlignment.center, children: [
-                    Text('Comments', style: TextStyle(fontSize: 14.0, color: Colors.white)),
-                    SizedBox(width: 8),
-                    Icon(Icons.chat_bubble, color: Colors.white, size: 17)
-                  ]),
+                tabs: <Icon>[
+                  Icon(Icons.donut_large, color: Colors.white, size: 21),
+                  Icon(Icons.timeline, color: Colors.white, size: 24),
+                  Icon(Icons.chat_bubble, color: Colors.white, size: 20),
                 ],
               ),
             ),

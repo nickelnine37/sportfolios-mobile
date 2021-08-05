@@ -242,35 +242,22 @@ class _PortfolioPageState extends State<PortfolioPage> {
                 ],
                 bottom: TabBar(
                   labelPadding: EdgeInsets.all(5),
-                  tabs: <Row>[
-                        Row(mainAxisAlignment: MainAxisAlignment.center, children: [
-                          Text('Holdings', style: TextStyle(fontSize: 14.0, color: Colors.white)),
-                          SizedBox(width: 8), 
-                          Icon(Icons.donut_large, color: Colors.white, size: 17)
-                        ]),
-                        Row(mainAxisAlignment: MainAxisAlignment.center, children: [
-                          Text('Performance', style: TextStyle(fontSize: 14.0, color: Colors.white)),
-                          SizedBox(width: 8),
-                          Icon(Icons.show_chart, color: Colors.white, size: 17)
-                        ]),
+                  tabs: <Icon>[
+                        Icon(Icons.donut_large, color: Colors.white, size: 21),
+                        Icon(Icons.timeline, color: Colors.white, size: 24),
                       ] +
-                      (portfolios[selectedPortfolioId]!.public
-                          ? <Row>[
-                              Row(mainAxisAlignment: MainAxisAlignment.center, children: [
-                                Text('Comments', style: TextStyle(fontSize: 14.0, color: Colors.white)),
-                                SizedBox(width: 8),
-                                Icon(Icons.chat_bubble, color: Colors.white, size: 17)
-                              ])
-                            ]
-                          : <Row>[]),
+                      (portfolios[selectedPortfolioId]!.public ? <Icon>[Icon(Icons.chat_bubble, color: Colors.white, size: 20)] : <Icon>[]),
                 ),
               ),
               body: TabBarView(
                 physics: NeverScrollableScrollPhysics(),
                 children: <Widget>[
-                  Holdings(portfolio: portfolios[selectedPortfolioId], owner: true),
-                  Performance(portfolios[selectedPortfolioId]),
-                ] + (portfolios[selectedPortfolioId]!.public ? <Widget>[PortfolioComments(portfolio: portfolios[selectedPortfolioId]!)] : <Widget>[]),
+                      Holdings(portfolio: portfolios[selectedPortfolioId], owner: true),
+                      Performance(portfolios[selectedPortfolioId]),
+                    ] +
+                    (portfolios[selectedPortfolioId]!.public
+                        ? <Widget>[PortfolioComments(portfolio: portfolios[selectedPortfolioId]!)]
+                        : <Widget>[]),
               ),
             ),
           );

@@ -55,8 +55,14 @@ class AuthService {
       UserCredential result = await _auth.createUserWithEmailAndPassword(email: email, password: password);
       await result.user!.updateDisplayName(username);
       CollectionReference users = FirebaseFirestore.instance.collection('users');
-      users.doc(result.user!.uid).set({'portfolios': [], 'username': result.user!.displayName}).catchError(
-          (error) => print("Failed to add user database entry: $error"));
+      users.doc(result.user!.uid).set({
+        'portfolios': [],
+        'username': result.user!.displayName,
+        'comments': {}, 
+        'liked_portfolios': []
+      }).catchError(
+        (error) => print("Failed to add user database entry: $error"),
+      );
       return null;
     } on FirebaseAuthException catch (error) {
       print('Error creating new user: ' + error.message!);

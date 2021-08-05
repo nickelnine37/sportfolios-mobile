@@ -63,7 +63,7 @@ class _MainViewState extends State<MainView> {
               Row(mainAxisAlignment: MainAxisAlignment.center, children: [
                 Text('Teams', style: TextStyle(fontSize: 15.0, color: Colors.white)),
                 SizedBox(width: 8),
-                Icon(Icons.group, size: 20, color: Colors.white)
+                Icon(Icons.groups, size: 24, color: Colors.white)
               ]),
               Row(mainAxisAlignment: MainAxisAlignment.center, children: [
                 Text('Players', style: TextStyle(fontSize: 15.0, color: Colors.white)),

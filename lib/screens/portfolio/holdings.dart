@@ -116,16 +116,8 @@ class _HoldingsState extends State<Holdings> {
               onRefresh: refreshHoldings,
               child: SingleChildScrollView(
                 child: Column(children: <Widget>[
-                  SizedBox(height: 20),
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 20),
-                    child: Align(
-                        child: Text(
-                          widget.portfolio!.description,
-                          style: TextStyle(),
-                        ),
-                        alignment: Alignment.centerLeft),
-                  ),
+                  SizedBox(height: 10),
+
                   Stack(
                     children: [
                       AnimatedDonutChart(widget.portfolio),
@@ -163,7 +155,39 @@ class _HoldingsState extends State<Holdings> {
                                   );
                           },
                         ),
-                      )
+                      ),
+                      Container(
+                        height: 286,
+                        width: double.infinity,
+                        alignment: Alignment.topLeft,
+                        child: Container(
+                          padding: EdgeInsets.all(15),
+                          child: IconButton(
+                            onPressed: () {
+                              showDialog(
+                                context: context,
+                                builder: (context) => AlertDialog(
+                                  title: Text(widget.portfolio!.name),
+                                  content: Text(
+                                    widget.portfolio!.description,
+                                    softWrap: true,
+                                  ),
+                                  actions: <Widget>[
+                                    TextButton(
+                                      child: const Text('OK'),
+                                      onPressed: () {
+                                        Navigator.of(context).pop();
+                                      },
+                                    ),
+                                  ],
+                                ),
+                              );
+                            },
+                            icon: Icon(Icons.info),
+                            color: Colors.grey[700],
+                          ),
+                        ),
+                      ),
                     ],
                   ),
                   Padding(
@@ -196,10 +220,10 @@ class _HoldingsState extends State<Holdings> {
                   // FadedText(text: 'hahahaha', maxHeight: 100),
 
                   SizedBox(height: 20),
-                  Text(
-                    'Holdings',
-                    style: TextStyle(fontSize: 19, color: Colors.grey[800], fontWeight: FontWeight.w400),
-                  ),
+                  // Text(
+                  //   'Holdings',
+                  //   style: TextStyle(fontSize: 19, color: Colors.grey[800], fontWeight: FontWeight.w400),
+                  // ),
                   SizedBox(height: 15),
                   widget.portfolio!.currentValues.length == 0
                       ? Text(
