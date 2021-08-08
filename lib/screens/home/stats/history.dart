@@ -597,6 +597,25 @@ class PlayerHistory extends StatelessWidget {
                       ]),
                       DataRow(cells: [
                         DataCell(Text(
+                          'Points per minute',
+                          style: TextStyle(
+                              color: Colors.grey[700],
+                              height: 1.5,
+                              fontSize: 14,
+                              fontWeight: FontWeight.normal),
+                        )),
+                        // Cole final edits
+                        DataCell(new_season['points_per_minute'] == null ? Text('0') : Text(
+                          new_season['points_per_minute'].toString(),
+                          style: TextStyle(
+                              color: Colors.grey[700],
+                              height: 1.5,
+                              fontSize: 14,
+                              fontWeight: FontWeight.normal),
+                        ))
+                      ]),
+                      DataRow(cells: [
+                        DataCell(Text(
                           'Rank',
                           style: TextStyle(
                               color: Colors.grey[700],
