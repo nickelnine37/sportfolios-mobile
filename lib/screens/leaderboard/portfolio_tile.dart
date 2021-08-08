@@ -16,7 +16,7 @@ class PortfolioTile extends StatelessWidget {
 
   final double upperTextSize = 17.0;
   final double lowerTextSize = 15.0;
-  final double spacing = 3.0;
+  final double spacing = 5.0;
 
   PortfolioTile({required this.portfolio, required this.returnsPeriod, required this.index});
 
@@ -72,10 +72,18 @@ class PortfolioTile extends StatelessWidget {
                             style: TextStyle(fontSize: upperTextSize),
                           ),
                           SizedBox(height: spacing),
-                          Text(
-                              '${portfolio.periodReturns[returnsPeriod]! < 0 ? '-' : '+'}${formatPercentage(portfolio.periodReturns[returnsPeriod]!.abs(), 'GBP')}',
-                              style: TextStyle(
-                                  fontSize: 12, color: portfolio.periodReturns[returnsPeriod]! >= 0 ? Colors.green[300] : Colors.red[300])),
+                          Row(
+                            children: [
+                              Text({'d': 'Last 24h: ', 'w': 'This week: ', 'm': 'This month: ', 'M': 'All time: '}[returnsPeriod]!,
+                                  style: TextStyle(fontSize: lowerTextSize, color: Colors.grey[600])),
+                              SizedBox(width: 5),
+                              Text(
+                                  '${portfolio.periodReturns[returnsPeriod]! < 0 ? '-' : '+'}${formatPercentage(portfolio.periodReturns[returnsPeriod]!.abs(), 'GBP')}',
+                                  style: TextStyle(
+                                      fontSize: lowerTextSize,
+                                      color: portfolio.periodReturns[returnsPeriod]! >= 0 ? Colors.green[300] : Colors.red[300])),
+                            ],
+                          ),
                         ],
                       )
                     ],

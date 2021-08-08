@@ -96,12 +96,24 @@ class ReturnsPortfolioFetcher extends QueryPortfolioFetcher {
 }
 
 class ContainingPortfolioFetcher extends QueryPortfolioFetcher {
-  WeeklyPortfolioFetcher(String marketId) {
+  ContainingPortfolioFetcher(String marketId) {
     baseQuery = FirebaseFirestore.instance
         .collection('portfolios')
         .where('active', isEqualTo: true)
         .where('public', isEqualTo: true)
         .where('markets', arrayContains: marketId)
+        .orderBy('current_value', descending: true)
+        .limit(10);
+  }
+}
+
+class SearchPortfolioFetcher extends QueryPortfolioFetcher {
+  SearchPortfolioFetcher(String search) {
+    baseQuery = FirebaseFirestore.instance
+        .collection('portfolios')
+        .where('active', isEqualTo: true)
+        .where('public', isEqualTo: true)
+        .where('search_terms', arrayContains: search)
         .orderBy('current_value', descending: true)
         .limit(10);
   }

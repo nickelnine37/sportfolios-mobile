@@ -5,11 +5,12 @@ import 'package:sportfolios_alpha/plots/price_chart.dart';
 import 'package:sportfolios_alpha/screens/home/market_tile.dart';
 import 'package:sportfolios_alpha/screens/home/options/header.dart';
 import 'package:sportfolios_alpha/screens/home/options/info_box.dart';
+import 'package:sportfolios_alpha/screens/leaderboard/portfolio_scroll.dart';
 import 'package:sportfolios_alpha/utils/numerical/arrays.dart';
 
 import '../../../data/objects/markets.dart';
 import '../app_bar.dart';
-import '../footers/stats.dart';
+import '../stats/stats.dart';
 import 'team_players.dart';
 import '../../../utils/design/colors.dart';
 import 'dart:math' as math;
@@ -608,7 +609,8 @@ class _PlayerDetailsState extends State<PlayerDetails> with SingleTickerProvider
                       SizedBox(height: 10),
                       PlayerPageHeader(selected == 0, widget.market, selected == 0 ? longInfo(context) : shortInfo(context)),
                       TabbedPriceGraph(
-                          priceHistory: widget.market.historicalLMSR!.getHistoricalValue((Array.fromList(selected == 0 ? <double>[10.0, 0.0] : <double>[0.0, 1.0]))),
+                          priceHistory: widget.market.historicalLMSR!
+                              .getHistoricalValue((Array.fromList(selected == 0 ? <double>[10.0, 0.0] : <double>[0.0, 1.0]))),
                           times: widget.market.historicalLMSR!.ts),
                       SizedBox(height: 10),
                       PageFooter(widget.market)
@@ -642,7 +644,38 @@ class PageFooter extends StatelessWidget {
                 height: 60,
                 child: Center(
                   child: ListTile(
-                    onTap: () {},
+                    onTap: () {
+                      Navigator.of(context).push(MaterialPageRoute(builder: (context) {
+                        return Scaffold(
+                            appBar: AppBar(
+                              toolbarHeight: 80,
+                              iconTheme: IconThemeData(color: Colors.white),
+                              title: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    'Portfolios featuring',
+                                    style: TextStyle(
+                                      color: Colors.white,
+                                      fontSize: 14
+                                    ),
+                                    softWrap: true,
+                                    maxLines: 2,
+                                  ),
+                                  Text(
+                                    market.name!,
+                                    style: TextStyle(
+                                      color: Colors.white,
+                                    ),
+                                    softWrap: true,
+                                    maxLines: 2,
+                                  ),
+                                ],
+                              ),
+                            ),
+                            body: MarketContainedPortfolioScroll(market.id));
+                      }));
+                    },
                     leading: SizedBox(
                       height: double.infinity,
                       child: Row(
