@@ -128,8 +128,8 @@ class PlayerMarket extends Market {
     name = splitLongName(snapshot['name'], 20, 'player');
 
     info1 = snapshot['country_flag'] + ' ' + snapshot['position'];
-    info2 = "Hey";
-    info3 = splitLongName(snapshot['team_name'], 15, 'team');
+    info2 = "0";
+    info3 = splitLongName(snapshot['team_name'], 17, 'team');
 
     team_id = '${snapshot['team_id']}:${snapshot['league_id']}:${snapshot['season_id']}T';
 

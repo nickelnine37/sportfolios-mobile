@@ -1,4 +1,6 @@
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
+import 'package:url_launcher/url_launcher.dart';
 import 'leagues_future.dart';
 
 /// the primary purpose of this parent widget for the Home page is to provide a scaffold with a
@@ -78,7 +80,24 @@ class _HomeState extends State<Home> {
                 // applicationLegalese: '\u{a9} 2014 The Flutter Authors',
                 aboutBoxChildren: [
                   SizedBox(height: 24),
-                  Text('Sportfolios is a ' + 'blah ' * 20, textAlign: TextAlign.justify),
+                  RichText(
+                      text: TextSpan(children: [
+                    TextSpan(
+                        style: TextStyle(color: Colors.grey[700]),
+                        text:
+                            'Thank you for being part of the Sportfolios Alpha - we look forward to your feedback! Feel free to get in touch with Ed and Cole any time at '),
+                    TextSpan(
+                      text: 'admin@sportfolios.co.uk',
+                      style: TextStyle(color: Colors.blue),
+                      recognizer: TapGestureRecognizer()
+                        ..onTap = () {
+                          String _url = 'mailto:admin@sportfolios.co.uk';
+                          void _launchURL() async => await canLaunch(_url) ? await launch(_url) : throw 'Could not launch $_url';
+                          _launchURL();
+                        },
+                    ),
+                    TextSpan(style: TextStyle(color: Colors.grey[700]), text: '.'),
+                  ]))
                 ],
               );
             else

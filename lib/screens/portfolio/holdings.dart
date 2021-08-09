@@ -1,6 +1,5 @@
 import 'dart:collection';
 import 'package:cloud_firestore/cloud_firestore.dart' as fire;
-import 'package:flutter/services.dart';
 import 'package:flutter_colorpicker/flutter_colorpicker.dart';
 
 import 'package:cached_network_image/cached_network_image.dart';
@@ -136,7 +135,8 @@ class _HoldingsState extends State<Holdings> {
                                       onPressed: () async {
                                         Color? color = await showDialog(
                                           context: context,
-                                          builder: (context) => PickAColor(widget.portfolio!.markets[asset]!),
+                                          builder: (context) =>
+                                              asset == 'cash' ? PickAColor('Cash') : PickAColor(widget.portfolio!.markets[asset]!.name!),
                                         );
                                         if (color != null) {
                                           await fire.FirebaseFirestore.instance
@@ -413,9 +413,9 @@ class _HoldingsState extends State<Holdings> {
 // }
 
 class PickAColor extends StatefulWidget {
-  final Market market;
+  final String name;
 
-  PickAColor(this.market);
+  PickAColor(this.name);
 
   @override
   _PickAColorState createState() => _PickAColorState();
@@ -427,7 +427,7 @@ class _PickAColorState extends State<PickAColor> {
   @override
   Widget build(BuildContext context) {
     return AlertDialog(
-      title: Text('Pick a color for ${widget.market.name}'),
+      title: Text('Pick a color for ${widget.name}'),
       content: SingleChildScrollView(
         child: ColorPicker(
           pickerColor: color,
