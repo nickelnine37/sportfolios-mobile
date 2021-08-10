@@ -47,7 +47,7 @@ class _TeamPlayersState extends State<TeamPlayers> {
         )),
         automaticallyImplyLeading: false,
         titleSpacing: 0,
-        toolbarHeight: 85,
+        toolbarHeight: 72,
         title: Column(children: [
           Row(
             mainAxisAlignment: MainAxisAlignment.start,
@@ -71,7 +71,7 @@ class _TeamPlayersState extends State<TeamPlayers> {
                   SizedBox(height: 2),
                   Text(
                     'Players',
-                    style: TextStyle(fontSize: 13.0, color: textColor, fontWeight: FontWeight.w400),
+                    style: TextStyle(fontSize: 15.0, color: textColor),  // fontWeight: FontWeight.w400),
                   )
                 ],
               ),

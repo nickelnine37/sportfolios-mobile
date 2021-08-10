@@ -72,11 +72,11 @@ class _PortfolioPageState extends State<PortfolioPage> {
     }
   }
 
-  Future<void> _refreshPortfolio(String portfolioId) async {
-    if (await portfolios[portfolioId]!.checkForUpdates()) {
-      portfolios[portfolioId] = (await _getFreshPortfolio(portfolioId))!;
-    }
-  }
+  // Future<void> _refreshPortfolio(String portfolioId) async {
+  //   if (await portfolios[portfolioId]!.checkForUpdates()) {
+  //     portfolios[portfolioId] = (await _getFreshPortfolio(portfolioId))!;
+  //   }
+  // }
 
   @override
   Widget build(BuildContext context) {

@@ -31,15 +31,6 @@ class PurchaseCompleteChangeNotifier with ChangeNotifier {
   Transaction? get transaction => _transaction;
   int? get transactionId => _transactionId;
 
-  // void setPortfolio(String? portfolioId) {
-  //   if (_portfolioId != portfolioId) {
-  //     _portfolioId = portfolioId;
-  //     print('Purchase made! notifying listeners!!!!!!!');
-  //     notifyListeners();
-  //     // _portfolio = null;
-  //   }
-  // }
-
   void registrNewTransaction(String portfolioId, Transaction transaction) {
     if (_transactionId == null) {
       _transactionId = 0;

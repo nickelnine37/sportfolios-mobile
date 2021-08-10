@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:sportfolios_alpha/utils/design/colors.dart';
 import '../../../data/objects/markets.dart';
 import '../../../utils/widgets/dialogues.dart';
 import 'details.dart';
@@ -35,7 +36,7 @@ class _StatsShowState extends State<StatsShow> with SingleTickerProviderStateMix
     });
     statsFuture = Future.wait([
       widget.market!.getStats(),
-      Future.delayed(Duration(seconds: 2)),
+      Future.delayed(Duration(seconds: 0)),
     ]);
   }
 
@@ -67,10 +68,22 @@ class _StatsShowState extends State<StatsShow> with SingleTickerProviderStateMix
             conditional_string = widget.market.toString();
             conditional_string = conditional_string!.substring(conditional_string!.length - 2, conditional_string!.length - 1);
 
+            Color background = fromHex(widget.market!.colours![0]);
+            Color? textColor = background.computeLuminance() > 0.5 ? Colors.grey[700] : Colors.white;
+
             return DefaultTabController(
               length: 2,
               child: Scaffold(
                 appBar: AppBar(
+                  flexibleSpace: Container(
+                      decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                        colors: [background, Colors.white],
+                        begin: const FractionalOffset(0.4, 0.5),
+                        end: const FractionalOffset(1, 0),
+                        stops: [0.0, 1.0],
+                        tileMode: TileMode.clamp),
+                  )),
                   bottom: TabBar(
                     controller: _tabController,
                     tabs: <Widget>[
@@ -78,136 +91,143 @@ class _StatsShowState extends State<StatsShow> with SingleTickerProviderStateMix
                         padding: const EdgeInsets.symmetric(vertical: 6.0),
                         child: Row(
                             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                            children: [Icon(Icons.info_outline, size: 20, color: Colors.white)]),
+                            children: [Icon(Icons.info_outline, size: 24, color: textColor)]),
                       ),
                       Padding(
                         padding: const EdgeInsets.symmetric(vertical: 6.0),
                         child: Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                            children: [Icon(Icons.history, size: 20, color: Colors.white)]),
+                            mainAxisAlignment: MainAxisAlignment.spaceEvenly, children: [Icon(Icons.history, size: 24, color: textColor)]),
                       ),
                     ],
                   ),
                   automaticallyImplyLeading: false,
                   titleSpacing: 0,
-                  toolbarHeight: 100,
-                  iconTheme: IconThemeData(color: Colors.white),
-                  title: infoSelected
-                      ? Padding(
-                          padding: const EdgeInsets.only(right: 20.0),
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            crossAxisAlignment: CrossAxisAlignment.start,
+                  toolbarHeight: 107,
+                  iconTheme: IconThemeData(color: textColor),
+                  title: Column(children: [
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.start,
                             children: [
-                              Row(
-                                mainAxisAlignment: MainAxisAlignment.start,
-                                children: [
-                                  IconButton(
-                                    color: Colors.white,
-                                    icon: Icon(
-                                      Icons.arrow_back,
-                                      size: 22,
-                                    ),
-                                    onPressed: () {
-                                      Navigator.of(context).pop();
-                                    },
-                                  ),
-                                  SizedBox(width: 10),
-                                  Container(child: CachedNetworkImage(imageUrl: widget.market!.imageURL!, height: 50)),
-                                  SizedBox(width: 15),
-                                  Column(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
-                                    children: [
-                                      Text(
-                                        widget.market!.name!,
-                                        style: TextStyle(fontSize: 23.0, color: Colors.white),
-                                      ),
-                                    ],
-                                  ),
-                                ],
+                              IconButton(
+                                color: textColor,
+                                icon: Icon(
+                                  Icons.arrow_back,
+                                  size: 22,
+                                ),
+                                onPressed: () {
+                                  Navigator.of(context).pop();
+                                },
                               ),
-                              Container(
-                                  child: CachedNetworkImage(
-                                      imageUrl: conditional_string == 'T'
-                                          ? new_season!['season_logo'].toString()
-                                          : new_season!['league_url'].toString(),
-                                      height: 50)),
-                            ],
-                          ),
-                        )
-                      : Padding(
-                          padding: const EdgeInsets.only(right: 20.0),
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Row(
+                              Container(child: CachedNetworkImage(imageUrl: widget.market!.imageURL!, height: 50)),
+                              SizedBox(width: 15),
+                              Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
-                                  IconButton(
-                                    color: Colors.white,
-                                    icon: Icon(
-                                      Icons.arrow_back,
-                                      size: 22,
-                                    ),
-                                    onPressed: () {
-                                      Navigator.of(context).pop();
-                                    },
-                                  ),
-                                  SizedBox(width: 10),
-                                  Container(child: CachedNetworkImage(imageUrl: widget.market!.imageURL!, height: 50)),
-                                  SizedBox(width: 15),
-                                  Column(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
-                                    children: [
-                                      GestureDetector(
-                                        onTap: () async {
-                                          String? newlySelectedSeason = await showDialog(
-                                            context: context,
-                                            builder: (context) {
-                                              return SeasonSelectorDialogue(seasons);
-                                            },
-                                          );
-                                          if (newlySelectedSeason != null && newlySelectedSeason != selectedSeason) {
-                                            setState(() {
-                                              selectedSeason = newlySelectedSeason;
-                                            });
-                                          }
+                                  Text(widget.market!.name!, style: TextStyle(fontSize: 23.0, color: textColor)),
+                                  SizedBox(height: 2),
+                                  Container(
+                                    height: 20, 
+                                    child: infoSelected ? Text(
+                                      'Details',
+                                      style: TextStyle(fontSize: 15.0, color: textColor),// fontWeight: FontWeight.w400),
+                                    ) : GestureDetector(
+                                    onTap: () async {
+                                      String? newlySelectedSeason = await showDialog(
+                                        context: context,
+                                        builder: (context) {
+                                          return SeasonSelectorDialogue(seasons);
                                         },
-                                        child: Row(
-                                          children: [
-                                            Text(selectedSeason!, style: TextStyle(fontSize: 23.0, color: Colors.white)),
-                                            SizedBox(height: 2),
-                                            Container(
-                                              padding: EdgeInsets.all(0),
-                                              width: 30,
-                                              height: 20,
-                                              child: Center(
-                                                child: Icon(Icons.arrow_drop_down, color: Colors.white),
-                                              ),
-                                            ),
-                                          ],
+                                      );
+                                      if (newlySelectedSeason != null && newlySelectedSeason != selectedSeason) {
+                                        setState(() {
+                                          selectedSeason = newlySelectedSeason;
+                                        });
+                                      }
+                                    },
+                                    child: Row(
+                                      crossAxisAlignment: CrossAxisAlignment.end,
+                                      children: [
+                                        Text(selectedSeason!, style: TextStyle(fontSize: 15.0, color: textColor)),
+                                        // SizedBox(hei: 1),.
+                                        Container(
+                                          padding: EdgeInsets.all(0),
+                                          width: 30,
+                                          height: 20,
+                                          child: Center(
+                                            child: Icon(Icons.arrow_drop_down, color: textColor),
+                                          ),
                                         ),
-                                      ),
-                                      Text(widget.market!.name!, style: TextStyle(fontSize: 13.0, color: Colors.white)),
-                                    ],
+                                      ],
+                                    ),
                                   ),
+                                  )
                                 ],
                               ),
-                              Container(
-                                  child: CachedNetworkImage(
-                                      imageUrl: conditional_string == 'T'
-                                          ? new_season!['season_logo'].toString()
-                                          : new_season!['league_url'].toString(),
-                                      height: 50)),
                             ],
                           ),
-                        ),
+                        ])
+                      // : Column(children: [
+                      //     Row(
+                      //       mainAxisAlignment: MainAxisAlignment.start,
+                      //       children: [
+                      //         IconButton(
+                      //           color: textColor,
+                      //           icon: Icon(
+                      //             Icons.arrow_back,
+                      //             size: 22,
+                      //           ),
+                      //           onPressed: () {
+                      //             Navigator.of(context).pop();
+                      //           },
+                      //         ),
+                      //         Container(child: CachedNetworkImage(imageUrl: widget.market!.imageURL!, height: 50)),
+                      //         SizedBox(width: 15),
+                      //         Column(
+                      //           crossAxisAlignment: CrossAxisAlignment.start,
+                      //           children: [
+                      //             Text(widget.market!.name!, style: TextStyle(fontSize: 23.0, color: textColor)),
+                      //             SizedBox(height: 2),
+                      //             GestureDetector(
+                      //               onTap: () async {
+                      //                 String? newlySelectedSeason = await showDialog(
+                      //                   context: context,
+                      //                   builder: (context) {
+                      //                     return SeasonSelectorDialogue(seasons);
+                      //                   },
+                      //                 );
+                      //                 if (newlySelectedSeason != null && newlySelectedSeason != selectedSeason) {
+                      //                   setState(() {
+                      //                     selectedSeason = newlySelectedSeason;
+                      //                   });
+                      //                 }
+                      //               },
+                      //               child: Row(
+                      //                 crossAxisAlignment: CrossAxisAlignment.end,
+                      //                 children: [
+                      //                   Text(selectedSeason!, style: TextStyle(fontSize: 15.0, color: textColor)),
+                      //                   // SizedBox(hei: 1),.
+                      //                   Container(
+                      //                     padding: EdgeInsets.all(0),
+                      //                     width: 30,
+                      //                     height: 20,
+                      //                     child: Center(
+                      //                       child: Icon(Icons.arrow_drop_down, color: textColor),
+                      //                     ),
+                      //                   ),
+                      //                 ],
+                      //               ),
+                      //             ),
+                      //           ],
+                      //         ),
+                      //       ],
+                      //     ),
+                      //   ]),
                 ),
                 body: TabBarView(
                   controller: _tabController,
                   children: [
                     conditional_string == 'T' ? TeamDetails(widget.market!) : PlayerDetails(widget.market!),
-                    conditional_string == 'T' ? TeamHistory(widget.market!, new_season) : PlayerHistory(widget.market!, new_season)
+                    conditional_string == 'T' ? TeamHistory(widget.market!, new_season!) : PlayerHistory(widget.market!, new_season!)
                   ],
                 ),
               ),

@@ -646,34 +646,7 @@ class PageFooter extends StatelessWidget {
                   child: ListTile(
                     onTap: () {
                       Navigator.of(context).push(MaterialPageRoute(builder: (context) {
-                        return Scaffold(
-                            appBar: AppBar(
-                              toolbarHeight: 80,
-                              iconTheme: IconThemeData(color: Colors.white),
-                              title: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    'Portfolios featuring',
-                                    style: TextStyle(
-                                      color: Colors.white,
-                                      fontSize: 14
-                                    ),
-                                    softWrap: true,
-                                    maxLines: 2,
-                                  ),
-                                  Text(
-                                    market.name!,
-                                    style: TextStyle(
-                                      color: Colors.white,
-                                    ),
-                                    softWrap: true,
-                                    maxLines: 2,
-                                  ),
-                                ],
-                              ),
-                            ),
-                            body: MarketContainedPortfolioScroll(market.id));
+                        return PortfoliosContaining(market);
                       }));
                     },
                     leading: SizedBox(
@@ -768,5 +741,64 @@ class PageFooter extends StatelessWidget {
                     Divider(thickness: 2)
                   ]
                 : <Widget>[MarketTile(market: market.team!, returnsPeriod: 'd'), Divider(thickness: 2)]));
+  }
+}
+
+class PortfoliosContaining extends StatelessWidget {
+  final Market market;
+
+  PortfoliosContaining(this.market);
+
+  @override
+  Widget build(BuildContext context) {
+    Color background = fromHex(market.colours![0]);
+    Color? textColor = background.computeLuminance() > 0.5 ? Colors.grey[700] : Colors.white;
+
+    return Scaffold(
+        appBar: AppBar(
+        flexibleSpace: Container(
+            decoration: BoxDecoration(
+          gradient: LinearGradient(
+              colors: [background, Colors.white],
+              begin: const FractionalOffset(0.4, 0.5),
+              end: const FractionalOffset(1, 0),
+              stops: [0.0, 1.0],
+              tileMode: TileMode.clamp),
+        )),
+        automaticallyImplyLeading: false,
+        titleSpacing: 0,
+        toolbarHeight: 72,
+        title: Column(children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.start,
+            children: [
+              IconButton(
+                color: textColor,
+                icon: Icon(
+                  Icons.arrow_back,
+                  size: 22,
+                ),
+                onPressed: () {
+                  Navigator.of(context).pop();
+                },
+              ),
+              Container(child: CachedNetworkImage(imageUrl: market.imageURL!, height: 50)),
+              SizedBox(width: 15),
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(market.name!, style: TextStyle(fontSize: 23.0, color: textColor)),
+                  SizedBox(height: 2),
+                  Text(
+                    'Portfolios containing',
+                    style: TextStyle(fontSize: 15.0, color: textColor), // fontWeight: FontWeight.w400),
+                  )
+                ],
+              ),
+            ],
+          ),
+        ]),
+      ),
+        body: MarketContainedPortfolioScroll(market.id));
   }
 }

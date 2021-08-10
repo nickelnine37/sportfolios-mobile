@@ -2,6 +2,7 @@ import 'dart:collection';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:sportfolios_alpha/utils/design/colors.dart';
 import '../data/objects/portfolios.dart';
 import '../utils/numerical/array_operations.dart';
 import '../utils/strings/number_format.dart';
@@ -210,7 +211,7 @@ class _DonutChartState extends State<DonutChart> {
                   range(nMarkets).map((int i) {
                     String marketId = marketIds[i];
 
-                    Color? color = widget.portfolio!.colours[marketId]!;
+                    Color? color = widget.portfolio!.colours[marketId] ?? fromHex(widget.portfolio!.markets[marketId]!.colours![0]);
 
                     if (spinning) {
                       return Center(
