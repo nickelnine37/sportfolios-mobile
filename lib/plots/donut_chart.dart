@@ -38,7 +38,7 @@ class AnimatedDonutChart extends StatefulWidget {
   _AnimatedDonutChartState createState() => _AnimatedDonutChartState();
 }
 
-class _AnimatedDonutChartState extends State<AnimatedDonutChart> {
+class _AnimatedDonutChartState extends State<AnimatedDonutChart> with SingleTickerProviderStateMixin {
   // this is highly hacky but I can't get the TweenAnimationBuilder to refire
   // unless I keep shifting its end value on each rebuild. So basically, its
   // incremented by one, and then the relevant amount is subtracted off endValue
@@ -46,37 +46,50 @@ class _AnimatedDonutChartState extends State<AnimatedDonutChart> {
   List<double>? binEdges;
   double radius = 100;
 
+  SplayTreeMap<String, double>? sortedValues;
+
+  Animation<double>? animation;
+  AnimationController? controller;
+
+
+  @override
+  void dispose() {
+    controller!.dispose();
+    super.dispose();
+  }
+
   @override
   Widget build(BuildContext context) {
 
-    SplayTreeMap<String, double> sortedValues = SplayTreeMap<String, double>.from(
-        widget.portfolio!.currentValues, (a, b) => widget.portfolio!.currentValues[a]! < widget.portfolio!.currentValues[b]! ? 1 : -1);
+    if (sortedValues == null) {
+      sortedValues = SplayTreeMap<String, double>.from(
+        widget.portfolio!.currentValues,
+        (a, b) => widget.portfolio!.currentValues[a]! < widget.portfolio!.currentValues[b]! ? 1 : -1,
+      );
 
-
-    binEdges = [0, widget.portfolio!.cash / widget.portfolio!.currentValue];
-    double runningTotal = widget.portfolio!.cash;
-    for (int i in range(sortedValues.length)) {
-      runningTotal += sortedValues.values.toList()[i];
-      binEdges!.add(runningTotal / widget.portfolio!.currentValue);
+      binEdges = [0, widget.portfolio!.cash / widget.portfolio!.currentValue];
+      double runningTotal = widget.portfolio!.cash;
+      for (int i in range(sortedValues!.length)) {
+        runningTotal += sortedValues!.values.toList()[i];
+        binEdges!.add(runningTotal / widget.portfolio!.currentValue);
+      }
     }
 
-    // increment endValue here
-    endValue += 1;
+    if (controller == null) {
+      controller = AnimationController(vsync: this, duration: Duration(milliseconds: 600));
+      animation = Tween<double>(begin: 0.0, end: 1.0).animate(CurvedAnimation(parent: controller!, curve: Curves.easeOutSine))
+        ..addListener(() {
+          setState(() {});
+        });
+      controller!.forward();
+    }
 
-    return TweenAnimationBuilder(
-      curve: Curves.easeOutSine,
-      duration: Duration(milliseconds: 600),
-      tween: Tween<double>(begin: 0, end: endValue),
-      builder: (_, double percentComlpete, __) {
-        return DonutChart(
-          portfolio: widget.portfolio,
-          edges: binEdges,
-          percentComplete: 1 + percentComlpete - endValue,
-          radius: 110, // hacky business
-          sortedValues: sortedValues
-        );
-      },
-    );
+    return DonutChart(
+        portfolio: widget.portfolio,
+        edges: binEdges,
+        percentComplete: animation!.value,
+        radius: 110, // hacky business
+        sortedValues: sortedValues!);
   }
 }
 
@@ -98,7 +111,7 @@ class DonutChart extends StatefulWidget {
     required this.edges,
     required this.percentComplete,
     required this.radius,
-    required this.sortedValues
+    required this.sortedValues,
   });
 
   @override
@@ -106,7 +119,7 @@ class DonutChart extends StatefulWidget {
 }
 
 class _DonutChartState extends State<DonutChart> {
-  double? width;    
+  double? width;
 
   double? height;
   int? nMarkets;
@@ -166,13 +179,13 @@ class _DonutChartState extends State<DonutChart> {
     // Container for central text. Change opacity with percentComplete
     Center centralText = currentSegment == null
         ? Center(
-          child: Text(formatCurrency(widget.portfolio!.currentValue, 'GBP'),
-              style: TextStyle(
-                fontWeight: FontWeight.w300,
-                fontSize: 28,
-                color: Colors.grey[800]!.withOpacity(widget.percentComplete),
-              )),
-        )
+            child: Text(formatCurrency(widget.portfolio!.currentValue, 'GBP'),
+                style: TextStyle(
+                  fontWeight: FontWeight.w300,
+                  fontSize: 28,
+                  color: Colors.grey[800]!.withOpacity(widget.percentComplete),
+                )),
+          )
         : Center(
             child: Text(
             '${marketNames[currentSegment!]}\n${formatCurrency(cashValues[currentSegment!], "GBP")}',
@@ -191,9 +204,7 @@ class _DonutChartState extends State<DonutChart> {
 
           if (newSelectedSegment != currentSegment) {
             // change notifier provider!
-            context.read(selectedAssetProvider).setAsset(newSelectedSegment == null
-                ? null
-                : marketIds[newSelectedSegment]);
+            context.read(selectedAssetProvider).setAsset(newSelectedSegment == null ? null : marketIds[newSelectedSegment]);
 
             setState(() {
               currentSegment = newSelectedSegment;
@@ -232,22 +243,15 @@ class _DonutChartState extends State<DonutChart> {
                           begin: Offset(upperOpacity, lowerWidth),
                           end: currentSegment == i
                               ? Offset(upperOpacity, upperWidth)
-                              : (currentSegment == null
-                                  ? Offset(upperOpacity, lowerWidth)
-                                  : Offset(lowerOpacity, lowerWidth))),
+                              : (currentSegment == null ? Offset(upperOpacity, lowerWidth) : Offset(lowerOpacity, lowerWidth))),
                       builder: (_, Offset offset, __) {
                         double opacity = offset.dx;
                         double width = offset.dy;
                         return Center(
                           child: CustomPaint(
-                              size: Size(2 * widget.radius + (width - lowerWidth),
-                                  2 * widget.radius + (width - lowerWidth)),
+                              size: Size(2 * widget.radius + (width - lowerWidth), 2 * widget.radius + (width - lowerWidth)),
                               painter: DonutSegmentPainter(
-                                  start: widget.edges![i],
-                                  end: widget.edges![i + 1],
-                                  color: color,
-                                  opacity: opacity,
-                                  strokeWidth: width)),
+                                  start: widget.edges![i], end: widget.edges![i + 1], color: color, opacity: opacity, strokeWidth: width)),
                         );
                       },
                     );
@@ -260,10 +264,8 @@ class _DonutChartState extends State<DonutChart> {
   /// Function that takes in an offset, which is the coordinates that have just been tapped
   /// by the user, and then calculates which segment of the donut should be highlighted.
   int? _getSegmentNumber(Offset offset) {
-
     // translate coordinates so that the origin is central
     Offset coords = offset - Offset(width! / 2, height! / 2);
-
 
     // if outside of a given radius, deselect all
     if (coords.distance < 0.7 * widget.radius || coords.distance > 1.3 * widget.radius) {
@@ -286,7 +288,6 @@ class _DonutChartState extends State<DonutChart> {
       else
         hi = mid;
     }
-
 
     return lo - 1;
   }

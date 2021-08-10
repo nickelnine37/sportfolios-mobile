@@ -85,7 +85,7 @@ class _PayoutGraphState extends State<PayoutGraph> {
                 selectedBar != null
                     ? '${widget.q.length - selectedBar!}${formatOrdinal(widget.q.length - selectedBar!)} place payout: ${formatCurrency(widget.q[selectedBar!], 'GBP')}'
                     : 'Payout Structure',
-                style: TextStyle(fontSize: 15, color: Colors.grey[800]),
+                style: TextStyle(fontSize: 15, color: Colors.grey[700]),
               ),
             ),
           ),

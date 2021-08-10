@@ -324,26 +324,33 @@ class _PriceGraphState extends State<PriceGraph> {
         Expanded(
           child: widget.moving!
               ? Container()
-              : Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              : Column(
+                  crossAxisAlignment: CrossAxisAlignment.center,
                   children: [
+                    Container(
+                      // color: Colors.grey[500],
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          // SizedBox(width: 15),
+                          Text(
+                            '${formatCurrency(widget.prices.first, 'GBP')} – ${formatCurrency(priceY ?? widget.prices.last, 'GBP')}',
+                            style: TextStyle(fontWeight: FontWeight.w300, fontSize: 20, color: Colors.grey[800]),
+                          ),
+                          SizedBox(width: 15),
+                          Text(
+                            '${returns! >= 0 ? "+" : ""}${formatPercentage(returns, 'GBP')}',
+                            style: TextStyle(fontWeight: FontWeight.w300, fontSize: 17, color: returns! >= 0 ? Colors.green : Colors.red),
+                          ),
+                          // SizedBox(height: 25),
+                        ],
+                      ),
+                    ),
                     Text(
-                      '${unixToDateString(widget.times.first)} – \n$dateX',
+                      '${unixToDateString(widget.times.first)} – $dateX',
                       textAlign: TextAlign.start,
-                      style: TextStyle(fontWeight: FontWeight.w300, fontSize: 15, color: Colors.grey[800]),
+                      style: TextStyle(fontWeight: FontWeight.w400, fontSize: 15, color: Colors.grey[600]),
                     ),
-                    // SizedBox(width: 15),
-                    Center(
-                        child: Text(
-                      '${formatCurrency(widget.prices.first, 'GBP')} – ${formatCurrency(priceY ?? widget.prices.last, 'GBP')}',
-                      style: TextStyle(fontWeight: FontWeight.w300, fontSize: 20, color: Colors.grey[800]),
-                    )),
-                    // SizedBox(width: 15),
-                    Text(
-                      '${returns! >= 0 ? "+" : "-"}${formatPercentage(returns, 'GBP')}',
-                      style: TextStyle(fontWeight: FontWeight.w300, fontSize: 17, color: returns! >= 0 ? Colors.green : Colors.red),
-                    ),
-                    // SizedBox(height: 25),
                   ],
                 ),
         ),

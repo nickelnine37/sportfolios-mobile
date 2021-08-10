@@ -104,124 +104,69 @@ class _StatsShowState extends State<StatsShow> with SingleTickerProviderStateMix
                   titleSpacing: 0,
                   toolbarHeight: 107,
                   iconTheme: IconThemeData(color: textColor),
-                  title: Column(children: [
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.start,
+                  title: Column(
+                    children: [
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.start,
+                        children: [
+                          IconButton(
+                            color: textColor,
+                            icon: Icon(Icons.arrow_back, size: 22),
+                            onPressed: () {
+                              Navigator.of(context).pop();
+                            },
+                          ),
+                          Container(child: CachedNetworkImage(imageUrl: widget.market!.imageURL!, height: 50)),
+                          SizedBox(width: 15),
+                          Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              IconButton(
-                                color: textColor,
-                                icon: Icon(
-                                  Icons.arrow_back,
-                                  size: 22,
-                                ),
-                                onPressed: () {
-                                  Navigator.of(context).pop();
-                                },
-                              ),
-                              Container(child: CachedNetworkImage(imageUrl: widget.market!.imageURL!, height: 50)),
-                              SizedBox(width: 15),
-                              Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(widget.market!.name!, style: TextStyle(fontSize: 23.0, color: textColor)),
-                                  SizedBox(height: 2),
-                                  Container(
-                                    height: 20, 
-                                    child: infoSelected ? Text(
-                                      'Details',
-                                      style: TextStyle(fontSize: 15.0, color: textColor),// fontWeight: FontWeight.w400),
-                                    ) : GestureDetector(
-                                    onTap: () async {
-                                      String? newlySelectedSeason = await showDialog(
-                                        context: context,
-                                        builder: (context) {
-                                          return SeasonSelectorDialogue(seasons);
+                              Text(widget.market!.name!, style: TextStyle(fontSize: 23.0, color: textColor)),
+                              SizedBox(height: 2),
+                              Container(
+                                height: 20,
+                                child: infoSelected
+                                    ? Text(
+                                        'Details',
+                                        style: TextStyle(fontSize: 15.0, color: textColor), // fontWeight: FontWeight.w400),
+                                      )
+                                    : GestureDetector(
+                                        onTap: () async {
+                                          String? newlySelectedSeason = await showDialog(
+                                            context: context,
+                                            builder: (context) {
+                                              return SeasonSelectorDialogue(seasons);
+                                            },
+                                          );
+                                          if (newlySelectedSeason != null && newlySelectedSeason != selectedSeason) {
+                                            setState(() {
+                                              selectedSeason = newlySelectedSeason;
+                                            });
+                                          }
                                         },
-                                      );
-                                      if (newlySelectedSeason != null && newlySelectedSeason != selectedSeason) {
-                                        setState(() {
-                                          selectedSeason = newlySelectedSeason;
-                                        });
-                                      }
-                                    },
-                                    child: Row(
-                                      crossAxisAlignment: CrossAxisAlignment.end,
-                                      children: [
-                                        Text(selectedSeason!, style: TextStyle(fontSize: 15.0, color: textColor)),
-                                        // SizedBox(hei: 1),.
-                                        Container(
-                                          padding: EdgeInsets.all(0),
-                                          width: 30,
-                                          height: 20,
-                                          child: Center(
-                                            child: Icon(Icons.arrow_drop_down, color: textColor),
-                                          ),
+                                        child: Row(
+                                          crossAxisAlignment: CrossAxisAlignment.end,
+                                          children: [
+                                            Text(selectedSeason!, style: TextStyle(fontSize: 15.0, color: textColor)),
+                                            // SizedBox(hei: 1),.
+                                            Container(
+                                              padding: EdgeInsets.all(0),
+                                              width: 30,
+                                              height: 20,
+                                              child: Center(
+                                                child: Icon(Icons.arrow_drop_down, color: textColor),
+                                              ),
+                                            ),
+                                          ],
                                         ),
-                                      ],
-                                    ),
-                                  ),
-                                  )
-                                ],
-                              ),
+                                      ),
+                              )
                             ],
                           ),
-                        ])
-                      // : Column(children: [
-                      //     Row(
-                      //       mainAxisAlignment: MainAxisAlignment.start,
-                      //       children: [
-                      //         IconButton(
-                      //           color: textColor,
-                      //           icon: Icon(
-                      //             Icons.arrow_back,
-                      //             size: 22,
-                      //           ),
-                      //           onPressed: () {
-                      //             Navigator.of(context).pop();
-                      //           },
-                      //         ),
-                      //         Container(child: CachedNetworkImage(imageUrl: widget.market!.imageURL!, height: 50)),
-                      //         SizedBox(width: 15),
-                      //         Column(
-                      //           crossAxisAlignment: CrossAxisAlignment.start,
-                      //           children: [
-                      //             Text(widget.market!.name!, style: TextStyle(fontSize: 23.0, color: textColor)),
-                      //             SizedBox(height: 2),
-                      //             GestureDetector(
-                      //               onTap: () async {
-                      //                 String? newlySelectedSeason = await showDialog(
-                      //                   context: context,
-                      //                   builder: (context) {
-                      //                     return SeasonSelectorDialogue(seasons);
-                      //                   },
-                      //                 );
-                      //                 if (newlySelectedSeason != null && newlySelectedSeason != selectedSeason) {
-                      //                   setState(() {
-                      //                     selectedSeason = newlySelectedSeason;
-                      //                   });
-                      //                 }
-                      //               },
-                      //               child: Row(
-                      //                 crossAxisAlignment: CrossAxisAlignment.end,
-                      //                 children: [
-                      //                   Text(selectedSeason!, style: TextStyle(fontSize: 15.0, color: textColor)),
-                      //                   // SizedBox(hei: 1),.
-                      //                   Container(
-                      //                     padding: EdgeInsets.all(0),
-                      //                     width: 30,
-                      //                     height: 20,
-                      //                     child: Center(
-                      //                       child: Icon(Icons.arrow_drop_down, color: textColor),
-                      //                     ),
-                      //                   ),
-                      //                 ],
-                      //               ),
-                      //             ),
-                      //           ],
-                      //         ),
-                      //       ],
-                      //     ),
-                      //   ]),
+                        ],
+                      ),
+                    ],
+                  ),
                 ),
                 body: TabBarView(
                   controller: _tabController,
