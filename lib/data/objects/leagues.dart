@@ -14,6 +14,9 @@ class League {
   String? imageURL;
   int? leagueID;
 
+  Map<String, Map>? playerTable;
+  Map<String, Map>? teamTable;
+
   League(this.id);
 
   League.fromSnapshot(DocumentSnapshot snapshot){
@@ -28,6 +31,10 @@ class League {
     endDate = data['end_date'].toDate();
     imageURL = data['image'];
     leagueID = data['league_id'];
+
+    playerTable =Map<String, Map>.from(data['tables']['players']);
+    teamTable = Map<String, Map>.from(data['tables']['teams']); 
+
   }
 
 }

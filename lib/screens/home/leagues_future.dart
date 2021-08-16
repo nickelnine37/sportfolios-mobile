@@ -107,6 +107,8 @@ class _HomeBodyState extends State<HomeBody> {
           return _buildScaffold(title: '', body: Center(child: CircularProgressIndicator()));
         } else if (snapshot.hasData) {
           List<League> leagues = snapshot.data;
+          List<int> order = [8, 9, 501, 564, 301, 82, 384];
+          leagues.sort((League l1, League l2) => order.indexOf(l1.leagueID!).compareTo(order.indexOf(l2.leagueID!)));
 
           // no leagues for this sport yet
           if (leagues.length == 0) {

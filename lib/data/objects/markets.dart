@@ -42,6 +42,7 @@ abstract class Market {
   String? info3;
   List<String>? colours;
   String? imageURL;
+  String? rawId;
 
   // stats
   Map<String, Map<String, dynamic>>? stats;
@@ -67,6 +68,8 @@ abstract class Market {
   void addSnapshotInfo(DocumentSnapshot snapshot) {
     doc = snapshot;
     id = snapshot.id;
+    rawId = snapshot.id.split(':')[0];
+
     name = snapshot['name'];
 
     if (snapshot['colours'] == null) {
@@ -108,7 +111,6 @@ abstract class Market {
     stats = Map<String, Map<String, dynamic>>.from(snapshot['stats']);
     details = Map<String, dynamic>.from(snapshot['details']);
   }
-
 }
 
 class PlayerMarket extends Market {
@@ -128,7 +130,7 @@ class PlayerMarket extends Market {
     name = splitLongName(snapshot['name'], 20, 'player');
 
     info1 = snapshot['country_flag'] + ' ' + snapshot['position'];
-    info2 = "0";
+    info2 = "PTS ${snapshot['points']}";
     info3 = splitLongName(snapshot['team_name'], 17, 'team');
 
     team_id = '${snapshot['team_id']}:${snapshot['league_id']}:${snapshot['season_id']}T';
@@ -211,7 +213,6 @@ class TeamMarket extends Market {
     info3 = "PTS ${snapshot['points']}";
     players = List<String>.from(snapshot['players'].map((playerId) => '$playerId:${snapshot['league_id']}:${snapshot['season_id']}}P'));
     firebaseMarketsRun = true;
-
   }
 
   Future<void> getSnapshotInfo() async {
