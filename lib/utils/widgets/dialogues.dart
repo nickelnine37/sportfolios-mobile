@@ -119,6 +119,8 @@ class SortByDialogue extends StatelessWidget {
   final List<String> options = [
     'Value (high to low)',
     'Value (low to high)',
+    'Position (top to bottom)',
+    'Position (bottom to top)',
     '24h return (high to low)',
     '24h return  (low to high)',
     'Week return (high to low)',
@@ -132,6 +134,8 @@ class SortByDialogue extends StatelessWidget {
   final List<List<dynamic>> sortBy = [
     ['long_price_current', true],
     ['long_price_current', false],
+    ['position', false],
+    ['position', true],
     ['long_price_returns_d', true],
     ['long_price_returns_d', false],
     ['long_price_returns_w', true],

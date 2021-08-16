@@ -129,7 +129,7 @@ class PlayerMarket extends Market {
     super.addSnapshotInfo(snapshot);
     name = splitLongName(snapshot['name'], 20, 'player');
 
-    info1 = snapshot['country_flag'] + ' ' + snapshot['position'];
+    info1 = snapshot['country_flag']; /// + ' ' + snapshot['role'];
     info2 = "PTS ${snapshot['points']}";
     info3 = splitLongName(snapshot['team_name'], 17, 'team');
 

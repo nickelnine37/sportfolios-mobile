@@ -184,7 +184,7 @@ class MarketScrollState extends State<MarketScroll> with AutomaticKeepAliveClien
                             setState(() {
                               sortByField = sortBy[0];
                               sortByDescending = sortBy[1];
-                              if (sortByField != 'long_price_current') {
+                              if (sortByField != 'long_price_current' && sortByField != 'position') {
                                 returnsPeriod = sortByField[sortByField.length - 1];
                               }
                               else{
