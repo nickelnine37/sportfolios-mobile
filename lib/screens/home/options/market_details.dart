@@ -428,11 +428,18 @@ class _PlayerDetailsState extends State<PlayerDetails> with SingleTickerProvider
       });
     });
 
-    updateState = Future.wait(<Future>[
+    updateState = getServerInfo();
+  }
+
+  Future<void> getServerInfo() async {
+    await Future.wait(<Future>[
       widget.market.getCurrentHoldings(),
       widget.market.getHistoricalHoldings(),
       widget.market.getTeamInfo(),
     ]);
+    print('got the first bit');
+    await widget.market.team!.getCurrentHoldings();
+    print('got the seconf nit');
   }
 
   InfoBox longInfo(BuildContext context) {
@@ -591,7 +598,7 @@ class _PlayerDetailsState extends State<PlayerDetails> with SingleTickerProvider
         body: FutureBuilder(
           future: updateState,
           builder: (BuildContext context, AsyncSnapshot snapshot) {
-            if (snapshot.hasData) {
+            if (snapshot.connectionState == ConnectionState.done) {
               return RefreshIndicator(
                 onRefresh: () async {
                   setState(() {
@@ -756,49 +763,49 @@ class PortfoliosContaining extends StatelessWidget {
 
     return Scaffold(
         appBar: AppBar(
-        flexibleSpace: Container(
-            decoration: BoxDecoration(
-          gradient: LinearGradient(
-              colors: [background, Colors.white],
-              begin: const FractionalOffset(0.4, 0.5),
-              end: const FractionalOffset(1, 0),
-              stops: [0.0, 1.0],
-              tileMode: TileMode.clamp),
-        )),
-        automaticallyImplyLeading: false,
-        titleSpacing: 0,
-        toolbarHeight: 72,
-        title: Column(children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.start,
-            children: [
-              IconButton(
-                color: textColor,
-                icon: Icon(
-                  Icons.arrow_back,
-                  size: 22,
+          flexibleSpace: Container(
+              decoration: BoxDecoration(
+            gradient: LinearGradient(
+                colors: [background, Colors.white],
+                begin: const FractionalOffset(0.4, 0.5),
+                end: const FractionalOffset(1, 0),
+                stops: [0.0, 1.0],
+                tileMode: TileMode.clamp),
+          )),
+          automaticallyImplyLeading: false,
+          titleSpacing: 0,
+          toolbarHeight: 72,
+          title: Column(children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.start,
+              children: [
+                IconButton(
+                  color: textColor,
+                  icon: Icon(
+                    Icons.arrow_back,
+                    size: 22,
+                  ),
+                  onPressed: () {
+                    Navigator.of(context).pop();
+                  },
                 ),
-                onPressed: () {
-                  Navigator.of(context).pop();
-                },
-              ),
-              Container(child: CachedNetworkImage(imageUrl: market.imageURL!, height: 50)),
-              SizedBox(width: 15),
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(market.name!, style: TextStyle(fontSize: 23.0, color: textColor)),
-                  SizedBox(height: 2),
-                  Text(
-                    'Portfolios containing',
-                    style: TextStyle(fontSize: 15.0, color: textColor), // fontWeight: FontWeight.w400),
-                  )
-                ],
-              ),
-            ],
-          ),
-        ]),
-      ),
+                Container(child: CachedNetworkImage(imageUrl: market.imageURL!, height: 50)),
+                SizedBox(width: 15),
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(market.name!, style: TextStyle(fontSize: 23.0, color: textColor)),
+                    SizedBox(height: 2),
+                    Text(
+                      'Portfolios containing',
+                      style: TextStyle(fontSize: 15.0, color: textColor), // fontWeight: FontWeight.w400),
+                    )
+                  ],
+                ),
+              ],
+            ),
+          ]),
+        ),
         body: MarketContainedPortfolioScroll(market.id));
   }
 }
