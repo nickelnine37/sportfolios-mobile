@@ -78,8 +78,9 @@ class _TeamHistoryState extends State<TeamHistory> {
                   ],
                 ),
                 SizedBox(height: 10),
-                TeamTable(table: tableData!, teamId: widget.market.id),
+                TeamTable(table: tableData!, marketId: widget.market.id),
                 SizedBox(height: 20),
+                TeamStatsTable(widget.market.stats![widget.selectedSeason]!)
               ],
             ));
           } else {

@@ -85,9 +85,11 @@ class _StatsShowState extends State<StatsShow> with SingleTickerProviderStateMix
             Color? textColor = background.computeLuminance() > 0.5 ? Colors.grey[700] : Colors.white;
 
             return DefaultTabController(
+              
               length: 2,
               child: Scaffold(
                 appBar: AppBar(
+                
                   flexibleSpace: Container(
                       decoration: BoxDecoration(
                     gradient: LinearGradient(
@@ -182,6 +184,7 @@ class _StatsShowState extends State<StatsShow> with SingleTickerProviderStateMix
                   ),
                 ),
                 body: TabBarView(
+                  physics: NeverScrollableScrollPhysics(),
                   controller: _tabController,
                   children: [
                     conditional_string == 'T'

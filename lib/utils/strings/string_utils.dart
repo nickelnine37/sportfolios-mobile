@@ -42,3 +42,24 @@ List<String> getAllSearchTerms(List<String> allNames) {
   return out.toSet().toList();
 
 }
+
+String splitLongName(String name, int maxLen, String type) {
+  if (name.length > maxLen) {
+    List names = name.split(" ");
+    if (names.length > 2) {
+      if (type == 'player') {
+        name = names.first + ' ' + names.last;
+      } else {
+        name = names.first + ' ' + names[1];
+      }
+    } else {
+      if (type == 'player') {
+        name = names.last;
+      } else {
+        name = names.first;
+      }
+    }
+  }
+
+  return name;
+}

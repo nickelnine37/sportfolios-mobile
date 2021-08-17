@@ -47,7 +47,9 @@ class TeamCurrentDetails extends StatelessWidget {
             ],
           ),
         ),
-        TeamTable(table: league.teamTable!, teamId: market.id)
+        TeamTable(table: league.teamTable!, marketId: market.id),
+        SizedBox(height: 20),
+        TeamStatsTable(market.currentStats!),
       ]),
     );
   }
@@ -62,23 +64,29 @@ class PlayerCurrentDetails extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return SingleChildScrollView(
-      child: Column(children: <Widget>[
-        SixGrid(titles: [
-          'Full Name',
-          'Nationality',
-          'Birth date',
-          'Position',
-          'Height',
-          'Weight'
-        ], values: [
-          market.details!['fullname'].toString(),
-          market.details!['nationality'].toString(),
-          market.details!['birthdate'].toString(),
-          market.details!['position'].toString(),
-          market.details!['height'].toString(),
-          market.details!['weight'].toString(),
-        ]),
-      ]),
+      child: Column(
+        children: <Widget>[
+          SixGrid(
+            titles: [
+              'Full Name',
+              'Nationality',
+              'Birth date',
+              'Position',
+              'Height',
+              'Weight',
+            ],
+            values: [
+              market.details!['fullname'].toString(),
+              market.details!['nationality'].toString(),
+              market.details!['birthdate'].toString(),
+              market.details!['position'].toString(),
+              market.details!['height'].toString(),
+              market.details!['weight'].toString(),
+            ],
+          ),
+          PlayerTable(league.playerTable!, market.id)
+        ],
+      ),
     );
   }
 }

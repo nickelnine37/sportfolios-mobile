@@ -1,29 +1,12 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+
+import '../../utils/strings/string_utils.dart';
 import '../../utils/numerical/arrays.dart';
 import '../../data/utils/casting.dart';
 import '../api/requests.dart';
 import '../lmsr/lmsr.dart';
 
-String splitLongName(String name, int maxLen, String type) {
-  if (name.length > maxLen) {
-    List names = name.split(" ");
-    if (names.length > 2) {
-      if (type == 'player') {
-        name = names.first + ' ' + names.last;
-      } else {
-        name = names.first + ' ' + names[1];
-      }
-    } else {
-      if (type == 'player') {
-        name = names.last;
-      } else {
-        name = names.first;
-      }
-    }
-  }
 
-  return name;
-}
 
 abstract class Market {
   // ----- core attributes -----
