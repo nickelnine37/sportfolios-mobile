@@ -84,7 +84,9 @@ class PlayerCurrentDetails extends StatelessWidget {
               market.details!['weight'].toString(),
             ],
           ),
-          PlayerTable(league.playerTable!, market.id)
+          PlayerTable(league.playerTable!, market.id),
+          SizedBox(height: 20),
+          PlayerStatsTable(market.currentStats!)
         ],
       ),
     );

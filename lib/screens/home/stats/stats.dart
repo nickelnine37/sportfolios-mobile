@@ -203,7 +203,7 @@ class _StatsShowState extends State<StatsShow> with SingleTickerProviderStateMix
                           )
                         : PlayerHistory(
                             widget.market!,
-                            {},
+                            selectedSeason!,
                           )
                   ],
                 ),

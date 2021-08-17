@@ -364,43 +364,149 @@ class TeamStatsTable extends StatelessWidget {
         rows: homeAwayStats
             .map(
               (String stat) => DataRow(
-                  cells: [
-                    DataCell(
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          SizedBox(height: 5),
-                          Text(
-                            homeAwayStatsTitles[stat]!,
-                            style: TextStyle(fontWeight: FontWeight.bold),
-                          ),
-                          SizedBox(height: 5),
-                          Text('       Home'),
-                          Text('       Away'),
-                          Text('       Total'),
-                        ],
-                      ),
+                cells: [
+                  DataCell(
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        SizedBox(height: 5),
+                        Text(
+                          homeAwayStatsTitles[stat]!,
+                          style: TextStyle(fontWeight: FontWeight.bold),
+                        ),
+                        SizedBox(height: 5),
+                        Text('       Home'),
+                        Text('       Away'),
+                        Text('       Total'),
+                      ],
                     ),
-                    DataCell(
-                      Column(
-                        children: [
-                          SizedBox(height: 5),
-                          Text(''),
-                          SizedBox(height: 5),
-                          Text(statsTable[stat]['home'].toString()),
-                          Text(statsTable[stat]['away'].toString()),
-                          Text(statsTable[stat]['total'].toString()),
-                        ],
-                      ),
+                  ),
+                  DataCell(
+                    Column(
+                      children: [
+                        SizedBox(height: 5),
+                        Text(''),
+                        SizedBox(height: 5),
+                        Text(statsTable[stat]['home'].toString()),
+                        Text(statsTable[stat]['away'].toString()),
+                        Text(statsTable[stat]['total'].toString()),
+                      ],
                     ),
-                  ],
-                  color: MaterialStateProperty.resolveWith<Color?>((Set<MaterialState> states) {
+                  ),
+                ],
+                color: MaterialStateProperty.resolveWith<Color?>(
+                  (Set<MaterialState> states) {
                     // Even rows will have a grey color.
                     if (homeAwayStats.indexOf(stat).isEven) {
                       return Colors.grey.withOpacity(0.15);
                     }
                     return null; // Use default value for other states and odd rows.
-                  })),
+                  },
+                ),
+              ),
+            )
+            .toList(),
+      ),
+    );
+  }
+}
+
+class PlayerStatsTable extends StatelessWidget {
+  final Map statsTable;
+
+  final List<String> stats = [
+    'Points',
+    'Points per Minute',
+    'Appearences',
+    'Lineups',
+    'Minutes',
+    'Goals',
+    'Assists',
+    'Owngoals',
+    'Key Passes',
+    'Passing Accuracy',
+    'Passes Total',
+    'Blocks',
+    'Cleansheets',
+    'Penalties Committed',
+    'Penalties Missed',
+    'Penalties Saves',
+    'Inside Box Saves',
+    'Saves',
+    'Tackles',
+    'Interceptions',
+    'Duels Total',
+    'Duels Won',
+    'Fouls Committed',
+    'Fouls drawn',
+    'Red Cards',
+    'Yellow Cards',
+    'Yellowreds'
+  ];
+
+  late List<String> data;
+
+  PlayerStatsTable(this.statsTable) {
+    data = [
+      (statsTable['points'] ?? 0).toString(),
+      (statsTable['points_per_minute'] ?? 0).toStringAsFixed(4),
+      (statsTable['appearences'] ?? 0).toString(),
+      (statsTable['lineups'] ?? 0).toString(),
+      (statsTable['minutes'] ?? 0).toString(),
+      (statsTable['goals'] ?? 0).toString(),
+     (statsTable['assists'] ?? 0).toString(),
+      (statsTable['owngoals'] ?? 0).toString(),
+      (statsTable['passes']!['key_passes'] ?? 0).toString(),
+      (statsTable['passes']!['accuracy'] ?? 0).toString(),
+      (statsTable['passes']!['total'] ?? 0).toString(),
+      (statsTable['blocks'] ?? 0).toString(),
+      (statsTable['cleansheets'] ?? 0).toString(),
+      (statsTable['penalties']!['committed'] ?? 0).toString(),
+      (statsTable['penalties']!['missed'] ?? 0).toString(),
+      (statsTable['penalties']!['saves'] ?? 0).toString(),
+      (statsTable['inside_box_saves'] ?? 0).toString(),
+      (statsTable['saves'] ?? 0).toString(),
+      (statsTable['tackles'] ?? 0).toString(),
+      (statsTable['interceptions'] ?? 0).toString(),
+      (statsTable['duels']!['total'] ?? 0).toString(),
+      (statsTable['duels']!['won'] ?? 0).toString(),
+      (statsTable['fouls']!['committed'] ?? 0).toString(),
+      (statsTable['fouls']!['drawn'] ?? 0).toString(),
+      (statsTable['redcards'] ?? 0).toString(),
+      (statsTable['yellowcards'] ?? 0).toString(),
+      (statsTable['yellowred'] ?? 0).toString()
+    ];
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 20.0),
+      child: DataTable(
+        dataRowHeight: 40,
+        columnSpacing: 15,
+        horizontalMargin: 20,
+        columns: [
+          DataColumn(label: Text('Stat'), numeric: false),
+          DataColumn(label: Text('Value'), numeric: true),
+        ],
+        rows: range(stats.length)
+            .map<DataRow>(
+              (int i) => DataRow(
+                cells: [
+                  DataCell(Text(stats[i])),
+                  DataCell(Text(data[i])),
+                ],
+                color: MaterialStateProperty.resolveWith<Color?>(
+                  (Set<MaterialState> states) {
+                    // Even rows will have a grey color.
+                    if (i.isEven) {
+                      return Colors.grey.withOpacity(0.15);
+                    }
+                    return null; // Use default value for other states and odd rows.
+                  },
+                ),
+              ),
             )
             .toList(),
       ),
