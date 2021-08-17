@@ -1,7 +1,8 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
-import 'package:sportfolios_alpha/utils/numerical/arrays.dart';
 
+import '../../data/objects/leagues.dart';
+import '../../utils/numerical/arrays.dart';
 import 'options/market_details.dart';
 import '../../utils/strings/number_format.dart';
 import '../../data/objects/markets.dart';
@@ -12,6 +13,7 @@ class MarketTile extends StatelessWidget {
   final double imageHeight;
   final EdgeInsets padding;
   final String? returnsPeriod;
+  final League? league;
 
   final double upperTextSize = 16.0;
   final double lowerTextSize = 12.0;
@@ -20,6 +22,7 @@ class MarketTile extends StatelessWidget {
   MarketTile({
     required this.market,
     required this.returnsPeriod,
+    required this.league,
     this.height = 115.0,
     this.imageHeight = 50.0,
     this.padding = const EdgeInsets.symmetric(vertical: 10, horizontal: 10),
@@ -31,9 +34,9 @@ class MarketTile extends StatelessWidget {
       onTap: () {
         Navigator.of(context).push(MaterialPageRoute<void>(builder: (BuildContext context) {
           if (market.runtimeType == TeamMarket) {
-            return TeamDetails(market);
+            return TeamDetails(market, league);
           } else {
-            return PlayerDetails(market);
+            return PlayerDetails(market, league);
           }
         }));
       },

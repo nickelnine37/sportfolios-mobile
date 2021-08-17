@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:cached_network_image/cached_network_image.dart';
-import 'package:sportfolios_alpha/utils/design/colors.dart';
+
+import '../../../data/objects/leagues.dart';
+import '../../../utils/design/colors.dart';
 import '../../../data/objects/markets.dart';
 import '../../../utils/widgets/dialogues.dart';
 import 'details.dart';
@@ -8,9 +10,14 @@ import 'history.dart';
 
 class StatsShow extends StatefulWidget {
   final Market? market;
+  final League? league;
   final String initialSeason;
 
-  StatsShow(this.market, this.initialSeason);
+  StatsShow(
+    this.market,
+    this.initialSeason,
+    this.league,
+  );
 
   @override
   _StatsShowState createState() => _StatsShowState();
@@ -21,6 +28,7 @@ class _StatsShowState extends State<StatsShow> with SingleTickerProviderStateMix
   String? selectedSeason;
   List<String>? seasons;
   String? conditional_string;
+  League? league;
 
   TabController? _tabController;
   bool infoSelected = true;
@@ -34,10 +42,15 @@ class _StatsShowState extends State<StatsShow> with SingleTickerProviderStateMix
         infoSelected = _tabController!.index == 0;
       });
     });
-    statsFuture = Future.wait([
-      widget.market!.getStats(),
-      Future.delayed(Duration(seconds: 0)),
-    ]);
+    statsFuture = Future.wait([widget.market!.getStats(), getLeague()]);
+  }
+
+  Future<void> getLeague() async {
+    if (widget.league == null) {
+      league = await getLeagueById(widget.market!.leagueId!);
+    } else {
+      league = widget.league;
+    }
   }
 
   @override
@@ -171,8 +184,24 @@ class _StatsShowState extends State<StatsShow> with SingleTickerProviderStateMix
                 body: TabBarView(
                   controller: _tabController,
                   children: [
-                    conditional_string == 'T' ? TeamDetails(widget.market!) : PlayerDetails(widget.market!),
-                    conditional_string == 'T' ? TeamHistory(widget.market!, new_season!) : PlayerHistory(widget.market!, new_season!)
+                    conditional_string == 'T'
+                        ? TeamCurrentDetails(
+                            widget.market!,
+                            league!,
+                          )
+                        : PlayerCurrentDetails(
+                            widget.market!,
+                            league!,
+                          ),
+                    conditional_string == 'T'
+                        ? TeamHistory(
+                            widget.market!,
+                            new_season!,
+                          )
+                        : PlayerHistory(
+                            widget.market!,
+                            new_season!,
+                          )
                   ],
                 ),
               ),

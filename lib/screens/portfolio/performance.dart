@@ -72,9 +72,9 @@ class _PerformanceState extends State<Performance> {
                         onTap: () {
                           Navigator.of(context).push(MaterialPageRoute<void>(builder: (BuildContext context) {
                             if (market.runtimeType == TeamMarket) {
-                              return TeamDetails(market);
+                              return TeamDetails(market, null);
                             } else {
-                              return PlayerDetails(market);
+                              return PlayerDetails(market, null);
                             }
                           }));
                         },

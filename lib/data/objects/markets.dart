@@ -35,6 +35,8 @@ abstract class Market {
   List<String>? searchTerms;
   DateTime? startDate;
   DateTime? endDate;
+  String? leagueId;
+  String? seasonId;
 
   // ----- Visual attributes -----
   String? info1;
@@ -77,6 +79,9 @@ abstract class Market {
     } else {
       colours = List<String>.from(snapshot['colours']);
     }
+
+    leagueId = snapshot['league_id'].toString();
+    seasonId = snapshot['season_id'].toString();
 
     searchTerms = List<String>.from(snapshot['search_terms']);
     imageURL = snapshot['image'];

@@ -1,24 +1,29 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
-import 'package:sportfolios_alpha/plots/payout_graph.dart';
-import 'package:sportfolios_alpha/plots/price_chart.dart';
-import 'package:sportfolios_alpha/screens/home/market_tile.dart';
-import 'package:sportfolios_alpha/screens/home/options/header.dart';
-import 'package:sportfolios_alpha/screens/home/options/info_box.dart';
-import 'package:sportfolios_alpha/screens/leaderboard/portfolio_scroll.dart';
-import 'package:sportfolios_alpha/utils/numerical/arrays.dart';
+import 'dart:math' as math;
 
+import '../../../data/objects/leagues.dart';
+import '../../../plots/payout_graph.dart';
+import '../../../plots/price_chart.dart';
+import '../market_tile.dart';
+import 'header.dart';
+import 'info_box.dart';
+import '../../leaderboard/portfolio_scroll.dart';
+import '../../../utils/numerical/arrays.dart';
 import '../../../data/objects/markets.dart';
 import '../app_bar.dart';
 import '../stats/stats.dart';
 import 'team_players.dart';
 import '../../../utils/design/colors.dart';
-import 'dart:math' as math;
 import '../../../utils/numerical/array_operations.dart';
 
 class TeamDetails extends StatefulWidget {
   final Market market;
-  TeamDetails(this.market);
+  final League? league;
+  TeamDetails(
+    this.market,
+    this.league,
+  );
 
   @override
   _TeamDetailsState createState() => _TeamDetailsState();
@@ -387,7 +392,7 @@ class _TeamDetailsState extends State<TeamDetails> with SingleTickerProviderStat
                         times: widget.market.historicalLMSR!.ts,
                       ),
                       SizedBox(height: 30),
-                      PageFooter(widget.market)
+                      PageFooter(widget.market, widget.league)
                     ],
                   ),
                 ),
@@ -406,7 +411,11 @@ class _TeamDetailsState extends State<TeamDetails> with SingleTickerProviderStat
 
 class PlayerDetails extends StatefulWidget {
   final Market market;
-  PlayerDetails(this.market);
+  final League? league;
+  PlayerDetails(
+    this.market,
+    this.league,
+  );
 
   @override
   _PlayerDetailsState createState() => _PlayerDetailsState();
@@ -620,7 +629,7 @@ class _PlayerDetailsState extends State<PlayerDetails> with SingleTickerProvider
                               .getHistoricalValue((Array.fromList(selected == 0 ? <double>[10.0, 0.0] : <double>[0.0, 1.0]))),
                           times: widget.market.historicalLMSR!.ts),
                       SizedBox(height: 10),
-                      PageFooter(widget.market)
+                      PageFooter(widget.market, widget.league, )
                     ],
                   ),
                 ),
@@ -639,115 +648,124 @@ class _PlayerDetailsState extends State<PlayerDetails> with SingleTickerProvider
 
 class PageFooter extends StatelessWidget {
   final Market market;
+  final League? league;
 
-  PageFooter(this.market);
+  PageFooter(this.market, this.league);
 
   @override
   Widget build(BuildContext context) {
     return Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: <Widget>[
-              Container(
-                height: 60,
-                child: Center(
-                  child: ListTile(
-                    onTap: () {
-                      Navigator.of(context).push(MaterialPageRoute(builder: (context) {
-                        return PortfoliosContaining(market);
-                      }));
-                    },
-                    leading: SizedBox(
-                      height: double.infinity,
-                      child: Row(
-                        crossAxisAlignment: CrossAxisAlignment.center,
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Icon(
-                            Icons.donut_large,
-                            size: 28,
-                          ),
-                          SizedBox(width: 15),
-                          Text(
-                            'Portfolios',
-                            style: TextStyle(fontSize: 16.0),
-                          ),
-                        ],
-                      ),
-                    ),
-                    trailing: Icon(Icons.arrow_right, size: 28),
-                  ),
-                ),
-              ),
-              Divider(thickness: 2),
-              Container(
-                height: 60,
-                child: Center(
-                  child: ListTile(
-                    onTap: () {
-                      Navigator.of(context).push(MaterialPageRoute<void>(builder: (BuildContext context) {
-                        return StatsShow(market, '2020/2021');
-                      }));
-                    },
-                    leading: SizedBox(
-                      height: double.infinity,
-                      child: Row(
-                        crossAxisAlignment: CrossAxisAlignment.center,
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Icon(
-                            Icons.insights,
-                            size: 28,
-                          ),
-                          SizedBox(width: 15),
-                          Text(
-                            'Statistics',
-                            style: TextStyle(fontSize: 16.0),
-                          ),
-                        ],
-                      ),
-                    ),
-                    trailing: Icon(Icons.arrow_right, size: 28),
-                  ),
-                ),
-              ),
-              Divider(thickness: 2),
-            ] +
-            (market.runtimeType == TeamMarket
-                ? <Widget>[
-                    Container(
-                      height: 60,
-                      child: Center(
-                        child: ListTile(
-                          onTap: () {
-                            Navigator.of(context).push(MaterialPageRoute<void>(builder: (BuildContext context) {
-                              return TeamPlayers(market);
-                            }));
-                          },
-                          leading: SizedBox(
-                            height: double.infinity,
-                            child: Row(
-                              crossAxisAlignment: CrossAxisAlignment.center,
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                Icon(
-                                  Icons.group,
-                                  size: 28,
-                                ),
-                                SizedBox(width: 15),
-                                Text(
-                                  'Players',
-                                  style: TextStyle(fontSize: 16.0),
-                                ),
-                              ],
-                            ),
-                          ),
-                          trailing: Icon(Icons.arrow_right, size: 28),
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: <Widget>[
+            Container(
+              height: 60,
+              child: Center(
+                child: ListTile(
+                  onTap: () {
+                    Navigator.of(context).push(MaterialPageRoute(builder: (context) {
+                      return PortfoliosContaining(market);
+                    }));
+                  },
+                  leading: SizedBox(
+                    height: double.infinity,
+                    child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(
+                          Icons.donut_large,
+                          size: 28,
                         ),
+                        SizedBox(width: 15),
+                        Text(
+                          'Portfolios',
+                          style: TextStyle(fontSize: 16.0),
+                        ),
+                      ],
+                    ),
+                  ),
+                  trailing: Icon(Icons.arrow_right, size: 28),
+                ),
+              ),
+            ),
+            Divider(thickness: 2),
+            Container(
+              height: 60,
+              child: Center(
+                child: ListTile(
+                  onTap: () {
+                    Navigator.of(context).push(MaterialPageRoute<void>(builder: (BuildContext context) {
+                      return StatsShow(market, '2020/2021', league);
+                    }));
+                  },
+                  leading: SizedBox(
+                    height: double.infinity,
+                    child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(
+                          Icons.insights,
+                          size: 28,
+                        ),
+                        SizedBox(width: 15),
+                        Text(
+                          'Statistics',
+                          style: TextStyle(fontSize: 16.0),
+                        ),
+                      ],
+                    ),
+                  ),
+                  trailing: Icon(Icons.arrow_right, size: 28),
+                ),
+              ),
+            ),
+            Divider(thickness: 2),
+          ] +
+          (market.runtimeType == TeamMarket
+              ? <Widget>[
+                  Container(
+                    height: 60,
+                    child: Center(
+                      child: ListTile(
+                        onTap: () {
+                          Navigator.of(context).push(MaterialPageRoute<void>(builder: (BuildContext context) {
+                            return TeamPlayers(market);
+                          }));
+                        },
+                        leading: SizedBox(
+                          height: double.infinity,
+                          child: Row(
+                            crossAxisAlignment: CrossAxisAlignment.center,
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Icon(
+                                Icons.group,
+                                size: 28,
+                              ),
+                              SizedBox(width: 15),
+                              Text(
+                                'Players',
+                                style: TextStyle(fontSize: 16.0),
+                              ),
+                            ],
+                          ),
+                        ),
+                        trailing: Icon(Icons.arrow_right, size: 28),
                       ),
                     ),
-                    Divider(thickness: 2)
-                  ]
-                : <Widget>[MarketTile(market: market.team!, returnsPeriod: 'd'), Divider(thickness: 2)]));
+                  ),
+                  Divider(thickness: 2)
+                ]
+              : <Widget>[
+                  MarketTile(
+                    market: market.team!,
+                    returnsPeriod: 'd',
+                    league: league,
+                  ),
+                  Divider(thickness: 2),
+                ]),
+    );
   }
 }
 

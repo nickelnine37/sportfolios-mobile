@@ -38,3 +38,7 @@ class League {
   }
 
 }
+
+Future<League> getLeagueById(String id) async {
+  return League.fromSnapshot(await FirebaseFirestore.instance.collection('leagues').doc(id).get());
+}

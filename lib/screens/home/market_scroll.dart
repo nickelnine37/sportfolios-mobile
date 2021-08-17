@@ -186,8 +186,7 @@ class MarketScrollState extends State<MarketScroll> with AutomaticKeepAliveClien
                               sortByDescending = sortBy[1];
                               if (sortByField != 'long_price_current' && sortByField != 'position') {
                                 returnsPeriod = sortByField[sortByField.length - 1];
-                              }
-                              else{
+                              } else {
                                 returnsPeriod = 'd';
                               }
                               _refreshState();
@@ -213,7 +212,7 @@ class MarketScrollState extends State<MarketScroll> with AutomaticKeepAliveClien
                     )
                   ],
                 );
-              } else if (index == nTiles - 1 ) {
+              } else if (index == nTiles - 1) {
                 // final tile contains the loading spinner
                 if (_selectedMarketFetcher!.finished || (_selectedMarketFetcher!.loadedResults.length == 0)) {
                   return Container(height: 0);
@@ -231,7 +230,11 @@ class MarketScrollState extends State<MarketScroll> with AutomaticKeepAliveClien
                   child: Center(child: Text("Sorry, no results :'(")),
                 );
               } else {
-                return MarketTile(market: _selectedMarketFetcher!.loadedResults[index - 1], returnsPeriod: returnsPeriod);
+                return MarketTile(
+                  market: _selectedMarketFetcher!.loadedResults[index - 1],
+                  returnsPeriod: returnsPeriod,
+                  league: widget.league,
+                );
               }
             },
             separatorBuilder: (context, index) => Divider(
