@@ -61,11 +61,15 @@ class _AnimatedDonutChartState extends State<AnimatedDonutChart> with SingleTick
   @override
   Widget build(BuildContext context) {
 
-    if (sortedValues == null) {
+    print(sortedValues);
+
+    // if (sortedValues == null) {
       sortedValues = SplayTreeMap<String, double>.from(
         widget.portfolio!.currentValues,
         (a, b) => widget.portfolio!.currentValues[a]! < widget.portfolio!.currentValues[b]! ? 1 : -1,
       );
+
+
 
       binEdges = [0, widget.portfolio!.cash / widget.portfolio!.currentValue];
       double runningTotal = widget.portfolio!.cash;
@@ -73,7 +77,7 @@ class _AnimatedDonutChartState extends State<AnimatedDonutChart> with SingleTick
         runningTotal += sortedValues!.values.toList()[i];
         binEdges!.add(runningTotal / widget.portfolio!.currentValue);
       }
-    }
+    // }
 
     if (controller == null) {
       controller = AnimationController(vsync: this, duration: Duration(milliseconds: 600));

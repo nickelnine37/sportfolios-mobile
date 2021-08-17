@@ -91,7 +91,7 @@ class PlayerPageHeader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    Array unitQuantity = Array.fromList(long ? <double>[10.0, 0.0] : <double>[0.0, 1.0]);
+    Array unitQuantity = Array.fromList(long ? <double>[10.0, 0.0] : <double>[0.0, 10.0]);
 
     return Row(crossAxisAlignment: CrossAxisAlignment.center, mainAxisAlignment: MainAxisAlignment.spaceEvenly, children: [
       Container(

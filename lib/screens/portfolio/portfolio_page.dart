@@ -188,7 +188,8 @@ class _PortfolioPageState extends State<PortfolioPage> {
                                     strokeWidth: 8,
                                   )),
                               SizedBox(width: 17),
-                              Text(portfolios[selectedPortfolioId]!.name, style: TextStyle(fontSize: 25.0, color: Colors.white)),
+                              Text(portfolios[selectedPortfolioId]!.name, style: TextStyle(fontSize: 25.0, color: Colors.white), overflow: TextOverflow.fade,  maxLines: 1,
+  softWrap: false,),
                               Container(
                                 padding: EdgeInsets.all(0),
                                 width: 30,

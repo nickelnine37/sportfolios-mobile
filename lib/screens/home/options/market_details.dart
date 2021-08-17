@@ -626,7 +626,7 @@ class _PlayerDetailsState extends State<PlayerDetails> with SingleTickerProvider
                       PlayerPageHeader(selected == 0, widget.market, selected == 0 ? longInfo(context) : shortInfo(context)),
                       TabbedPriceGraph(
                           priceHistory: widget.market.historicalLMSR!
-                              .getHistoricalValue((Array.fromList(selected == 0 ? <double>[10.0, 0.0] : <double>[0.0, 1.0]))),
+                              .getHistoricalValue((Array.fromList(selected == 0 ? <double>[10.0, 0.0] : <double>[0.0, 10.0]))),
                           times: widget.market.historicalLMSR!.ts),
                       SizedBox(height: 10),
                       PageFooter(widget.market, widget.league, )
