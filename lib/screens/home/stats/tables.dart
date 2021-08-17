@@ -140,9 +140,24 @@ class _TeamTableState extends State<TeamTable> {
                 ],
               ),
             ),
-            DataCell(Text(team.value['played'].toString())),
-            DataCell(Text("${team.value['goal_difference'] > 0 ? '+' : '-'}${team.value['goal_difference'].abs()}")),
-            DataCell(Text(team.value['points'].toString())),
+            DataCell(
+              Text(
+                team.value['played'].toString(),
+                style: TextStyle(fontSize: 13),
+              ),
+            ),
+            DataCell(
+              Text(
+                "${team.value['goal_difference'] > 0 ? '+' : '-'}${team.value['goal_difference'].abs()}",
+                style: TextStyle(fontSize: 13),
+              ),
+            ),
+            DataCell(
+              Text(
+                team.value['points'].toString(),
+                style: TextStyle(fontSize: 13),
+              ),
+            ),
           ], selected: team.key == widget.teamId.split(':')[0]);
         }).toList(),
       ),

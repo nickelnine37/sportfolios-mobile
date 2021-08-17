@@ -49,6 +49,7 @@ abstract class Market {
   // stats
   Map<String, Map<String, dynamic>>? stats;
   Map<String, dynamic>? details;
+  Map<String, dynamic>? currentStats;
 
   // ----- price attributes -----
   double? longPriceCurrent;
@@ -115,7 +116,8 @@ abstract class Market {
     DocumentSnapshot snapshot = await FirebaseFirestore.instance.collection('stats').doc(stats_id).get();
     stats = Map<String, Map<String, dynamic>>.from(snapshot['stats']);
     details = Map<String, dynamic>.from(snapshot['details']);
-  }
+    currentStats = stats!.remove('2021/2022');   
+    }
 }
 
 class PlayerMarket extends Market {

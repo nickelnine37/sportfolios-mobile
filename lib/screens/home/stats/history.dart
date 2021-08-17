@@ -1,135 +1,91 @@
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
+import 'package:sportfolios_alpha/screens/home/stats/tables.dart';
 import '../../../data/objects/markets.dart';
 
-class TeamHistory extends StatelessWidget {
+class TeamHistory extends StatefulWidget {
   final Market market;
-  final Map<String, dynamic> new_season;
+  final String selectedSeason;
 
-  const TeamHistory(this.market, this.new_season);
+  const TeamHistory(this.market, this.selectedSeason);
+
+  @override
+  _TeamHistoryState createState() => _TeamHistoryState();
+}
+
+class _TeamHistoryState extends State<TeamHistory> {
+  Future<void>? tableFuture;
+  Map<String, Map>? tableData;
+  int? sid;
+  Map<int, String> leagueMap = {
+    8: 'Premier League',
+    9: 'Championship',
+    501: 'Premiership',
+    564: 'La Liga',
+    301: 'Bundesliga',
+    82: 'Ligue 1',
+    384: 'Serie A',
+  };
+
+  @override
+  void initState() {
+    super.initState();
+    tableFuture = getTable();
+  }
+
+  Future<void> getTable() async {
+    sid = widget.market.stats![widget.selectedSeason]!['season_id'];
+    tableData = Map<String, Map>.from((await FirebaseFirestore.instance.collection('tables').doc('${sid}T').get()).data()!);
+  }
 
   @override
   Widget build(BuildContext context) {
-    return SingleChildScrollView(
-      child: Padding(
-        padding: const EdgeInsets.only(top: 20.0),
-        child: Column(
-          children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
+    if (sid != widget.market.stats![widget.selectedSeason]!['season_id']) {
+      tableFuture = getTable();
+    }
+
+    return FutureBuilder(
+        future: tableFuture,
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.done) {
+            return SingleChildScrollView(
+                child: Column(
               children: [
-                Container(
-                  child: CachedNetworkImage(imageUrl: new_season['season_logo']),
-                  height: 50,
-                ),
-                SizedBox(width: 10),
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+                SizedBox(height: 10), 
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.start,
                   children: [
-                    Text(
-                      new_season['league_name'],
-                      style: TextStyle(fontSize: 20, color: Colors.grey[800]),
+                    SizedBox(width: 15), 
+                    Container(
+                      child: CachedNetworkImage(imageUrl: widget.market.stats![widget.selectedSeason]!['league_image']),
+                      height: 50,
                     ),
-                    Text(
-                      new_season['season_years'],
-                      style: TextStyle(fontSize: 17, color: Colors.grey[800]),
-                    ),
+                    SizedBox(width: 10),
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          leagueMap[widget.market.stats![widget.selectedSeason]!['league_id']]!,
+                          style: TextStyle(fontSize: 20, color: Colors.grey[800]),
+                        ),
+                        Text(
+                          widget.selectedSeason,
+                          style: TextStyle(fontSize: 17, color: Colors.grey[800]),
+                        ),
+                      ],
+                    )
                   ],
-                )
-              ],
-            ),
-            Padding(
-              padding: const EdgeInsets.all(8.0),
-              child: DataTable(columns: [
-                DataColumn(
-                  label: Text(
-                    'Table position',
-                    style: TextStyle(color: Colors.grey[700], height: 1.5, fontSize: 14, fontWeight: FontWeight.normal),
-                  ),
                 ),
-                DataColumn(
-                  label: Text(
-                    new_season['ranking'].toString(),
-                    style: TextStyle(color: Colors.grey[700], height: 1.5, fontSize: 14, fontWeight: FontWeight.normal),
-                  ),
-                )
-              ], rows: [
-                DataRow(cells: [
-                  DataCell(Text(
-                    'Wins',
-                    style: TextStyle(color: Colors.grey[700], height: 1.5, fontSize: 14, fontWeight: FontWeight.normal),
-                  )),
-                  DataCell(Text(
-                    new_season['wins'].toString(),
-                    style: TextStyle(color: Colors.grey[700], height: 1.5, fontSize: 14, fontWeight: FontWeight.normal),
-                  ))
-                ]),
-                DataRow(cells: [
-                  DataCell(Text(
-                    'Draws',
-                    style: TextStyle(color: Colors.grey[700], height: 1.5, fontSize: 14, fontWeight: FontWeight.normal),
-                  )),
-                  DataCell(Text(
-                    new_season['draws'].toString(),
-                    style: TextStyle(color: Colors.grey[700], height: 1.5, fontSize: 14, fontWeight: FontWeight.normal),
-                  ))
-                ]),
-                DataRow(cells: [
-                  DataCell(Text(
-                    'Losses',
-                    style: TextStyle(color: Colors.grey[700], height: 1.5, fontSize: 14, fontWeight: FontWeight.normal),
-                  )),
-                  DataCell(Text(
-                    new_season['losses'].toString(),
-                    style: TextStyle(color: Colors.grey[700], height: 1.5, fontSize: 14, fontWeight: FontWeight.normal),
-                  ))
-                ]),
-                DataRow(cells: [
-                  DataCell(Text(
-                    'Goals for',
-                    style: TextStyle(color: Colors.grey[700], height: 1.5, fontSize: 14, fontWeight: FontWeight.normal),
-                  )),
-                  DataCell(Text(
-                    new_season['goals_for'].toString(),
-                    style: TextStyle(color: Colors.grey[700], height: 1.5, fontSize: 14, fontWeight: FontWeight.normal),
-                  ))
-                ]),
-                DataRow(cells: [
-                  DataCell(Text(
-                    'Goals against',
-                    style: TextStyle(color: Colors.grey[700], height: 1.5, fontSize: 14, fontWeight: FontWeight.normal),
-                  )),
-                  DataCell(Text(
-                    new_season['goals_against'].toString(),
-                    style: TextStyle(color: Colors.grey[700], height: 1.5, fontSize: 14, fontWeight: FontWeight.normal),
-                  ))
-                ]),
-                DataRow(cells: [
-                  DataCell(Text(
-                    'Goal difference',
-                    style: TextStyle(color: Colors.grey[700], height: 1.5, fontSize: 14, fontWeight: FontWeight.normal),
-                  )),
-                  DataCell(Text(
-                    (new_season['goals_for'] - new_season['goals_against']).toString(),
-                    style: TextStyle(color: Colors.grey[700], height: 1.5, fontSize: 14, fontWeight: FontWeight.normal),
-                  ))
-                ]),
-                DataRow(cells: [
-                  DataCell(Text(
-                    'Points',
-                    style: TextStyle(color: Colors.grey[700], height: 1.5, fontSize: 14, fontWeight: FontWeight.normal),
-                  )),
-                  DataCell(Text(
-                    new_season['points'].toString(),
-                    style: TextStyle(color: Colors.grey[700], height: 1.5, fontSize: 14, fontWeight: FontWeight.normal),
-                  ))
-                ]),
-              ]),
-            ),
-          ],
-        ),
-      ),
-    );
+                SizedBox(height: 10),
+                TeamTable(table: tableData!, teamId: widget.market.id),
+                SizedBox(height: 20),
+              ],
+            ));
+          } else {
+            return Center(child: CircularProgressIndicator());
+          }
+        });
   }
 }
 

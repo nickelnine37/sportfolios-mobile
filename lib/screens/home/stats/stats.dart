@@ -76,7 +76,7 @@ class _StatsShowState extends State<StatsShow> with SingleTickerProviderStateMix
               selectedSeason = seasons!.last;
             }
 
-            Map<String, dynamic>? new_season = widget.market!.stats![selectedSeason!];
+            // Map<String, dynamic>? new_season = widget.market!.stats![selectedSeason!];
 
             conditional_string = widget.market.toString();
             conditional_string = conditional_string!.substring(conditional_string!.length - 2, conditional_string!.length - 1);
@@ -196,11 +196,11 @@ class _StatsShowState extends State<StatsShow> with SingleTickerProviderStateMix
                     conditional_string == 'T'
                         ? TeamHistory(
                             widget.market!,
-                            new_season!,
+                            selectedSeason!,
                           )
                         : PlayerHistory(
                             widget.market!,
-                            new_season!,
+                            {},
                           )
                   ],
                 ),
