@@ -31,7 +31,7 @@ class PurchaseCompleteChangeNotifier with ChangeNotifier {
   Transaction? get transaction => _transaction;
   int? get transactionId => _transactionId;
 
-  void registrNewTransaction(String portfolioId, Transaction transaction) {
+  void registerNewTransaction(String portfolioId, Transaction transaction) {
     if (_transactionId == null) {
       _transactionId = 0;
     } else {
@@ -197,10 +197,12 @@ class _BuyFormState extends State<BuyForm> {
 
   @override
   Widget build(BuildContext context) {
-    if (widget.portfolios!.length == 0) {
-      _selectedPortfolioId = 'new';
-    } else {
-      _selectedPortfolioId = widget.portfolios![0].id;
+    if (_selectedPortfolioId == null) {
+      if (widget.portfolios!.length == 0) {
+        _selectedPortfolioId = 'new';
+      } else {
+        _selectedPortfolioId = widget.portfolios![0].id;
+      }
     }
     team = widget.market.id.contains('T');
 
@@ -321,6 +323,8 @@ class _BuyFormState extends State<BuyForm> {
                       try {
                         double.parse(value!);
                         if (price >= widget.portfolios!.firstWhere((portfolio) => portfolio.id == _selectedPortfolioId).cash) {
+                          print(price);
+                          print(widget.portfolios!.firstWhere((portfolio) => portfolio.id == _selectedPortfolioId).cash);
                           return 'Insufficient funds';
                         }
                         return null;
@@ -421,7 +425,7 @@ class _BuyFormState extends State<BuyForm> {
                           qPurchase,
                         );
 
-                        context.read(purchaseCompleteProvider).registrNewTransaction(_selectedPortfolioId!, transaction);
+                        context.read(purchaseCompleteProvider).registerNewTransaction(_selectedPortfolioId!, transaction);
 
                         showDialog(
                             context: context,
@@ -487,11 +491,11 @@ class _BuyFormState extends State<BuyForm> {
                           Transaction transaction = Transaction(
                             widget.market,
                             DateTime.now().millisecondsSinceEpoch / 1000,
-                             purchaseRequestResult['price'],
+                            purchaseRequestResult['price'],
                             qPurchase,
                           );
 
-                          context.read(purchaseCompleteProvider).registrNewTransaction(_selectedPortfolioId!, transaction);
+                          context.read(purchaseCompleteProvider).registerNewTransaction(_selectedPortfolioId!, transaction);
 
                           // check for congrats
                           bool? done = prefs.getBool('firstPurchaseComplete');
@@ -506,8 +510,8 @@ class _BuyFormState extends State<BuyForm> {
                           }
                           await Future.delayed(Duration(milliseconds: 600));
                           Navigator.of(context).pop();
-                        } 
-                        
+                        }
+
                         // they rejected the new price
                         else if (!confirm) {
                           await Future.delayed(Duration(milliseconds: 600));

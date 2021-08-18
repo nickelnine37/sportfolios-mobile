@@ -33,6 +33,7 @@ class _SellTeamState extends State<SellTeam> {
   double? graphWidth;
   double graphHeight = 150;
   double? pmax;
+  bool sellAll = false;
 
   @override
   void initState() {
@@ -197,6 +198,25 @@ class _SellTeamState extends State<SellTeam> {
                           ],
                         ),
                         // SizedBox(height: 5),
+                         Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            crossAxisAlignment: CrossAxisAlignment.center,
+                            children: [
+                              Text('Sell entire holdings: '),
+                              Checkbox(
+                                  value: sellAll,
+                                  onChanged: (bool? value) {
+                                    setState(() {
+                                      sellAll = !sellAll;
+                                      if (sellAll) {
+                                        qHeldNew = Array.zeros(widget.quantityHeld.length);
+                                      } else {
+                                        qHeldNew = widget.quantityHeld;
+                                      }
+                                    });
+                                  })
+                            ],
+                          ),
                         FutureBuilder(
                           future: _marketFuture,
                           builder: (BuildContext context, AsyncSnapshot snapshot) {
@@ -244,6 +264,7 @@ class _SellPlayerState extends State<SellPlayer> {
   final TextEditingController _shortUnitController = TextEditingController();
 
   double payout = 0;
+  bool sellAll = false;
 
   Array quantitySold = Array.zeros(2);
 
@@ -318,7 +339,37 @@ class _SellPlayerState extends State<SellPlayer> {
                           SizedBox(height: 15),
                           Text('Contracts held after sale: '),
                           SizedBox(height: 15),
-                          LongShortGraph(quantity: widget.quantityHeld - quantitySold, height: 120, qmax: widget.quantityHeld.max),
+                          TweenAnimationBuilder(
+                            duration: Duration(milliseconds: 300),
+                            curve: Curves.easeOutSine,
+                            tween: Tween<double>(begin: 0.0, end: sellAll ? 0.0 : 1.0),
+                            builder: (context, double value, child) {
+                              return LongShortGraph(quantity: (widget.quantityHeld).scale(value), height: 120, qmax: widget.quantityHeld.max);
+                            }
+                          ),
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            crossAxisAlignment: CrossAxisAlignment.center,
+                            children: [
+                              Text('Sell entire holdings: '),
+                              Checkbox(
+                                  value: sellAll,
+                                  onChanged: (bool? value) {
+                                    setState(() {
+                                      sellAll = !sellAll;
+                                      if (sellAll) {
+                                        _longUnitController.text = (widget.quantityHeld[0] / 10).toStringAsFixed(2);
+                                        _shortUnitController.text = (widget.quantityHeld[1] / 10).toStringAsFixed(2);
+                                        quantitySold = widget.quantityHeld;
+                                      } else {
+                                        _longUnitController.text = (0.0).toStringAsFixed(2);
+                                        _shortUnitController.text = (0.0).toStringAsFixed(2);
+                                        quantitySold = Array.zeros(2);
+                                      }
+                                    });
+                                  })
+                            ],
+                          ),
                           Row(
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             crossAxisAlignment: CrossAxisAlignment.center,
@@ -546,7 +597,6 @@ class _SellFormState extends State<SellForm> {
                               ),
                             );
                           } else {
-
                             // the price we requested has been rejected
                             setState(() {
                               loading = false;
@@ -571,12 +621,12 @@ class _SellFormState extends State<SellForm> {
                                   builder: (BuildContext context) {
                                     return ProblemPopup();
                                   });
-                              
+
                               // wait and pop null
                               await Future.delayed(Duration(seconds: 1));
                               Navigator.of(context).pop(null);
-                            } 
-                            
+                            }
+
                             // we wanted to confirm and its all good
                             else if (confirm && ok) {
                               setState(() {
@@ -584,8 +634,8 @@ class _SellFormState extends State<SellForm> {
                                 loading = false;
                                 complete = true;
                               });
-                              
-                            // pop the confirmed transaction, with updated price
+
+                              // pop the confirmed transaction, with updated price
                               await Future.delayed(Duration(milliseconds: 600));
                               Navigator.of(context).pop(Transaction(
                                 widget.market,
@@ -593,9 +643,8 @@ class _SellFormState extends State<SellForm> {
                                 purchaseRequestResult['price'],
                                 widget.sellQuantity,
                               ));
+                            }
 
-                            } 
-                            
                             // transaction cancelled
                             else if (!confirm) {
                               await Future.delayed(Duration(milliseconds: 600));
@@ -636,7 +685,7 @@ class PurchaseCompletePopup extends StatelessWidget {
             boxShadow: [BoxShadow(color: Colors.black26, blurRadius: 10.0, offset: const Offset(0.0, 10.0))],
           ),
           child: Center(
-            child: Text('Purchase complete', style: TextStyle(fontSize: 24.0, fontWeight: FontWeight.w700), textAlign: TextAlign.center),
+            child: Text('Transaction complete', style: TextStyle(fontSize: 24.0, fontWeight: FontWeight.w700), textAlign: TextAlign.center),
           )),
     );
   }
@@ -664,7 +713,7 @@ class ProblemPopup extends StatelessWidget {
             boxShadow: [BoxShadow(color: Colors.black26, blurRadius: 10.0, offset: const Offset(0.0, 10.0))],
           ),
           child: Center(
-            child: Text('There was a problem processing this order. Please try again. ',
+            child: Text('There was a problem processing this transaction. Please try again. ',
                 style: TextStyle(fontSize: 24.0, fontWeight: FontWeight.w700), textAlign: TextAlign.center),
           )),
     );

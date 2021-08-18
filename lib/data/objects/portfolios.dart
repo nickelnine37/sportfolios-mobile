@@ -84,7 +84,6 @@ class Transaction {
             if (market.historicalLMSR!.ts[th]![i] < time) {
               return 0.0;
             } else {
-
               return valueHist[i] - price;
             }
           }).toList())));
@@ -140,7 +139,7 @@ class Portfolio {
     cash = snapshot['cash'] + 0.0;
     description = snapshot['description'];
     comments = Map<String, Map<String, dynamic>>.from(snapshot['comments']);
-    
+
     currentValues = Map<String, double>.from(snapshot['current_values']);
     colours = Map<String, String>.from(snapshot['colours']!).map((key, value) => MapEntry(key, fromHex(value)));
 
@@ -170,19 +169,49 @@ class Portfolio {
     }).toList();
   }
 
-  void addTransaction(Transaction transaction) {
+  Future<void> addTransaction(Transaction transaction) async {
     cash -= transaction.price;
 
+    // this market is already in the portfolio
+    // we're either buying more, or selling
     if (holdings.keys.contains(transaction.market.id)) {
       holdings[transaction.market.id] = holdings[transaction.market.id]! + transaction.quantity;
       currentValues[transaction.market.id] = currentValues[transaction.market.id]! + transaction.price;
-    } else {
+      if (currentValues[transaction.market.id]! < 0.02) {
+        currentValues.remove(transaction.market.id);
+        holdings.remove(transaction.market.id);
+      }
+    }
+    // this is a totally new market
+    else {
       holdings[transaction.market.id] = transaction.quantity;
       markets[transaction.market.id] = transaction.market;
       colours[transaction.market.id] = fromHex(transaction.market.colours![0]);
       currentValues[transaction.market.id] = transaction.price;
+      await transaction.market.getCurrentHoldings();
+      await transaction.market.getHistoricalHoldings();
     }
     transactions.add(transaction);
+  }
+
+  Map<String, Array> aggregateTransactions(String marketId) {
+    Map<String, Array> out = transactions[0].transactionValue!.map((key, value) => MapEntry(key, Array.zeros(value.length)));
+
+    if (!holdings.containsKey(marketId)) {
+      return out;
+    }
+
+    for (Transaction transaction in transactions) {
+      if (transaction.market.id == marketId) {
+        if (transaction.transactionValue != null) {
+          for (String th in ['h', 'd', 'w', 'm', 'M']) {
+            out[th] = out[th]! + transaction.transactionValue![th]!;
+          }
+        }
+      }
+    }
+
+    return out;
   }
 
   Future<bool> checkForUpdates() async {

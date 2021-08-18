@@ -18,7 +18,7 @@ void main() async {
 
 /// Main widget for the whole app
 /// For now it is Stateful, as we need to use a FutureBuilder in the State to determine whether a user is logged in
-/// Maybe a stream would be better, but as of yet I haven't fouond a way to build a stream that also accounts for 
+/// Maybe a stream would be better, but as of yet I haven't fouond a way to build a stream that also accounts for
 /// whether a user has their email verified
 class MyApp extends StatefulWidget {
   @override
@@ -29,6 +29,7 @@ class _MyAppState extends State<MyApp> {
   /// use this to check whether a user is verified
   late Future<void> verificationFuture;
   late bool userIsVerified;
+  bool timeoutError = false;
 
   /// set some theme data
   final ThemeData theme = ThemeData(primaryColor: Colors.blue[200]);
@@ -36,14 +37,19 @@ class _MyAppState extends State<MyApp> {
   /// check whether the user is verified here
   @override
   void initState() {
-    verificationFuture = getVerificationStatus();
+    verificationFuture = getVerificationStatus().timeout(Duration(seconds: 7), onTimeout: () {
+      setState(() {
+        timeoutError = true;
+      });
+    });
     super.initState();
   }
 
   Future<void> getVerificationStatus() async {
     userIsVerified = await AuthService().isVerified();
+    await Future.delayed(Duration(milliseconds: 500));
   }
- 
+
   @override
   Widget build(BuildContext context) {
     /// our main app widget returns a Material app
@@ -56,16 +62,15 @@ class _MyAppState extends State<MyApp> {
         future: verificationFuture,
         builder: (context, snapshot) {
           /// run this block when we've completed the verification request
-          if (snapshot.connectionState == ConnectionState.done) {
-
+          if (snapshot.connectionState == ConnectionState.done && !timeoutError) {
             /// user is verified
-            if (userIsVerified){
+            if (userIsVerified) {
               print('User verified - continuing to app');
               return AppMain();
             }
 
             /// user is not verified
-            else{
+            else {
               print('User not verified - logging in');
               return LoginPage();
             }
@@ -80,7 +85,7 @@ class _MyAppState extends State<MyApp> {
 
           /// we're still checking... just show a blank screen
           else {
-            return BlankPage();
+            return BlankPage(timeoutError);
           }
         },
       ),
@@ -90,12 +95,34 @@ class _MyAppState extends State<MyApp> {
 
 /// helper widget that just returns a blank page with some colour gradient
 class BlankPage extends StatelessWidget {
+  final bool timeoutError;
+
+  BlankPage(this.timeoutError);
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.white,
       body: Container(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Center(
+              child: Image.asset(
+                'assets/images/sportfolios.png',
+                width: 200,
+              ),
+            ),
+            SizedBox(height: 50),
+            Container(
+              child: Text(
+                timeoutError ? 'Unable to connect to the internet :\'(\nPlease try again later' : '',
+                style: TextStyle(color: Colors.red),
+                textAlign: TextAlign.center,
+              ),
+            )
+          ],
+        ),
         decoration: BoxDecoration(
           gradient: LinearGradient(
             begin: Alignment.topCenter,

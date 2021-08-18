@@ -5,6 +5,7 @@ import 'package:flutter_colorpicker/flutter_colorpicker.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:sportfolios_alpha/plots/price_chart.dart';
 import 'package:sportfolios_alpha/screens/home/app_bar.dart';
 import 'package:sportfolios_alpha/utils/design/colors.dart';
 import 'package:sportfolios_alpha/utils/numerical/arrays.dart';
@@ -324,9 +325,8 @@ class _HoldingsState extends State<Holdings> {
                                                                     null;
 
                                                                 if (newSaleTransaction != null) {
-                                                                  setState(() {
-                                                                    widget.portfolio!.addTransaction(newSaleTransaction);
-                                                                  });
+                                                                  await widget.portfolio!.addTransaction(newSaleTransaction);
+                                                                  setState(() {});
                                                                 }
                                                               },
                                                               // style: TextButton.styleFrom(backgroundColor: Colors.red[400]),
@@ -347,32 +347,69 @@ class _HoldingsState extends State<Holdings> {
                                   ),
                                 );
                               },
-                              body: Column(
-                                // crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  // SizedBox(height: 4),
-                                  marketId.contains('T')
-                                      ? Container(
-                                          height: 220,
-                                          // color: Colors.grey[500],
-                                          // padding: const EdgeInsets.only(bottom: 20),
-                                          child: PayoutGraph(
-                                            q: holding,
-                                            tappable: true,
-                                            pmax: holding.max,
+                              body: SizedBox(
+                                height: 320,
+                                child: DefaultTabController(
+                                    length: 2,
+                                    child: Column(
+                                      children: [
+                                        SizedBox(
+                                          width: double.infinity,
+                                          height: 250,
+                                          child: TabBarView(
+                                            physics: NeverScrollableScrollPhysics(),
+                                            children: [
+                                              marketId.contains('T')
+                                                  ? Center(
+                                                      child: Container(
+                                                        height: 250,
+                                                        // color: Colors.grey[500],
+                                                        // padding: const EdgeInsets.only(bottom: 20),
+                                                        child: PayoutGraph(
+                                                          q: holding,
+                                                          tappable: true,
+                                                          pmax: holding.max,
+                                                          height: 200,
+                                                        ),
+                                                      ),
+                                                    )
+                                                  : Center(
+                                                      child: Padding(
+                                                          padding: const EdgeInsets.symmetric(horizontal: 25),
+                                                          child: LongShortGraph(quantity: holding, height: 250)),
+                                                    ),
+                                              TabbedPriceGraph(
+                                                priceHistory: widget.portfolio!.aggregateTransactions(marketId),
+                                                times: widget.portfolio!.times,
+                                                include_return: false,
+                                                height: 220
+                                              )
+                                            ],
+                                          ),
+                                        ),
+                                        Padding(
+                                          padding: const EdgeInsets.all(15.0),
+                                          child: Container(
+                                            height: 35,
+                                            width: 200,
+                                            color: Colors.grey[200],
+                                            // decoration: BoxDecoration(borderRadius: BorderRadius.all(Radius.circular(20))),
+                                            child: TabBar(
+                                              labelColor: Colors.grey[800],
+                                              unselectedLabelColor: Colors.grey[400],
+                                              indicatorColor: Colors.grey[600],
+                                              indicatorWeight: 1,
+                                              labelPadding: EdgeInsets.symmetric(horizontal: 2, vertical: 2),
+                                              indicatorSize: TabBarIndicatorSize.label,
+                                              tabs: [
+                                                Tab(child: Icon(Icons.bar_chart)),
+                                                Tab(child: Icon(Icons.show_chart)),
+                                              ],
+                                            ),
                                           ),
                                         )
-                                      : Container(
-                                          height: 150,
-                                          child: Padding(
-                                              padding: const EdgeInsets.symmetric(horizontal: 25),
-                                              child: LongShortGraph(quantity: holding, height: 75)),
-                                        ),
-                                  Padding(
-                                    padding: const EdgeInsets.only(left: 15.0, right: 15, bottom: 15),
-                                    child: LeagueProgressBar(leagueOrMarket: market, textColor: Colors.grey[800]!),
-                                  ),
-                                ],
+                                      ],
+                                    )),
                               ),
                               isExpanded: isExpanded![i],
                             );
@@ -390,27 +427,6 @@ class _HoldingsState extends State<Holdings> {
   }
 }
 
-// class FadedText extends StatefulWidget {
-//   final String text;
-//   final double maxHeight;
-//   FadedText({required this.text, required this.maxHeight});
-
-//   @override
-//   _FadedTextState createState() => _FadedTextState();
-// }
-
-// class _FadedTextState extends State<FadedText> {
-//   @override
-//   Widget build(BuildContext context) {
-
-//     Text text = Text(widget.text);
-
-//     text.
-//     return Container(
-//       child: null,
-//     );
-//   }
-// }
 
 class PickAColor extends StatefulWidget {
   final String name;
@@ -477,7 +493,7 @@ class LongShortGraphPainter extends CustomPainter {
   void paint(Canvas canvas, Size size) {
     TextPainter longPainter = TextPainter(
         text: TextSpan(
-          text: 'Units Long\n${quantity[0].toStringAsFixed(2)}',
+          text: 'Units Long\n${(quantity[0] / 10).toStringAsFixed(2)}',
           style: TextStyle(color: Colors.grey[850], fontSize: 13, fontWeight: FontWeight.w400),
         ),
         textDirection: TextDirection.ltr,
@@ -485,7 +501,7 @@ class LongShortGraphPainter extends CustomPainter {
 
     TextPainter shortPainter = TextPainter(
         text: TextSpan(
-          text: 'Units Short\n${quantity[1].toStringAsFixed(2)}',
+          text: 'Units Short\n${(quantity[1] / 10).toStringAsFixed(2)}',
           style: TextStyle(color: Colors.grey[850], fontSize: 13, fontWeight: FontWeight.w400),
         ),
         textDirection: TextDirection.ltr,

@@ -90,7 +90,7 @@ class _PortfolioPageState extends State<PortfolioPage> {
       if (transactionId != null) {
         if (!registeredTransactions.contains(transactionId)) {
           registeredTransactions.add(transactionId);
-          portfolios[pid!]!.addTransaction(transaction!);
+          portfoliosFuture = portfolios[pid!]!.addTransaction(transaction!);
         }
       }
 
@@ -153,58 +153,65 @@ class _PortfolioPageState extends State<PortfolioPage> {
                 automaticallyImplyLeading: false,
                 titleSpacing: 0,
                 toolbarHeight: 110,
-                title: Column(children: [
-                  Padding(
-                    padding: const EdgeInsets.only(left: 10.0),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.start,
-                      children: [
-                        SizedBox(width: 5),
-                        GestureDetector(
-                          onTap: () async {
-                            String? newlySelectedPortfolioId = await showDialog(
-                              context: context,
-                              builder: (context) {
-                                return PortfolioSelectorDialogue(portfolios);
-                              },
-                            );
-
-                            if (newlySelectedPortfolioId != null) {
-                              setState(() {
-                                selectedPortfolioId = newlySelectedPortfolioId;
-                              });
-                            }
-                          },
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.start,
-                            crossAxisAlignment: CrossAxisAlignment.center,
-                            children: [
-                              SizedBox(width: 10),
-                              Container(
-                                  height: 25,
-                                  width: 25,
-                                  child: MiniDonutChart(
-                                    portfolios[selectedPortfolioId]!,
-                                    strokeWidth: 8,
-                                  )),
-                              SizedBox(width: 17),
-                              Text(portfolios[selectedPortfolioId]!.name, style: TextStyle(fontSize: 25.0, color: Colors.white), overflow: TextOverflow.fade,  maxLines: 1,
-  softWrap: false,),
-                              Container(
-                                padding: EdgeInsets.all(0),
-                                width: 30,
-                                height: 20,
-                                child: Center(
-                                  child: Icon(Icons.arrow_drop_down, color: Colors.white),
-                                ),
+                title: Container(
+                  // height: 5, 
+                  width: double.infinity, 
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.start,
+                    children: [
+                     SizedBox(width: 15),
+                      GestureDetector(
+                        onTap: () async {
+                          String? newlySelectedPortfolioId = await showDialog(
+                            context: context,
+                            builder: (context) {
+                              return PortfolioSelectorDialogue(portfolios);
+                            },
+                          );
+                  
+                          if (newlySelectedPortfolioId != null) {
+                            setState(() {
+                              selectedPortfolioId = newlySelectedPortfolioId;
+                            });
+                          }
+                        },
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.start,
+                          crossAxisAlignment: CrossAxisAlignment.center,
+                          children: [
+                            SizedBox(width: 10),
+                            Container(
+                                height: 25,
+                                width: 25,
+                                child: MiniDonutChart(
+                                  portfolios[selectedPortfolioId]!,
+                                  strokeWidth: 8,
+                                )),
+                            SizedBox(width: 17),
+                            Container(
+                              width: 195, 
+                              child: Text(
+                                portfolios[selectedPortfolioId]!.name,
+                                style: TextStyle(fontSize: 25.0, color: Colors.white),
+                                overflow: TextOverflow.fade,
+                                maxLines: 1,
+                                softWrap: false,
                               ),
-                            ],
-                          ),
+                            ),
+                            Container(
+                              padding: EdgeInsets.all(0),
+                              width: 30,
+                              height: 20,
+                              child: Center(
+                                child: Icon(Icons.arrow_drop_down, color: Colors.white),
+                              ),
+                            ),
+                          ],
                         ),
-                      ],
-                    ),
+                      ),
+                    ],
                   ),
-                ]),
+                ),
                 actions: [
                   IconButton(
                       icon: Icon(Icons.settings, color: Colors.white),
@@ -329,4 +336,3 @@ class PortfolioSelectorDialogue extends StatelessWidget {
     );
   }
 }
-

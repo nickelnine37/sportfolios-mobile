@@ -61,8 +61,6 @@ class _AnimatedDonutChartState extends State<AnimatedDonutChart> with SingleTick
   @override
   Widget build(BuildContext context) {
 
-    print(sortedValues);
-
     // if (sortedValues == null) {
       sortedValues = SplayTreeMap<String, double>.from(
         widget.portfolio!.currentValues,
@@ -151,12 +149,15 @@ class _DonutChartState extends State<DonutChart> {
   void initState() {
     super.initState();
     centerText = widget.portfolio!.currentValue;
-    nMarkets = widget.portfolio!.currentValues.length + 1;
     portfolioName = widget.portfolio!.name;
   }
 
   @override
   Widget build(BuildContext context) {
+    
+      nMarkets = widget.portfolio!.currentValues.length + 1;
+
+
     if (width == null) {
       width = MediaQuery.of(context).size.width;
     }

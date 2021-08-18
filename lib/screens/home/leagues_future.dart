@@ -104,7 +104,7 @@ class _HomeBodyState extends State<HomeBody> {
       builder: (BuildContext context, AsyncSnapshot snapshot) {
         // loading a new sport
         if (snapshot.connectionState != ConnectionState.done) {
-          return _buildScaffold(title: '', body: Center(child: CircularProgressIndicator()));
+          return Center(child: CircularProgressIndicator());
         } else if (snapshot.hasData) {
           List<League> leagues = snapshot.data;
           List<int> order = [8, 9, 501, 564, 301, 82, 384];

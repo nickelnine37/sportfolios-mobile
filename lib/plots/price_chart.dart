@@ -8,15 +8,15 @@ import 'package:intl/intl.dart' as intl;
 class TabbedPriceGraph extends StatefulWidget {
   final Map<String, Array>? priceHistory;
   final Map<String, List<int>>? times;
-  final Color color1;
-  final Color color2;
+  final Color color1 = Colors.green;
+  final Color color2  = Colors.green;
   final double height;
+  final bool include_return;
 
   const TabbedPriceGraph({
     required this.priceHistory,
     required this.times,
-    this.color1 = Colors.green,
-    this.color2 = Colors.green,
+    this.include_return = true,
     this.height = 300,
   });
 
@@ -79,11 +79,11 @@ class _TabbedPriceGraphState extends State<TabbedPriceGraph> with SingleTickerPr
               times: ts[selected],
               horizontalPaddingParent: horizontalPadding,
               moving: _tabController!.indexIsChanging,
-              // moving: false,
+              include_return: widget.include_return,
               lineColor: widget.color1,
               shadeColor: widget.color2,
-              // pmin: pmin,
-              // pmax: pmax
+              height: widget.height - 70
+         
             ),
           ),
           Container(
@@ -124,6 +124,8 @@ class PriceGraph extends StatefulWidget {
   final bool? moving;
   final Color? lineColor;
   final Color? shadeColor;
+  final bool include_return;
+  final double height;
 
   final double? horizontalPaddingParent;
   final double tPad = 0.05;
@@ -137,6 +139,8 @@ class PriceGraph extends StatefulWidget {
   PriceGraph({
     required this.prices,
     required this.times,
+    required this.height,
+    this.include_return=false,
     this.horizontalPaddingParent,
     this.moving,
     this.lineColor,
@@ -161,7 +165,6 @@ class _PriceGraphState extends State<PriceGraph> {
 
   PriceGraphPainter? priceChartPainter;
   double? graphWidth;
-  double graphHeight = 200;
 
   // the min and max prices given
   double? pmin;
@@ -218,9 +221,9 @@ class _PriceGraphState extends State<PriceGraph> {
   /// given an x-coordinate in pixels, return an interpolated y-coordinate in pixels
   double _pxToPy(double? px) {
     if ((pmax! - pmin!).abs() < 1e-5) {
-      return graphHeight * ((1 - widget.tPad - widget.bPad) * 0.5 + widget.tPad);
+      return widget.height * ((1 - widget.tPad - widget.bPad) * 0.5 + widget.tPad);
     } else {
-      return graphHeight * ((1 - widget.tPad - widget.bPad) * (1 - (_pxToY(px) - pmin!) / (pmax! - pmin!)) + widget.tPad);
+      return widget.height * ((1 - widget.tPad - widget.bPad) * (1 - (_pxToY(px) - pmin!) / (pmax! - pmin!)) + widget.tPad);
     }
   }
 
@@ -331,19 +334,19 @@ class _PriceGraphState extends State<PriceGraph> {
                       // color: Colors.grey[500],
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
+                        children: <Widget>[
                           // SizedBox(width: 15),
                           Text(
                             '${formatCurrency(widget.prices.first, 'GBP')} – ${formatCurrency(priceY ?? widget.prices.last, 'GBP')}',
-                            style: TextStyle(fontWeight: FontWeight.w300, fontSize: 20, color: Colors.grey[800]),
-                          ),
+                            style: TextStyle(fontWeight: FontWeight.w400, fontSize: 17, color: Colors.grey[700]),
+                          )] + (widget.include_return ? <Widget>[
                           SizedBox(width: 15),
                           Text(
                             '${returns! >= 0 ? "+" : ""}${formatPercentage(returns, 'GBP')}',
-                            style: TextStyle(fontWeight: FontWeight.w300, fontSize: 17, color: returns! >= 0 ? Colors.green : Colors.red),
+                            style: TextStyle(fontWeight: FontWeight.w300, fontSize: 15, color: returns! >= 0 ? Colors.green : Colors.red),
                           ),
                           // SizedBox(height: 25),
-                        ],
+                        ] : <Widget>[]),
                       ),
                     ),
                     Text(
@@ -366,7 +369,7 @@ class _PriceGraphState extends State<PriceGraph> {
             }
           },
           child: CustomPaint(
-            size: Size(graphWidth!, graphHeight),
+            size: Size(graphWidth!, widget.height),
             painter: PriceGraphPainter(
               prices: widget.prices,
               touchX: touchX,
