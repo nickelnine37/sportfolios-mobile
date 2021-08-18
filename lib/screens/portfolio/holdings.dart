@@ -363,8 +363,6 @@ class _HoldingsState extends State<Holdings> {
                                                   ? Center(
                                                       child: Container(
                                                         height: 250,
-                                                        // color: Colors.grey[500],
-                                                        // padding: const EdgeInsets.only(bottom: 20),
                                                         child: PayoutGraph(
                                                           q: holding,
                                                           tappable: true,

@@ -127,7 +127,10 @@ class _MainViewState extends State<MainView> {
                 ),
               ],
             ),
-            LeagueProgressBar(leagueOrMarket: league),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 10),
+              child: LeagueProgressBar(leagueOrMarket: league),
+            ),
           ]),
         ),
         body: TabBarView(

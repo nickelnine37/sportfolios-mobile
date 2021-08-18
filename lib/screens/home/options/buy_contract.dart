@@ -188,6 +188,18 @@ class _BuyFormState extends State<BuyForm> {
   bool team = false;
 
   String? _selectedPortfolioId;
+  Future? prefsFuture;
+  SharedPreferences? prefs;
+
+  @override
+  void initState() {
+    super.initState();
+    prefsFuture = getPrefs();
+  }
+
+  Future<void> getPrefs() async {
+    prefs = await SharedPreferences.getInstance();
+  }
 
   @override
   void dispose() {
@@ -197,336 +209,347 @@ class _BuyFormState extends State<BuyForm> {
 
   @override
   Widget build(BuildContext context) {
-    if (_selectedPortfolioId == null) {
-      if (widget.portfolios!.length == 0) {
-        _selectedPortfolioId = 'new';
-      } else {
-        _selectedPortfolioId = widget.portfolios![0].id;
-      }
-    }
-    team = widget.market.id.contains('T');
+    return FutureBuilder(
+        future: prefsFuture,
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.done) {
+            if (_selectedPortfolioId == null) {
+              if (widget.portfolios!.length == 0) {
+                _selectedPortfolioId = 'new';
+              } else {
+                _selectedPortfolioId = prefs!.getString('selectedPortfolio');
+                if (_selectedPortfolioId == null || !widget.portfolios!.map((p) => p.id).contains(_selectedPortfolioId)) {
+                  _selectedPortfolioId = widget.portfolios![0].id;
+                }
+              }
+            }
+            team = widget.market.id.contains('T');
 
-    return Form(
-      key: _formKey,
-      child: Padding(
-        padding: EdgeInsets.symmetric(horizontal: 5),
-        child: Column(
-          children: [
-            SizedBox(height: 10),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Row(
+            return Form(
+              key: _formKey,
+              child: Padding(
+                padding: EdgeInsets.symmetric(horizontal: 5),
+                child: Column(
                   children: [
-                    Text('Portfolio', style: TextStyle(fontSize: 17, color: Colors.grey[850])),
-                    IconButton(
-                        icon: Icon(Icons.info_outline),
-                        onPressed: () {
-                          print('Portfolio Info ');
-                        },
-                        iconSize: 20)
-                  ],
-                ),
-                Container(
-                  width: 150,
-                  height: 100,
-                  child: Center(
-                    child: DropdownButtonFormField(
-                      itemHeight: 100,
-                      value: _selectedPortfolioId,
-                      items: List<DropdownMenuItem<String>>.from(widget.portfolios!.map((portfolio) => DropdownMenuItem(
-                              onTap: () {},
-                              value: portfolio.id,
-                              child: Text(
-                                portfolio.name,
-                                style: TextStyle(color: Colors.grey[850]),
-                              )))) +
-                          <DropdownMenuItem<String>>[
-                            DropdownMenuItem(
-                              value: 'new',
-                              child: Row(
-                                children: [
-                                  Text('New', style: TextStyle(color: Colors.grey[850])),
-                                  Icon(
-                                    Icons.add,
-                                    size: 20,
-                                  )
-                                ],
-                              ),
-                              onTap: () {
-                                print('Create new portfolo dialogue');
-                              },
-                            ),
+                    SizedBox(height: 10),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Row(
+                          children: [
+                            Text('Portfolio', style: TextStyle(fontSize: 17, color: Colors.grey[850])),
+                            IconButton(
+                                icon: Icon(Icons.info_outline),
+                                onPressed: () {
+                                  print('Portfolio Info ');
+                                },
+                                iconSize: 20)
                           ],
-                      onChanged: (String? id) {
-                        // _selectedPortfolio = widget.portfolios.firstWhere((Portfolio p) => p.id == id);
+                        ),
+                        Container(
+                          width: 150,
+                          height: 100,
+                          child: Center(
+                            child: DropdownButtonFormField(
+                              itemHeight: 100,
+                              value: _selectedPortfolioId,
+                              items: List<DropdownMenuItem<String>>.from(widget.portfolios!.map((portfolio) => DropdownMenuItem(
+                                      onTap: () {},
+                                      value: portfolio.id,
+                                      child: Text(
+                                        portfolio.name,
+                                        style: TextStyle(color: Colors.grey[850]),
+                                      )))) +
+                                  <DropdownMenuItem<String>>[
+                                    DropdownMenuItem(
+                                      value: 'new',
+                                      child: Row(
+                                        children: [
+                                          Text('New', style: TextStyle(color: Colors.grey[850])),
+                                          Icon(
+                                            Icons.add,
+                                            size: 20,
+                                          )
+                                        ],
+                                      ),
+                                      onTap: () {
+                                        print('Create new portfolo dialogue');
+                                      },
+                                    ),
+                                  ],
+                              onChanged: (String? id) {
+                                // _selectedPortfolio = widget.portfolios.firstWhere((Portfolio p) => p.id == id);
 
-                        setState(() {
-                          _selectedPortfolioId = id;
-                        });
-                      },
-                      onSaved: (String? id) {
-                        // _selectedPortfolio = widget.portfolios.firstWhere((Portfolio p) => p.id == id);
-                        _selectedPortfolioId = id;
-                      },
-                      validator: (String? value) {
-                        if (widget.portfolios!.map((portfolio) => portfolio.id).contains(value) || value == 'new') {
-                          // TODO: check whether portfolio has sufficient cash
-                          return null;
-                        } else {
-                          return 'Please select a valid portfolio';
-                        }
-                      },
-                      isExpanded: true,
+                                setState(() {
+                                  _selectedPortfolioId = id;
+                                });
+                              },
+                              onSaved: (String? id) {
+                                // _selectedPortfolio = widget.portfolios.firstWhere((Portfolio p) => p.id == id);
+                                _selectedPortfolioId = id;
+                              },
+                              validator: (String? value) {
+                                if (widget.portfolios!.map((portfolio) => portfolio.id).contains(value) || value == 'new') {
+                                  // TODO: check whether portfolio has sufficient cash
+                                  return null;
+                                } else {
+                                  return 'Please select a valid portfolio';
+                                }
+                              },
+                              isExpanded: true,
+                            ),
+                          ),
+                        )
+                      ],
                     ),
-                  ),
-                )
-              ],
-            ),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Row(
-                  children: [
-                    Text('Units', style: TextStyle(fontSize: 17, color: Colors.grey[850])),
-                    IconButton(
-                        icon: Icon(Icons.info_outline),
-                        onPressed: () {
-                          print('Show units info dialogue');
-                        },
-                        iconSize: 20)
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Row(
+                          children: [
+                            Text('Units', style: TextStyle(fontSize: 17, color: Colors.grey[850])),
+                            IconButton(
+                                icon: Icon(Icons.info_outline),
+                                onPressed: () {
+                                  print('Show units info dialogue');
+                                },
+                                iconSize: 20)
+                          ],
+                        ),
+                        Container(
+                          width: 150,
+                          height: 50,
+                          child: TextFormField(
+                            keyboardType: TextInputType.numberWithOptions(signed: false, decimal: true),
+                            inputFormatters: <TextInputFormatter>[FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d{0,2}$'))],
+                            // maxLength: 5,
+                            controller: _unitController,
+                            decoration: InputDecoration(hintText: '0.00'),
+                            onChanged: (String value) {
+                              if (value == '') {
+                              } else {
+                                try {
+                                  units = double.parse(value);
+                                  Array qPurchase = widget.unitQuantity.scale(units);
+                                  price = validatePrice(widget.market.currentLMSR!.priceTrade(qPurchase));
+                                  setState(() {});
+                                } catch (error) {
+                                  print(error.toString());
+                                }
+                              }
+                            },
+                            validator: (String? value) {
+                              try {
+                                double.parse(value!);
+                                if (price >= widget.portfolios!.firstWhere((portfolio) => portfolio.id == _selectedPortfolioId).cash) {
+                                  print(price);
+                                  print(widget.portfolios!.firstWhere((portfolio) => portfolio.id == _selectedPortfolioId).cash);
+                                  return 'Insufficient funds';
+                                }
+                                return null;
+                              } catch (error) {
+                                return 'Please input valid units';
+                              }
+                            },
+                            onSaved: (String? value) {
+                              units = double.parse(value!);
+                            },
+                          ),
+                        )
+                      ],
+                    ),
+                    SizedBox(height: 30),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text(
+                          'Price:',
+                          style: TextStyle(fontSize: 17, color: Colors.grey[850]),
+                        ),
+                        Text(
+                          formatCurrency(price, 'GBP'),
+                          style: TextStyle(fontSize: 18, fontWeight: FontWeight.w400),
+                        ),
+                        TextButton(
+                          child: loading
+                              ? Container(
+                                  height: 25,
+                                  width: 25,
+                                  child: CircularProgressIndicator(
+                                    strokeWidth: 3,
+                                    valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                                  ))
+                              : complete
+                                  ? Icon(Icons.done, color: Colors.white)
+                                  : Text('OK', style: TextStyle(color: Colors.white)),
+                          style: ButtonStyle(
+                            overlayColor: MaterialStateProperty.all<Color>(Colors.blue),
+                            backgroundColor: MaterialStateProperty.all<Color>(Colors.blue),
+                          ),
+                          onPressed: () async {
+                            if (!complete) {
+                              if (_formKey.currentState!.validate()) {
+                                _formKey.currentState!.save();
+                              } else {
+                                return;
+                              }
+
+                              if (!FocusScope.of(context).hasPrimaryFocus) {
+                                FocusManager.instance.primaryFocus!.unfocus();
+                              }
+
+                              // off we go...
+                              setState(() {
+                                loading = true;
+                              });
+
+                              // set the quantity being purchased
+                              Array qPurchase = widget.unitQuantity.scale(units);
+
+                              // make a new purchase request
+                              Map<String, dynamic>? purchaseRequestResult =
+                                  await makePurchaseRequest(widget.market.id, _selectedPortfolioId!, qPurchase, price);
+
+                              // something fucked up happened ...
+                              if (purchaseRequestResult == null) {
+                                showDialog(
+                                    context: context,
+                                    builder: (BuildContext context) {
+                                      return ProblemPopup();
+                                    });
+                                await Future.delayed(Duration(milliseconds: 600));
+                                Navigator.of(context).pop();
+                                return;
+                              }
+
+                              // we need this to congratulate etc
+                              SharedPreferences prefs = await SharedPreferences.getInstance();
+
+                              await Future.delayed(Duration(seconds: 1));
+
+                              // everything went according to plan
+                              if (purchaseRequestResult['success']) {
+                                setState(() {
+                                  loading = false;
+                                  complete = true;
+                                });
+
+                                // Notify portfolios that a new transaction has been made
+                                print('Notifying!!');
+
+                                Transaction transaction = Transaction(
+                                  widget.market,
+                                  DateTime.now().millisecondsSinceEpoch / 1000,
+                                  price,
+                                  qPurchase,
+                                );
+
+                                context.read(purchaseCompleteProvider).registerNewTransaction(_selectedPortfolioId!, transaction);
+
+                                showDialog(
+                                    context: context,
+                                    builder: (BuildContext context) {
+                                      return PurchaseCompletePopup();
+                                    });
+
+                                await Future.delayed(Duration(milliseconds: 800));
+                                Navigator.of(context).pop();
+
+                                // if this is null, lets congratulate
+                                bool? done = prefs.getBool('firstPurchaseComplete');
+
+                                if (done == null) {
+                                  await showDialog(
+                                      context: context,
+                                      builder: (BuildContext context) {
+                                        return CongratualtionsDialogue();
+                                      });
+                                  prefs.setBool('firstPurchaseComplete', true);
+                                }
+
+                                await Future.delayed(Duration(milliseconds: 500));
+
+                                Navigator.pop(context);
+                              }
+
+                              // the price was not as expected
+                              else {
+                                setState(() {
+                                  loading = false;
+                                  complete = false;
+                                });
+
+                                bool confirm = await showDialog(
+                                        context: context,
+                                        builder: (BuildContext context) {
+                                          return ConfirmPurchase(oldPrice: price, newPrice: purchaseRequestResult['price']);
+                                        }) ??
+                                    false;
+
+                                bool ok = await respondToNewPrice(confirm, purchaseRequestResult['cancelId']);
+
+                                // they want to confirm, but there is a problem
+                                if (confirm && !ok) {
+                                  showDialog(
+                                      context: context,
+                                      builder: (BuildContext context) {
+                                        return ProblemPopup();
+                                      });
+                                  await Future.delayed(Duration(seconds: 1));
+                                  Navigator.of(context).pop();
+                                }
+
+                                // they want to confirm and there's no problem
+                                else if (confirm && ok) {
+                                  setState(() {
+                                    price = purchaseRequestResult['price'];
+                                    loading = false;
+                                    complete = true;
+                                  });
+
+                                  Transaction transaction = Transaction(
+                                    widget.market,
+                                    DateTime.now().millisecondsSinceEpoch / 1000,
+                                    purchaseRequestResult['price'],
+                                    qPurchase,
+                                  );
+
+                                  context.read(purchaseCompleteProvider).registerNewTransaction(_selectedPortfolioId!, transaction);
+
+                                  // check for congrats
+                                  bool? done = prefs.getBool('firstPurchaseComplete');
+
+                                  if (done == null) {
+                                    await showDialog(
+                                        context: context,
+                                        builder: (BuildContext context) {
+                                          return CongratualtionsDialogue();
+                                        });
+                                    prefs.setBool('firstPurchaseComplete', true);
+                                  }
+                                  await Future.delayed(Duration(milliseconds: 600));
+                                  Navigator.of(context).pop();
+                                }
+
+                                // they rejected the new price
+                                else if (!confirm) {
+                                  await Future.delayed(Duration(milliseconds: 600));
+                                  Navigator.of(context).pop();
+                                }
+                              }
+                            }
+                          },
+                        ),
+                      ],
+                    )
                   ],
                 ),
-                Container(
-                  width: 150,
-                  height: 50,
-                  child: TextFormField(
-                    keyboardType: TextInputType.numberWithOptions(signed: false, decimal: true),
-                    inputFormatters: <TextInputFormatter>[FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d{0,2}$'))],
-                    // maxLength: 5,
-                    controller: _unitController,
-                    decoration: InputDecoration(hintText: '0.00'),
-                    onChanged: (String value) {
-                      if (value == '') {
-                      } else {
-                        try {
-                          units = double.parse(value);
-                          Array qPurchase = widget.unitQuantity.scale(units);
-                          price = validatePrice(widget.market.currentLMSR!.priceTrade(qPurchase));
-                          setState(() {});
-                        } catch (error) {
-                          print(error.toString());
-                        }
-                      }
-                    },
-                    validator: (String? value) {
-                      try {
-                        double.parse(value!);
-                        if (price >= widget.portfolios!.firstWhere((portfolio) => portfolio.id == _selectedPortfolioId).cash) {
-                          print(price);
-                          print(widget.portfolios!.firstWhere((portfolio) => portfolio.id == _selectedPortfolioId).cash);
-                          return 'Insufficient funds';
-                        }
-                        return null;
-                      } catch (error) {
-                        return 'Please input valid units';
-                      }
-                    },
-                    onSaved: (String? value) {
-                      units = double.parse(value!);
-                    },
-                  ),
-                )
-              ],
-            ),
-            SizedBox(height: 30),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text(
-                  'Price:',
-                  style: TextStyle(fontSize: 17, color: Colors.grey[850]),
-                ),
-                Text(
-                  formatCurrency(price, 'GBP'),
-                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.w400),
-                ),
-                TextButton(
-                  child: loading
-                      ? Container(
-                          height: 25,
-                          width: 25,
-                          child: CircularProgressIndicator(
-                            strokeWidth: 3,
-                            valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
-                          ))
-                      : complete
-                          ? Icon(Icons.done, color: Colors.white)
-                          : Text('OK', style: TextStyle(color: Colors.white)),
-                  style: ButtonStyle(
-                    overlayColor: MaterialStateProperty.all<Color>(Colors.blue),
-                    backgroundColor: MaterialStateProperty.all<Color>(Colors.blue),
-                  ),
-                  onPressed: () async {
-                    if (!complete) {
-                      if (_formKey.currentState!.validate()) {
-                        _formKey.currentState!.save();
-                      } else {
-                        return;
-                      }
-
-                      if (!FocusScope.of(context).hasPrimaryFocus) {
-                        FocusManager.instance.primaryFocus!.unfocus();
-                      }
-
-                      // off we go...
-                      setState(() {
-                        loading = true;
-                      });
-
-                      // set the quantity being purchased
-                      Array qPurchase = widget.unitQuantity.scale(units);
-
-                      // make a new purchase request
-                      Map<String, dynamic>? purchaseRequestResult =
-                          await makePurchaseRequest(widget.market.id, _selectedPortfolioId!, qPurchase, price);
-
-                      // something fucked up happened ...
-                      if (purchaseRequestResult == null) {
-                        showDialog(
-                            context: context,
-                            builder: (BuildContext context) {
-                              return ProblemPopup();
-                            });
-                        await Future.delayed(Duration(milliseconds: 600));
-                        Navigator.of(context).pop();
-                        return;
-                      }
-
-                      // we need this to congratulate etc
-                      SharedPreferences prefs = await SharedPreferences.getInstance();
-
-                      await Future.delayed(Duration(seconds: 1));
-
-                      // everything went according to plan
-                      if (purchaseRequestResult['success']) {
-                        setState(() {
-                          loading = false;
-                          complete = true;
-                        });
-
-                        // Notify portfolios that a new transaction has been made
-                        print('Notifying!!');
-
-                        Transaction transaction = Transaction(
-                          widget.market,
-                          DateTime.now().millisecondsSinceEpoch / 1000,
-                          price,
-                          qPurchase,
-                        );
-
-                        context.read(purchaseCompleteProvider).registerNewTransaction(_selectedPortfolioId!, transaction);
-
-                        showDialog(
-                            context: context,
-                            builder: (BuildContext context) {
-                              return PurchaseCompletePopup();
-                            });
-
-                        await Future.delayed(Duration(milliseconds: 800));
-                        Navigator.of(context).pop();
-
-                        // if this is null, lets congratulate
-                        bool? done = prefs.getBool('firstPurchaseComplete');
-
-                        if (done == null) {
-                          await showDialog(
-                              context: context,
-                              builder: (BuildContext context) {
-                                return CongratualtionsDialogue();
-                              });
-                          prefs.setBool('firstPurchaseComplete', true);
-                        }
-
-                        await Future.delayed(Duration(milliseconds: 500));
-
-                        Navigator.pop(context);
-                      }
-
-                      // the price was not as expected
-                      else {
-                        setState(() {
-                          loading = false;
-                          complete = false;
-                        });
-
-                        bool confirm = await showDialog(
-                                context: context,
-                                builder: (BuildContext context) {
-                                  return ConfirmPurchase(oldPrice: price, newPrice: purchaseRequestResult['price']);
-                                }) ??
-                            false;
-
-                        bool ok = await respondToNewPrice(confirm, purchaseRequestResult['cancelId']);
-
-                        // they want to confirm, but there is a problem
-                        if (confirm && !ok) {
-                          showDialog(
-                              context: context,
-                              builder: (BuildContext context) {
-                                return ProblemPopup();
-                              });
-                          await Future.delayed(Duration(seconds: 1));
-                          Navigator.of(context).pop();
-                        }
-
-                        // they want to confirm and there's no problem
-                        else if (confirm && ok) {
-                          setState(() {
-                            price = purchaseRequestResult['price'];
-                            loading = false;
-                            complete = true;
-                          });
-
-                          Transaction transaction = Transaction(
-                            widget.market,
-                            DateTime.now().millisecondsSinceEpoch / 1000,
-                            purchaseRequestResult['price'],
-                            qPurchase,
-                          );
-
-                          context.read(purchaseCompleteProvider).registerNewTransaction(_selectedPortfolioId!, transaction);
-
-                          // check for congrats
-                          bool? done = prefs.getBool('firstPurchaseComplete');
-
-                          if (done == null) {
-                            await showDialog(
-                                context: context,
-                                builder: (BuildContext context) {
-                                  return CongratualtionsDialogue();
-                                });
-                            prefs.setBool('firstPurchaseComplete', true);
-                          }
-                          await Future.delayed(Duration(milliseconds: 600));
-                          Navigator.of(context).pop();
-                        }
-
-                        // they rejected the new price
-                        else if (!confirm) {
-                          await Future.delayed(Duration(milliseconds: 600));
-                          Navigator.of(context).pop();
-                        }
-                      }
-                    }
-                  },
-                ),
-              ],
-            )
-          ],
-        ),
-      ),
-    );
+              ),
+            );
+          } else {
+            return Center(child: CircularProgressIndicator());
+          }
+        });
   }
 }
 
