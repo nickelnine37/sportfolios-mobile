@@ -1,7 +1,7 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'screens/leaderboard/leaderboard.dart';
-import 'screens/portfolio/portfolio_page.dart';
+import 'screens/portfolio/my_portfolios.dart';
 import 'screens/settings/settings.dart';
 import 'screens/home/home.dart';
 

@@ -15,7 +15,7 @@ Future<Portfolio?> getPortfolioById(String portfoliloId) async {
 
 Future<void> deletePortfolio(String portfolioId) async {
   await FirebaseFirestore.instance.collection('portfolios').doc(portfolioId).update({'active': false});
-  await FirebaseFirestore.instance.collection('user').doc(AuthService().currentUid).update({
+  await FirebaseFirestore.instance.collection('users').doc(AuthService().currentUid).update({
     'portfolios': FieldValue.arrayRemove([portfolioId])
   });
 }

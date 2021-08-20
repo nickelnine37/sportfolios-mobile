@@ -6,8 +6,6 @@ import '../../data/utils/casting.dart';
 import '../api/requests.dart';
 import '../lmsr/lmsr.dart';
 
-
-
 abstract class Market {
   // ----- core attributes -----
   late String id;
@@ -99,8 +97,8 @@ abstract class Market {
     DocumentSnapshot snapshot = await FirebaseFirestore.instance.collection('stats').doc(stats_id).get();
     stats = Map<String, Map<String, dynamic>>.from(snapshot['stats']);
     details = Map<String, dynamic>.from(snapshot['details']);
-    currentStats = stats!.remove('2021/2022');   
-    }
+    currentStats = stats!.remove('2021/2022');
+  }
 }
 
 class PlayerMarket extends Market {
@@ -119,8 +117,15 @@ class PlayerMarket extends Market {
     super.addSnapshotInfo(snapshot);
     name = splitLongName(snapshot['name'], 20, 'player');
 
-    info1 = snapshot['country_flag']; /// + ' ' + snapshot['role'];
-    info2 = "PTS ${snapshot['points']}";
+    info1 = snapshot['country_flag'];
+
+    try {
+      info2 = "PTS ${snapshot['points']}";
+    } catch (error) {
+      print('Bad id: ${id}');
+      info2 = "PTS 0";
+    }
+
     info3 = splitLongName(snapshot['team_name'], 17, 'team');
 
     team_id = '${snapshot['team_id']}:${snapshot['league_id']}:${snapshot['season_id']}T';

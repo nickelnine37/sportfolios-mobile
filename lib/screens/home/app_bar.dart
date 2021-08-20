@@ -84,7 +84,7 @@ class _MainViewState extends State<MainView> {
                   },
                 ),
                 Container(child: CachedNetworkImage(imageUrl: league.imageURL!, height: 50)),
-                SizedBox(width: 5),
+                SizedBox(width: 10),
                 Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [

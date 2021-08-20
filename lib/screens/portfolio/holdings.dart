@@ -1,6 +1,7 @@
 import 'dart:collection';
 import 'package:cloud_firestore/cloud_firestore.dart' as fire;
 import 'package:flutter_colorpicker/flutter_colorpicker.dart';
+import 'dart:math' as math;
 
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
@@ -476,7 +477,7 @@ class LongShortGraph extends StatelessWidget {
     return Container(
       width: double.infinity,
       height: height,
-      child: CustomPaint(painter: LongShortGraphPainter(quantity, qmax ?? quantity.max)),
+      child: CustomPaint(painter: LongShortGraphPainter(quantity.abs, qmax ?? math.max(quantity.max, 1e-5))),
     );
   }
 }
@@ -514,6 +515,9 @@ class LongShortGraphPainter extends CustomPainter {
       Offset(p0, 2 * size.height / 7),
       Offset((size.width - p0) * quantity[0] / qmax + p0, size.height / 7),
     );
+
+    print(rect1);
+
     Rect rect2 = Rect.fromPoints(
       Offset(shortPainter.width + 15, 4 * size.height / 7),
       Offset((size.width - p0) * quantity[1] / qmax + p0, 3 * size.height / 7),

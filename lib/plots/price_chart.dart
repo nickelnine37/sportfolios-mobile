@@ -1,15 +1,17 @@
 import 'package:flutter/material.dart';
-import 'package:sportfolios_alpha/utils/numerical/arrays.dart';
-import '../utils/numerical/array_operations.dart';
-import 'dart:ui' as ui;
-import '../utils/strings/number_format.dart';
 import 'package:intl/intl.dart' as intl;
+import 'dart:math' as math;
+import 'dart:ui' as ui;
+
+import '../utils/numerical/arrays.dart';
+import '../utils/numerical/array_operations.dart';
+import '../utils/strings/number_format.dart';
 
 class TabbedPriceGraph extends StatefulWidget {
   final Map<String, Array>? priceHistory;
   final Map<String, List<int>>? times;
   final Color color1 = Colors.green;
-  final Color color2  = Colors.green;
+  final Color color2 = Colors.green;
   final double height;
   final bool include_return;
 
@@ -29,6 +31,7 @@ class _TabbedPriceGraphState extends State<TabbedPriceGraph> with SingleTickerPr
   final double horizontalPadding = 15;
   final double veritcalPadding = 10;
   int selected = 0;
+  List<int>? lengths;
 
   @override
   void initState() {
@@ -49,20 +52,30 @@ class _TabbedPriceGraphState extends State<TabbedPriceGraph> with SingleTickerPr
 
   @override
   Widget build(BuildContext context) {
+    if (lengths == null) {
+      lengths = [
+        math.min(widget.priceHistory!['M']!.length, widget.times!['M']!.length),
+        math.min(widget.priceHistory!['m']!.length, widget.times!['m']!.length),
+        math.min(widget.priceHistory!['w']!.length, widget.times!['w']!.length),
+        math.min(widget.priceHistory!['d']!.length, widget.times!['d']!.length),
+        math.min(widget.priceHistory!['h']!.length, widget.times!['h']!.length),
+      ];
+    }
+
     List<Array> ps = [
-      widget.priceHistory!['M']!,
-      widget.priceHistory!['m']!,
-      widget.priceHistory!['w']!,
-      widget.priceHistory!['d']!,
-      widget.priceHistory!['h']!,
+      widget.priceHistory!['M']!.sublist(0, lengths![0]),
+      widget.priceHistory!['m']!.sublist(0, lengths![1]),
+      widget.priceHistory!['w']!.sublist(0, lengths![2]),
+      widget.priceHistory!['d']!.sublist(0, lengths![3]),
+      widget.priceHistory!['h']!.sublist(0, lengths![4]),
     ];
 
     List<List<int>> ts = [
-      widget.times!['M']!,
-      widget.times!['m']!,
-      widget.times!['w']!,
-      widget.times!['d']!,
-      widget.times!['h']!,
+      widget.times!['M']!.sublist(0, lengths![0]),
+      widget.times!['m']!.sublist(0, lengths![1]),
+      widget.times!['w']!.sublist(0, lengths![2]),
+      widget.times!['d']!.sublist(0, lengths![3]),
+      widget.times!['h']!.sublist(0, lengths![4]),
     ];
 
     return DefaultTabController(
@@ -75,16 +88,14 @@ class _TabbedPriceGraphState extends State<TabbedPriceGraph> with SingleTickerPr
             padding: EdgeInsets.symmetric(vertical: veritcalPadding, horizontal: horizontalPadding),
             height: widget.height,
             child: PriceGraph(
-              prices: ps[selected],
-              times: ts[selected],
-              horizontalPaddingParent: horizontalPadding,
-              moving: _tabController!.indexIsChanging,
-              include_return: widget.include_return,
-              lineColor: widget.color1,
-              shadeColor: widget.color2,
-              height: widget.height - 70
-         
-            ),
+                prices: ps[selected],
+                times: ts[selected],
+                horizontalPaddingParent: horizontalPadding,
+                moving: _tabController!.indexIsChanging,
+                include_return: widget.include_return,
+                lineColor: widget.color1,
+                shadeColor: widget.color2,
+                height: widget.height - 70),
           ),
           Container(
             width: double.infinity,
@@ -140,7 +151,7 @@ class PriceGraph extends StatefulWidget {
     required this.prices,
     required this.times,
     required this.height,
-    this.include_return=false,
+    this.include_return = false,
     this.horizontalPaddingParent,
     this.moving,
     this.lineColor,
@@ -335,18 +346,23 @@ class _PriceGraphState extends State<PriceGraph> {
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: <Widget>[
-                          // SizedBox(width: 15),
-                          Text(
-                            '${formatCurrency(widget.prices.first, 'GBP')} – ${formatCurrency(priceY ?? widget.prices.last, 'GBP')}',
-                            style: TextStyle(fontWeight: FontWeight.w400, fontSize: 17, color: Colors.grey[700]),
-                          )] + (widget.include_return ? <Widget>[
-                          SizedBox(width: 15),
-                          Text(
-                            '${returns! >= 0 ? "+" : ""}${formatPercentage(returns, 'GBP')}',
-                            style: TextStyle(fontWeight: FontWeight.w300, fontSize: 15, color: returns! >= 0 ? Colors.green : Colors.red),
-                          ),
-                          // SizedBox(height: 25),
-                        ] : <Widget>[]),
+                              // SizedBox(width: 15),
+                              Text(
+                                '${formatCurrency(widget.prices.first, 'GBP')} – ${formatCurrency(priceY ?? widget.prices.last, 'GBP')}',
+                                style: TextStyle(fontWeight: FontWeight.w400, fontSize: 17, color: Colors.grey[700]),
+                              )
+                            ] +
+                            (widget.include_return
+                                ? <Widget>[
+                                    SizedBox(width: 15),
+                                    Text(
+                                      '${returns! >= 0 ? "+" : ""}${formatPercentage(returns, 'GBP')}',
+                                      style: TextStyle(
+                                          fontWeight: FontWeight.w300, fontSize: 15, color: returns! >= 0 ? Colors.green : Colors.red),
+                                    ),
+                                    // SizedBox(height: 25),
+                                  ]
+                                : <Widget>[]),
                       ),
                     ),
                     Text(

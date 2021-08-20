@@ -191,6 +191,8 @@ class Portfolio {
       await transaction.market.getCurrentHoldings();
       await transaction.market.getHistoricalHoldings();
     }
+      transaction.getCurrentValue();
+      transaction.getHistoricalValue();
     transactions.add(transaction);
   }
 

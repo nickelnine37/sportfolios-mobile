@@ -6,6 +6,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:confetti/confetti.dart';
 import 'package:intl/intl.dart' as intl;
+import 'package:sportfolios_alpha/screens/portfolio/dialogues/new_portfolio.dart';
 
 import '../../../data/api/requests.dart';
 import '../../../data/firebase/portfolios.dart';
@@ -272,9 +273,7 @@ class _BuyFormState extends State<BuyForm> {
                                           )
                                         ],
                                       ),
-                                      onTap: () {
-                                        print('Create new portfolo dialogue');
-                                      },
+                                      onTap: () {},
                                     ),
                                   ],
                               onChanged: (String? id) {
@@ -339,11 +338,22 @@ class _BuyFormState extends State<BuyForm> {
                               }
                             },
                             validator: (String? value) {
+                              if (_selectedPortfolioId == 'new') {
+                                try {
+                                  double.parse(value!);
+                                  if (price >= 500) {
+                                    return 'Insufficient funds';
+                                  }
+                                  return null;
+                                } catch (error) {
+                                  print(error);
+                                  return 'Please input valid units';
+                                }
+                              }
+
                               try {
                                 double.parse(value!);
                                 if (price >= widget.portfolios!.firstWhere((portfolio) => portfolio.id == _selectedPortfolioId).cash) {
-                                  print(price);
-                                  print(widget.portfolios!.firstWhere((portfolio) => portfolio.id == _selectedPortfolioId).cash);
                                   return 'Insufficient funds';
                                 }
                                 return null;
@@ -398,6 +408,21 @@ class _BuyFormState extends State<BuyForm> {
                                 FocusManager.instance.primaryFocus!.unfocus();
                               }
 
+                              if (_selectedPortfolioId == 'new') {
+                                String? newPid = await showDialog(
+                                  context: context,
+                                  builder: (context) {
+                                    return NewPortfolioDialogue();
+                                  },
+                                );
+
+                                if (newPid == null) {
+                                  return;
+                                } else {
+                                  _selectedPortfolioId = newPid;
+                                }
+                              }
+
                               // off we go...
                               setState(() {
                                 loading = true;
@@ -445,6 +470,8 @@ class _BuyFormState extends State<BuyForm> {
                                 );
 
                                 context.read(purchaseCompleteProvider).registerNewTransaction(_selectedPortfolioId!, transaction);
+
+                                await prefs.setString('selectedPortfolio', _selectedPortfolioId!);
 
                                 showDialog(
                                     context: context,
@@ -658,6 +685,25 @@ class _ConfirmPurchaseState extends State<ConfirmPurchase> {
               style: TextStyle(fontSize: 16.0),
               textAlign: TextAlign.center),
           SizedBox(height: 24.0),
+          TweenAnimationBuilder(
+            duration: Duration(seconds: 30),
+            tween: Tween<double>(begin: 1, end: 0),
+            curve: Curves.linear,
+            builder: (BuildContext context, double value, Widget? child) {
+              return LinearProgressIndicator(
+                backgroundColor: Colors.grey,
+                value: value,
+              );
+            },
+            onEnd: () async {
+              setState(() {
+                contentId = 1;
+              });
+              await Future.delayed(Duration(seconds: 1));
+              Navigator.of(context).pop(false);
+            },
+          ),
+          SizedBox(height: 20),
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
             children: [

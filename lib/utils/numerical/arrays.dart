@@ -1,4 +1,6 @@
 import 'dart:typed_data';
+import 'dart:math' as math;
+
 
 class Array {
   late Float64List a;
@@ -112,6 +114,10 @@ class Array {
   double get mean {
     return sum / length;
   }
+
+  Array get abs {
+    return Array.fromList(a.map((e) => e.abs()).toList());
+  }
   /// ------- Operators -------
 
   double operator [](int index) => a[index];
@@ -121,36 +127,36 @@ class Array {
   }
 
   Array operator *(Array b) {
-    _checkArray(b);
-    Float64List c = Float64List(length);
-    for (int i = 0; i < length; i++) {
+    int minLength = _checkArrayLength(b);
+    Float64List c = Float64List(minLength);
+    for (int i = 0; i < minLength; i++) {
       c[i] = a[i] * b[i];
     }
     return Array.from(c);
   }
 
   Array operator /(Array b) {
-    _checkArray(b);
-    Float64List c = Float64List(length);
-    for (int i = 0; i < length; i++) {
+    int minLength = _checkArrayLength(b);
+    Float64List c = Float64List(minLength);
+    for (int i = 0; i < minLength; i++) {
       c[i] = a[i] / b[i];
     }
     return Array.from(c);
   }
 
   Array operator +(Array b) {
-    _checkArray(b);
-    Float64List c = Float64List(length);
-    for (int i = 0; i < length; i++) {
+    int minLength = _checkArrayLength(b);
+    Float64List c = Float64List(minLength);
+    for (int i = 0; i < minLength; i++) {
       c[i] = a[i] + b[i];
     }
     return Array.from(c);
   }
 
   Array operator -(Array b) {
-    _checkArray(b);
-    Float64List c = Float64List(length);
-    for (int i = 0; i < length; i++) {
+    int minLength = _checkArrayLength(b);
+    Float64List c = Float64List(minLength);
+    for (int i = 0; i < minLength; i++) {
       c[i] = a[i] - b[i];
     }
     return Array.from(c);
@@ -165,6 +171,10 @@ class Array {
     }
   }
   /// -------- Methods -------
+  
+  Array sublist(int start, [int? end]) {
+    return Array.from(a.sublist(start, end));
+  }
 
   Array apply(double Function(double) fun) {
     Float64List c = Float64List(length);
@@ -191,8 +201,8 @@ class Array {
   }
 
   bool allEqual(Array b) {
-    _checkArray(b);
-    for (int i = 0; i < a.length; i++) {
+    int minLength = _checkArrayLength(b);
+    for (int i = 0; i < minLength; i++) {
       if (a[i] != b[i]) {
         return false;
       }
@@ -212,10 +222,12 @@ class Array {
     return Array.fromList(a + l);
   }
   
-  void _checkArray(Array b) {
+  int _checkArrayLength(Array b) {
     if (length != b.length) {
-      throw ('both arrays need have the same dimension');
+      print('both arrays should have the same dimension');
+      return math.min(length, b.length);
     }
+    return length;
   }
   
   List<double> toList() {

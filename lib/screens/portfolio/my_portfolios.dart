@@ -43,7 +43,6 @@ class _PortfolioPageState extends State<PortfolioPage> {
     fire.DocumentSnapshot result = await fire.FirebaseFirestore.instance.collection('users').doc(uid).get();
 
     for (String portfolioId in result['portfolios']) {
-      print(portfolioId);
       Portfolio? portfolio = await _getFreshPortfolio(portfolioId);
       if (portfolio != null) {
         portfolios[portfolioId] = portfolio;
@@ -64,7 +63,7 @@ class _PortfolioPageState extends State<PortfolioPage> {
     }
   }
 
-  Future<void> _addNewPortfolio(String portfolioId) async {
+  Future<void> _addNewPortfolio(String portfolioId, [Transaction? transaction]) async {
     Portfolio? newPortfolio = await _getFreshPortfolio(portfolioId);
     if (newPortfolio != null) {
       portfolios[portfolioId] = newPortfolio;
@@ -90,7 +89,11 @@ class _PortfolioPageState extends State<PortfolioPage> {
       if (transactionId != null) {
         if (!registeredTransactions.contains(transactionId)) {
           registeredTransactions.add(transactionId);
-          portfoliosFuture = portfolios[pid!]!.addTransaction(transaction!);
+          if (portfolios.containsKey(pid)) {
+            portfoliosFuture = portfolios[pid!]!.addTransaction(transaction!);
+          } else {
+            portfoliosFuture = _addNewPortfolio(pid!);
+          }
         }
       }
 
@@ -127,6 +130,7 @@ class _PortfolioPageState extends State<PortfolioPage> {
                           },
                         );
                         if (newPid != null) {
+                          await prefs!.setString('selectedPortfolio', newPid);
                           setState(() {
                             portfoliosFuture = _addNewPortfolio(newPid);
                           });
@@ -141,8 +145,9 @@ class _PortfolioPageState extends State<PortfolioPage> {
 
           if (selectedPortfolioId == null && portfolios.length > 0) {
             selectedPortfolioId = prefs!.getString('selectedPortfolio');
-            if (selectedPortfolioId == null) {
+            if (selectedPortfolioId == null || !portfolios.keys.contains(selectedPortfolioId)) {
               selectedPortfolioId = portfolios.keys.toList()[0];
+              prefs!.setString('selectedPortfolio', selectedPortfolioId!);
             }
           }
 
@@ -154,12 +159,12 @@ class _PortfolioPageState extends State<PortfolioPage> {
                 titleSpacing: 0,
                 toolbarHeight: 110,
                 title: Container(
-                  // height: 5, 
-                  width: double.infinity, 
+                  // height: 5,
+                  width: double.infinity,
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.start,
                     children: [
-                     SizedBox(width: 15),
+                      SizedBox(width: 15),
                       GestureDetector(
                         onTap: () async {
                           String? newlySelectedPortfolioId = await showDialog(
@@ -168,7 +173,7 @@ class _PortfolioPageState extends State<PortfolioPage> {
                               return PortfolioSelectorDialogue(portfolios);
                             },
                           );
-                  
+
                           if (newlySelectedPortfolioId != null) {
                             setState(() {
                               selectedPortfolioId = newlySelectedPortfolioId;
@@ -189,7 +194,7 @@ class _PortfolioPageState extends State<PortfolioPage> {
                                 )),
                             SizedBox(width: 17),
                             Container(
-                              width: 195, 
+                              width: 195,
                               child: Text(
                                 portfolios[selectedPortfolioId]!.name,
                                 style: TextStyle(fontSize: 25.0, color: Colors.white),
@@ -227,6 +232,7 @@ class _PortfolioPageState extends State<PortfolioPage> {
                               if (output == 'updated') {
                                 setState(() {});
                               } else if (output == 'deleted') {
+                                await prefs!.remove('selectedPortfolio');
                                 setState(() {
                                   portfolios.remove(selectedPortfolioId);
                                   selectedPortfolioId = null;
@@ -243,6 +249,7 @@ class _PortfolioPageState extends State<PortfolioPage> {
                         },
                       );
                       if (newPid != null) {
+                        await prefs!.setString('selectedPortfolio', newPid);
                         setState(() {
                           portfoliosFuture = _addNewPortfolio(newPid);
                         });

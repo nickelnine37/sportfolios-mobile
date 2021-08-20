@@ -50,7 +50,7 @@ String splitLongName(String name, int maxLen, String type) {
       if (type == 'player') {
         name = names.first + ' ' + names.last;
       } else {
-        name = names.first + ' ' + names[1];
+        name = names.first;
       }
     } else {
       if (type == 'player') {
