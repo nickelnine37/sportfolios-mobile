@@ -75,7 +75,7 @@ class TeamLMSR extends LMSR {
     double out = _c(quantity + x) - _xMax - b * math.log(_expSum);
 
     if (out > 0) {
-      return math.max(out, 0.01);
+      return math.max(out, 0.001);
     } else {
       return out;
     }

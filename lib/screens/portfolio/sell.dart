@@ -515,6 +515,8 @@ class _SellFormState extends State<SellForm> {
   Widget build(BuildContext context) {
     payout = widget.market.currentLMSR!.priceTrade(widget.sellQuantity); // this is also negative
 
+    print('${widget.sellQuantity}, $payout');
+
     return Padding(
       padding: EdgeInsets.symmetric(horizontal: 5),
       child: Column(

@@ -234,7 +234,7 @@ class Portfolio {
 
     double total = cash;
     holdings.forEach((String marketName, Array quantity) {
-      double value = -markets[marketName]!.currentLMSR!.priceTrade(quantity.scale(-1));
+      double value = markets[marketName]!.currentLMSR!.getValue(quantity);
       total += value;
       currentValues[marketName] = value;
     });
