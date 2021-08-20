@@ -25,6 +25,13 @@ abstract class PortfolioFetcher {
   bool finished = false;
 
   Future<void> get10();
+
+  Future<void> refresh() async {
+    loadedResults = [];
+    finished = false;
+    await get10();
+  }
+
 }
 
 class FavoritesPortfolioFetcher extends PortfolioFetcher {
@@ -48,7 +55,7 @@ class FavoritesPortfolioFetcher extends PortfolioFetcher {
         await FirebaseFirestore.instance.collection('portfolios').doc(portfolioIds[i]).get().then((snapshot) {
           loadedResults.add(Portfolio.fromDocumentSnapshot(snapshot));
         }).catchError((error) {
-          print('Error adding portfolio: ${error}');
+          print('Error getting portfolios: ${error}');
         });
         ;
       }

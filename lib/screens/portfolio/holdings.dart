@@ -7,7 +7,6 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:sportfolios_alpha/plots/price_chart.dart';
-import 'package:sportfolios_alpha/screens/home/app_bar.dart';
 import 'package:sportfolios_alpha/utils/design/colors.dart';
 import 'package:sportfolios_alpha/utils/numerical/arrays.dart';
 
@@ -93,13 +92,6 @@ class _HoldingsState extends State<Holdings> {
     setState(() {});
   }
 
-  // Future<void> fullRefresh() async {
-  //   await widget.portfolio!.populateMarketsFirebase();
-  //   await widget.portfolio!.populateMarketsServer();
-  //   widget.portfolio!.getCurrentValue();
-  //   widget.portfolio!.getHistoricalValue();
-  // }
-
   @override
   Widget build(BuildContext context) {
     if (isExpanded == null || isExpanded!.length != widget.portfolio!.markets.length) {
@@ -108,6 +100,12 @@ class _HoldingsState extends State<Holdings> {
 
     SplayTreeMap<String, double> sortedValues = SplayTreeMap<String, double>.from(
         widget.portfolio!.currentValues, (a, b) => widget.portfolio!.currentValues[a]! < widget.portfolio!.currentValues[b]! ? 1 : -1);
+
+    for (String market in sortedValues.keys) {
+      if (widget.portfolio!.currentValues[market]! < 0.01) {
+        sortedValues.remove(market);
+      }
+    }  
 
     return FutureBuilder(
         future: portfolioUpdateFuture,
@@ -297,7 +295,7 @@ class _HoldingsState extends State<Holdings> {
                                                   Column(
                                                     children: [
                                                       Text(
-                                                        formatCurrency(value, 'GBP'),
+                                                        formatCurrency(value.abs(), 'GBP'),
                                                         style: TextStyle(fontSize: 16, color: Colors.grey[850]),
                                                       ),
                                                       widget.owner

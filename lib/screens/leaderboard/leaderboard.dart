@@ -78,6 +78,7 @@ class _LeaderboardState extends State<Leaderboard> {
           title: Text('Portfolio Leaderboard', style: TextStyle(color: Colors.white, fontSize: 26)),
         ),
         body: TabBarView(
+          physics: NeverScrollableScrollPhysics(),
           children: [
             GlobalLeaderboardScroll(),
             LikedLeaderboardScroll(),

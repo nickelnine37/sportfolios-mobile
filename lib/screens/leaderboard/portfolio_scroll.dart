@@ -58,119 +58,124 @@ class _GlobalLeaderboardScrollState extends State<GlobalLeaderboardScroll> with 
             nTiles += 1;
           }
 
-          return ListView.separated(
-            controller: _scrollController,
-            itemCount: nTiles,
-            itemBuilder: (context, index) {
+          return RefreshIndicator(
+            onRefresh: () async {
+              await Future.delayed(Duration(seconds: 1));
+              await portfolioFetcherInUse!.refresh();
+              setState(() {});
+            },
+            child: ListView.separated(
+              controller: _scrollController,
+              itemCount: nTiles,
+              itemBuilder: (context, index) {
+                if (index == 0) {
+                  return Row(
+                    children: [
+                      Expanded(
+                        child: Container(
+                          padding: EdgeInsets.only(left: 10, right: 10, bottom: 1),
+                          height: 47,
+                          child: TextField(
+                            controller: _textController,
+                            onSubmitted: (String value) async {
+                              if (value.trim() != '') {
+                                portfolioFetcherInUse = SearchPortfolioFetcher(value.trim().toLowerCase());
+                                setState(() {
+                                  portfoliosFuture = portfolioFetcherInUse!.get10();
+                                });
+                              }
+                            },
+                            decoration: InputDecoration(
+                              focusedBorder: InputBorder.none,
+                              enabledBorder: InputBorder.none,
+                              hintText: 'Search',
+                              icon: Icon(Icons.search),
+                              suffixIcon: IconButton(
+                                icon: Icon(Icons.clear),
+                                onPressed: () {
+                                  _textController.clear();
+                                  portfolioFetcherInUse = returnsPortfolioFetcher;
+                                  // close keyboard - not sure exactly what's going on here...
+                                  if (!FocusScope.of(context).hasPrimaryFocus) {
+                                    FocusManager.instance.primaryFocus!.unfocus();
+                                  }
+                                  setState(() {});
+                                },
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                      Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 8),
+                        child: OutlinedButton(
+                          onPressed: () async {
+                            String? sortBy = await showDialog(
+                                context: context,
+                                builder: (BuildContext context) {
+                                  return SortByDialogue();
+                                });
 
-              if (index == 0) {
-                return Row(
-                  children: [
-                    Expanded(
-                      child: Container(
-                        padding: EdgeInsets.only(left: 10, right: 10, bottom: 1),
-                        height: 47,
-                        child: TextField(
-                          controller: _textController,
-                          onSubmitted: (String value) async {
-                            if (value.trim() != '') {
-                              portfolioFetcherInUse = SearchPortfolioFetcher(value.trim().toLowerCase());
+                            if (sortBy != null && sortBy != returnsPeriod) {
+                              returnsPortfolioFetcher = ReturnsPortfolioFetcher(sortBy);
+                              portfolioFetcherInUse = returnsPortfolioFetcher;
                               setState(() {
+                                returnsPeriod = sortBy;
                                 portfoliosFuture = portfolioFetcherInUse!.get10();
                               });
                             }
                           },
-                          decoration: InputDecoration(
-                            focusedBorder: InputBorder.none,
-                            enabledBorder: InputBorder.none,
-                            hintText: 'Search',
-                            icon: Icon(Icons.search),
-                            suffixIcon: IconButton(
-                              icon: Icon(Icons.clear),
-                              onPressed: () {
-                                _textController.clear();
-                                portfolioFetcherInUse = returnsPortfolioFetcher;
-                                // close keyboard - not sure exactly what's going on here...
-                                if (!FocusScope.of(context).hasPrimaryFocus) {
-                                  FocusManager.instance.primaryFocus!.unfocus();
-                                }
-                                setState(() {});
-                              },
+                          child: Row(
+                            children: [
+                              Icon(Icons.sort_sharp, color: Colors.grey[700]),
+                              SizedBox(width: 8),
+                              Text(
+                                'Sort',
+                                style: TextStyle(color: Colors.grey[700]),
+                              ),
+                            ],
+                          ),
+                          style: ButtonStyle(
+                            padding: MaterialStateProperty.all<EdgeInsets>(
+                              EdgeInsets.symmetric(vertical: 3, horizontal: 8),
                             ),
                           ),
                         ),
-                      ),
-                    ),
-                    Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 8),
-                      child: OutlinedButton(
-                        onPressed: () async {
-                          String? sortBy = await showDialog(
-                              context: context,
-                              builder: (BuildContext context) {
-                                return SortByDialogue();
-                              });
-
-                          if (sortBy != null && sortBy != returnsPeriod) {
-                            returnsPortfolioFetcher = ReturnsPortfolioFetcher(sortBy);
-                            portfolioFetcherInUse = returnsPortfolioFetcher;
-                            setState(() {
-                              returnsPeriod = sortBy;
-                              portfoliosFuture = portfolioFetcherInUse!.get10();
-                            });
-                          }
-                        },
-                        child: Row(
-                          children: [
-                            Icon(Icons.sort_sharp, color: Colors.grey[700]),
-                            SizedBox(width: 8),
-                            Text(
-                              'Sort',
-                              style: TextStyle(color: Colors.grey[700]),
-                            ),
-                          ],
-                        ),
-                        style: ButtonStyle(
-                          padding: MaterialStateProperty.all<EdgeInsets>(
-                            EdgeInsets.symmetric(vertical: 3, horizontal: 8),
-                          ),
-                        ),
-                      ),
-                    )
-                  ],
-                );
-              }
-
-              if (index == 1 && portfolioFetcherInUse!.loadedResults.length == 0) {
-            // no results here
-            return Padding(
-              padding: const EdgeInsets.all(25.0),
-              child: Center(child: Text("Sorry, no results :'(")),
-            );
-          }
-
-              if (index == nTiles - 1) {
-                // final tile contains the loading spinner
-                if (portfolioFetcherInUse!.finished || (portfolioFetcherInUse!.loadedResults.length == 0)) {
-                  return Container(height: 0);
-                } else {
-                  return Padding(
-                    padding: EdgeInsets.all(8.0),
-                    child: Center(child: CircularProgressIndicator()),
+                      )
+                    ],
                   );
                 }
-              } else {
-                return PortfolioTile(
-                  portfolio: portfolioFetcherInUse!.loadedResults[index - 1
-                  ],
-                  returnsPeriod: returnsPeriod,
-                  index: index - 1,
-                );
-              }
-            },
-            separatorBuilder: (context, index) => Divider(
-              thickness: 2,
-              height: 2,
+
+                if (index == 1 && portfolioFetcherInUse!.loadedResults.length == 0) {
+                  // no results here
+                  return Padding(
+                    padding: const EdgeInsets.all(25.0),
+                    child: Center(child: Text("Sorry, no results :'(")),
+                  );
+                }
+
+                if (index == nTiles - 1) {
+                  // final tile contains the loading spinner
+                  if (portfolioFetcherInUse!.finished || (portfolioFetcherInUse!.loadedResults.length == 0)) {
+                    return Container(height: 0);
+                  } else {
+                    return Padding(
+                      padding: EdgeInsets.all(8.0),
+                      child: Center(child: CircularProgressIndicator()),
+                    );
+                  }
+                } else {
+                  return PortfolioTile(
+                    portfolio: portfolioFetcherInUse!.loadedResults[index - 1],
+                    returnsPeriod: returnsPeriod,
+                    index: index - 1,
+                  );
+                }
+              },
+              separatorBuilder: (context, index) => Divider(
+                thickness: 2,
+                height: 2,
+              ),
             ),
           );
         } else {
@@ -265,10 +270,6 @@ class _LikedLeaderboardScrollState extends State<LikedLeaderboardScroll> with Au
   @override
   void initState() {
     super.initState();
-    // empty at start
-    // portfolioFetcher = FavoritesPortfolioFetcher(portfolioIds: likedPortfolios);
-    // immediate completion
-    // portfoliosFuture = portfolioFetcher!.get10();
     _scrollController.addListener(_scrollListener);
   }
 
@@ -306,42 +307,49 @@ class _LikedLeaderboardScrollState extends State<LikedLeaderboardScroll> with Au
                 nTiles += 1;
               }
 
-              return ListView.separated(
-                controller: _scrollController,
-                itemCount: nTiles,
-                itemBuilder: (context, index) {
-                  if (index == nTiles - 1) {
-                    // final tile contains the loading spinner
-                    if (portfolioFetcher!.finished || (portfolioFetcher!.loadedResults.length == 0)) {
-                      return Container(height: 0);
-                    } else {
+              return RefreshIndicator(
+                onRefresh: () async {
+                  await Future.delayed(Duration(seconds: 1));
+                  await portfolioFetcher!.refresh();
+                  setState(() {});
+                },
+                child: ListView.separated(
+                  controller: _scrollController,
+                  itemCount: nTiles,
+                  itemBuilder: (context, index) {
+                    if (index == nTiles - 1) {
+                      // final tile contains the loading spinner
+                      if (portfolioFetcher!.finished || (portfolioFetcher!.loadedResults.length == 0)) {
+                        return Container(height: 0);
+                      } else {
+                        return Padding(
+                          padding: EdgeInsets.all(8.0),
+                          child: Center(child: CircularProgressIndicator()),
+                        );
+                      }
+                    }
+                    if (portfolioFetcher!.loadedResults.length == 0) {
+                      // no results here
                       return Padding(
-                        padding: EdgeInsets.all(8.0),
-                        child: Center(child: CircularProgressIndicator()),
+                        padding: const EdgeInsets.all(25.0),
+                        child: Center(
+                            child: Text(
+                          "Add some portfolios to your favourites - you'll see them appear here!",
+                          style: TextStyle(fontStyle: FontStyle.italic),
+                        )),
+                      );
+                    } else {
+                      return PortfolioTile(
+                        portfolio: portfolioFetcher!.loadedResults[index],
+                        returnsPeriod: 'd',
+                        index: index,
                       );
                     }
-                  }
-                  if (portfolioFetcher!.loadedResults.length == 0) {
-                    // no results here
-                    return Padding(
-                      padding: const EdgeInsets.all(25.0),
-                      child: Center(
-                          child: Text(
-                        "Add some portfolios to your favourites - you'll see them appear here!",
-                        style: TextStyle(fontStyle: FontStyle.italic),
-                      )),
-                    );
-                  } else {
-                    return PortfolioTile(
-                      portfolio: portfolioFetcher!.loadedResults[index],
-                      returnsPeriod: 'd',
-                      index: index,
-                    );
-                  }
-                },
-                separatorBuilder: (context, index) => Divider(
-                  thickness: 2,
-                  height: 2,
+                  },
+                  separatorBuilder: (context, index) => Divider(
+                    thickness: 2,
+                    height: 2,
+                  ),
                 ),
               );
             } else {
@@ -415,7 +423,6 @@ class _MarketContainedPortfolioScrollState extends State<MarketContainedPortfoli
             controller: _scrollController,
             itemCount: nTiles,
             itemBuilder: (context, index) {
-              
               if (index == 0 && portfolioFetcher!.loadedResults.length == 0) {
                 // no results here
                 return Padding(
