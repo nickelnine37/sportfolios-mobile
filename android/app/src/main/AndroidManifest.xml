@@ -1,7 +1,8 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="com.sportfolios.sportfolios_alpha">
+  <uses-permission android:name="android.permission.INTERNET"></uses-permission>
    <application
-        android:label="sportfolios_alpha"
+        android:label="Sportfolios"
         android:icon="@mipmap/ic_launcher">
         <activity
             android:name=".MainActivity"
