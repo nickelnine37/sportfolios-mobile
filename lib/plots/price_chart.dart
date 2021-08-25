@@ -475,14 +475,56 @@ class GraphPainter extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
     if (iSelect == null) {
-      paintGraphSection(
-        canvas,
-        size,
-        time.extend([time.last, time.first, time.first]).apply((double t) => tToPx(t, size)),
-        price.extend([pMin, pMin, price.first]).apply((double p) => pToPy(p, size)),
-        1.0,
-      );
+      if (flat) {
+        print('flat with no touch');
+        paintGraphSection(
+          canvas,
+          size,
+          Array.fromList([time.first, time.last, time.last, time.first, time.first]).apply((double t) => tToPx(t, size)),
+          Array.fromList([size.height / 2, size.height / 2, size.height - padVertical, size.height - padVertical, size.height / 2]),
+          1.0,
+        );
+      } else {
+        paintGraphSection(
+          canvas,
+          size,
+          time.extend([time.last, time.first, time.first]).apply((double t) => tToPx(t, size)),
+          price.extend([pMin, pMin, price.first]).apply((double p) => pToPy(p, size)),
+          1.0,
+        );
+      }
     } else {
+      if (flat) {
+        paintGraphSection(
+          canvas,
+          size,
+          Array.fromList([time.first, tSelect!, tSelect!, time.first]).apply((double t) => tToPx(t, size)),
+          Array.fromList([size.height / 2, size.height / 2, size.height - padVertical, size.height - padVertical]),
+          1.0,
+        );
+        paintGraphSection(
+          canvas,
+          size,
+          Array.fromList([tSelect!, time.last, time.last, tSelect!]).apply((double t) => tToPx(t, size)),
+          Array.fromList([size.height / 2, size.height / 2, size.height - padVertical, size.height - padVertical]),
+          0.3,
+        );
+      } else {
+        paintGraphSection(
+          canvas,
+          size,
+          time.sublist(0, iSelect!.ceil()).extend([tSelect!, tSelect!, time.first, time.first]).apply((double t) => tToPx(t, size)),
+          price.sublist(0, iSelect!.ceil()).extend([pSelect!, pMin, pMin, price.first]).apply((double p) => pToPy(p, size)),
+          1.0,
+        );
+        paintGraphSection(
+          canvas,
+          size,
+          time.sublist(iSelect!.ceil()).extendLeft([tSelect!]).extend([time.last, tSelect!, tSelect!]).apply((double t) => tToPx(t, size)),
+          price.sublist(iSelect!.ceil()).extendLeft([pSelect!]).extend([pMin, pMin, pSelect!]).apply((double p) => pToPy(p, size)),
+          0.3,
+        );
+      }
       paintGraphSection(
         canvas,
         size,
