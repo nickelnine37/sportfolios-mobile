@@ -221,6 +221,15 @@ class Array {
   Array extend(List<double> l) {
     return Array.fromList(a + l);
   }
+
+  Array extendLeft(List<double> l) {
+    return Array.fromList(l + a);
+  }
+
+  Array append(double x) {
+    a.add(x);
+    return this;
+  }
   
   int _checkArrayLength(Array b) {
     if (length != b.length) {

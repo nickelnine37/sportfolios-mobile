@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart' as intl;
+import 'package:sportfolios_alpha/utils/strings/string_utils.dart';
 import 'dart:math' as math;
 import 'dart:ui' as ui;
 
@@ -28,10 +28,7 @@ class TabbedPriceGraph extends StatefulWidget {
 
 class _TabbedPriceGraphState extends State<TabbedPriceGraph> with SingleTickerProviderStateMixin {
   TabController? _tabController;
-  final double horizontalPadding = 15;
-  final double veritcalPadding = 10;
   int selected = 0;
-  List<int>? lengths;
 
   @override
   void initState() {
@@ -52,409 +49,343 @@ class _TabbedPriceGraphState extends State<TabbedPriceGraph> with SingleTickerPr
 
   @override
   Widget build(BuildContext context) {
-    if (lengths == null) {
-      lengths = [
-        math.min(widget.priceHistory!['M']!.length, widget.times!['M']!.length),
-        math.min(widget.priceHistory!['m']!.length, widget.times!['m']!.length),
-        math.min(widget.priceHistory!['w']!.length, widget.times!['w']!.length),
-        math.min(widget.priceHistory!['d']!.length, widget.times!['d']!.length),
-        math.min(widget.priceHistory!['h']!.length, widget.times!['h']!.length),
-      ];
-    }
-
-    List<Array> ps = [
-      widget.priceHistory!['M']!.sublist(0, lengths![0]),
-      widget.priceHistory!['m']!.sublist(0, lengths![1]),
-      widget.priceHistory!['w']!.sublist(0, lengths![2]),
-      widget.priceHistory!['d']!.sublist(0, lengths![3]),
-      widget.priceHistory!['h']!.sublist(0, lengths![4]),
+    List<int> lengths = [
+      math.min(widget.priceHistory!['M']!.length, widget.times!['M']!.length),
+      math.min(widget.priceHistory!['m']!.length, widget.times!['m']!.length),
+      math.min(widget.priceHistory!['w']!.length, widget.times!['w']!.length),
+      math.min(widget.priceHistory!['d']!.length, widget.times!['d']!.length),
+      math.min(widget.priceHistory!['h']!.length, widget.times!['h']!.length),
     ];
 
-    List<List<int>> ts = [
-      widget.times!['M']!.sublist(0, lengths![0]),
-      widget.times!['m']!.sublist(0, lengths![1]),
-      widget.times!['w']!.sublist(0, lengths![2]),
-      widget.times!['d']!.sublist(0, lengths![3]),
-      widget.times!['h']!.sublist(0, lengths![4]),
+    int maxLen = lengths.reduce(math.max);
+
+    List<Array> ps = [
+      widget.priceHistory!['M']!
+          .sublist(0, lengths[0])
+          .extendLeft(List<double>.filled(maxLen - lengths[0], widget.priceHistory!['M']!.first)),
+      widget.priceHistory!['m']!
+          .sublist(0, lengths[1])
+          .extendLeft(List<double>.filled(maxLen - lengths[1], widget.priceHistory!['m']!.first)),
+      widget.priceHistory!['w']!
+          .sublist(0, lengths[2])
+          .extendLeft(List<double>.filled(maxLen - lengths[2], widget.priceHistory!['w']!.first)),
+      widget.priceHistory!['d']!
+          .sublist(0, lengths[3])
+          .extendLeft(List<double>.filled(maxLen - lengths[3], widget.priceHistory!['d']!.first)),
+      widget.priceHistory!['h']!
+          .sublist(0, lengths[4])
+          .extendLeft(List<double>.filled(maxLen - lengths[4], widget.priceHistory!['h']!.first)),
+    ];
+
+    List<Array> ts = [
+      Array.fromTrueDynamicList(widget.times!['M']!.sublist(0, lengths[0]))
+          .extendLeft(List<double>.filled(maxLen - lengths[0], widget.times!['M']!.first + 0.0)),
+      Array.fromTrueDynamicList(widget.times!['m']!.sublist(0, lengths[1]))
+          .extendLeft(List<double>.filled(maxLen - lengths[1], widget.times!['m']!.first + 0.0)),
+      Array.fromTrueDynamicList(widget.times!['w']!.sublist(0, lengths[2]))
+          .extendLeft(List<double>.filled(maxLen - lengths[2], widget.times!['w']!.first + 0.0)),
+      Array.fromTrueDynamicList(widget.times!['d']!.sublist(0, lengths[3]))
+          .extendLeft(List<double>.filled(maxLen - lengths[3], widget.times!['d']!.first + 0.0)),
+      Array.fromTrueDynamicList(widget.times!['h']!.sublist(0, lengths[4]))
+          .extendLeft(List<double>.filled(maxLen - lengths[4], widget.times!['h']!.first + 0.0)),
+    ];
+
+    List<List<int>> minMaxs = [
+      [ps[0].argmin, ps[0].argmax],
+      [ps[1].argmin, ps[1].argmax],
+      [ps[2].argmin, ps[2].argmax],
+      [ps[3].argmin, ps[3].argmax],
+      [ps[4].argmin, ps[4].argmax],
     ];
 
     return DefaultTabController(
       length: 5,
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: <Widget>[
-          Container(
-            padding: EdgeInsets.symmetric(vertical: veritcalPadding, horizontal: horizontalPadding),
-            height: widget.height,
-            child: PriceGraph(
-                prices: ps[selected],
-                times: ts[selected],
-                horizontalPaddingParent: horizontalPadding,
-                moving: _tabController!.indexIsChanging,
-                include_return: widget.include_return,
-                lineColor: widget.color1,
-                shadeColor: widget.color2,
-                height: widget.height - 70),
-          ),
-          Container(
-            width: double.infinity,
-            child: Center(
-              child: Container(
-                width: 200,
-                height: 30,
-                padding: EdgeInsets.only(bottom: 5, top: 2, left: 3, right: 3),
-                child: TabBar(
-                  labelColor: Colors.grey[800],
-                  unselectedLabelColor: Colors.grey[400],
-                  indicatorColor: Colors.grey[600],
-                  indicatorWeight: 1,
-                  controller: _tabController,
-                  labelPadding: EdgeInsets.symmetric(horizontal: 2, vertical: 2),
-                  indicatorSize: TabBarIndicatorSize.label,
-                  tabs: [
-                    Tab(child: Text('Max', style: TextStyle(fontSize: 15, fontWeight: FontWeight.w500))),
-                    Tab(child: Text('1M', style: TextStyle(fontSize: 15, fontWeight: FontWeight.w500))),
-                    Tab(child: Text('1w', style: TextStyle(fontSize: 15, fontWeight: FontWeight.w500))),
-                    Tab(child: Text('1d', style: TextStyle(fontSize: 15, fontWeight: FontWeight.w500))),
-                    Tab(child: Text('2h', style: TextStyle(fontSize: 15, fontWeight: FontWeight.w500))),
-                  ],
-                ),
+      child: Container(
+        height: widget.height,
+        child: Column(
+          children: [
+            Expanded(
+              flex: 5,
+              child: AnimatedBuilder(
+                builder: (context, child) {
+                  int g1 = _tabController!.previousIndex;
+                  int g2 = _tabController!.index;
+                  double pcComplete = (g1 == g2) ? 0 : (_tabController!.animation!.value - g1) / (g2 - g1);
+
+                  Array p = ps[g1].scale(1 - pcComplete) + ps[g2].scale(pcComplete);
+                  Array t = ts[g1].scale(1 - pcComplete) + ts[g2].scale(pcComplete);
+
+                  return PriceGraph(
+                    price: p,
+                    time: t,
+                    height: widget.height * 5 / 6,
+                    iMin: p.argmin,
+                    iMax: p.argmax,
+                    moving: _tabController!.indexIsChanging,
+                  );
+                },
+                animation: _tabController!.animation!,
               ),
             ),
-          ),
-        ],
+            Expanded(
+              flex: 1,
+              child: TabBar(
+                labelColor: Colors.grey[800],
+                unselectedLabelColor: Colors.grey[400],
+                indicatorColor: Colors.grey[600],
+                indicatorWeight: 1,
+                controller: _tabController,
+                labelPadding: EdgeInsets.symmetric(horizontal: 2, vertical: 2),
+                indicatorSize: TabBarIndicatorSize.label,
+                tabs: [
+                  Tab(child: Text('Max', style: TextStyle(fontSize: 15, fontWeight: FontWeight.w500))),
+                  Tab(child: Text('1M', style: TextStyle(fontSize: 15, fontWeight: FontWeight.w500))),
+                  Tab(child: Text('1w', style: TextStyle(fontSize: 15, fontWeight: FontWeight.w500))),
+                  Tab(child: Text('1d', style: TextStyle(fontSize: 15, fontWeight: FontWeight.w500))),
+                  Tab(child: Text('2h', style: TextStyle(fontSize: 15, fontWeight: FontWeight.w500))),
+                ],
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
 }
 
 class PriceGraph extends StatefulWidget {
-  final Array prices;
-  final List<int> times;
-  final bool? moving;
-  final Color? lineColor;
-  final Color? shadeColor;
-  final bool include_return;
+  final Array price;
+  final Array time;
   final double height;
+  final int iMin;
+  final int iMax;
+  final bool moving;
 
-  final double? horizontalPaddingParent;
-  final double tPad = 0.05;
-  final double bPad = 0.05;
-  final double lPad = 0.05;
-  final double rPad = 0.05;
-
-  final double? pmin;
-  final double? pmax;
-
-  PriceGraph({
-    required this.prices,
-    required this.times,
-    required this.height,
-    this.include_return = false,
-    this.horizontalPaddingParent,
-    this.moving,
-    this.lineColor,
-    this.shadeColor,
-    this.pmin,
-    this.pmax,
-  });
+  PriceGraph({required this.price, required this.time, required this.height, required this.iMin, required this.iMax, required this.moving});
 
   @override
   _PriceGraphState createState() => _PriceGraphState();
 }
 
 class _PriceGraphState extends State<PriceGraph> {
-  // where has the user touched in the x-direction, in pixels?
-  double? touchX;
-  // what is the corresponding graph value at this location, in pixels?
-  double? touchY;
-  // what is the actual price at this location?
-  double? priceY;
-  // returns over user-sopecified period
-  double? returns;
+  double horizontalPadding = 5.0;
+  double verticalPadding = 5.0;
 
-  PriceGraphPainter? priceChartPainter;
+  double graphPadHorizontal = 10.0;
+  double graphPadVertical = 10.0;
+
   double? graphWidth;
+  double? graphHeight;
 
-  // the min and max prices given
-  double? pmin;
-  double? pmax;
-  double? lastp;
+  double? tSelect;
+  double? pSelect;
+  double? iSelect;
 
-  // represents whether the prices are constant (in which case extra logic is needed for plotting)
-  // bool isConstant;
-  late intl.DateFormat dateFormat;
-  String? dateX;
+  double? p0;
 
-  // time difference between points
-  // used to determine date format
-  int? dt_t;
-
-  @override
-  void initState() {
-    super.initState();
-  }
-
-  // floor time to nearest 15 mins/hour, given dt_t (code representing whcih way to do it)
-  int formatTime(int t) {
-    if (dt_t == 0) {
-      return t;
-    } else if (dt_t == 1) {
-      return t - (t % 900);
-    } else if (dt_t == 2) {
-      return t - (t % 3600);
-    } else {
-      return t;
-    }
-  }
-
-  /// given an x-coordinate in pixels, return an interpolated y-coordinate in currency
-  double _pxToY(double? px) {
-    if ((pmax! - pmin!).abs() < 1e-5) {
-      return widget.prices.first;
-    } else {
-      // double equivelant of index number
-      double i = (widget.prices.length - 1) * (px! / graphWidth! - widget.lPad) / (1 - widget.lPad - widget.rPad);
-      if (i > (widget.prices.length - 1)) {
-        // return last price
-        return widget.prices.last;
-      } else if (i < 0) {
-        // return first price
-        return widget.prices.first;
-      } else {
-        // interpolate
-        return (1 - (i % 1)) * widget.prices[i.floor()] + (i % 1) * widget.prices[i.ceil()];
+  void interact(Offset position) {
+    if (!widget.moving) {
+      if (position.dx > graphPadHorizontal && position.dx < graphWidth! - graphPadHorizontal) {
+        setState(
+          () {
+            double ratio = (position.dx - graphPadHorizontal) / (graphWidth! - 2 * graphPadHorizontal);
+            tSelect = ratio * widget.time.last + (1 - ratio) * widget.time.first;
+            iSelect = sortedIndex(widget.time, tSelect!);
+            pSelect = (1 - (iSelect! % 1)) * widget.price[iSelect!.floor()] + (iSelect! % 1) * widget.price[iSelect!.ceil()];
+          },
+        );
       }
-    }
-  }
-
-  /// given an x-coordinate in pixels, return an interpolated y-coordinate in pixels
-  double _pxToPy(double? px) {
-    if ((pmax! - pmin!).abs() < 1e-5) {
-      return widget.height * ((1 - widget.tPad - widget.bPad) * 0.5 + widget.tPad);
-    } else {
-      return widget.height * ((1 - widget.tPad - widget.bPad) * (1 - (_pxToY(px) - pmin!) / (pmax! - pmin!)) + widget.tPad);
-    }
-  }
-
-  String unixToDateString(int t) {
-    return dateFormat.format(DateTime.fromMillisecondsSinceEpoch(formatTime((1000 * t).floor())));
-  }
-
-  String _pxToDateX(double px) {
-    double i = ((widget.prices.length - 1) * (px / graphWidth! - widget.lPad)) / (1 - widget.lPad - widget.rPad);
-    if (i > (widget.prices.length - 1)) {
-      return unixToDateString(widget.times.last);
-    } else if (i < 0) {
-      return unixToDateString(widget.times.first);
-    } else {
-      return unixToDateString(((1 - (i % 1)) * widget.times[i.floor()] + (i % 1) * widget.times[i.ceil()]).floor());
-    }
-  }
-
-  void updateTouch(Offset localPosition) {
-    setState(() {
-      // we're further than the right edge of the graph so clip
-      if (localPosition.dx > graphWidth! * (1 - widget.rPad)) {
-        touchX = graphWidth! * (1 - widget.rPad);
-      }
-      // we're further than the left edge of the graph so clip
-      else if (localPosition.dx < graphWidth! * widget.lPad) {
-        touchX = graphWidth! * widget.lPad;
-      }
-      // all good
-      else {
-        touchX = localPosition.dx;
-      }
-
-      touchY = _pxToPy(touchX);
-      priceY = _pxToY(touchX);
-      dateX = _pxToDateX(touchX!);
-    });
-  }
-
-  void setDateFormat(int dt) {
-    dt_t = 0;
-
-    if (dt < 2 * 3600) {
-      dateFormat = intl.DateFormat('d MMM yy HH:mm');
-      if (dt < 15 * 60) {
-        dt_t = 0;
-      } else if (dt < 3600) {
-        dt_t = 1;
-      } else {
-        dt_t = 2;
-      }
-    } else if (dt < 24 * 3600) {
-      dateFormat = intl.DateFormat('d MMM yy HH:00');
-    } else {
-      dateFormat = intl.DateFormat('d MMM yy');
     }
   }
 
   @override
   Widget build(BuildContext context) {
+    if (p0 == null) {
+      p0 = widget.price.first;
+    }
+
+    if (p0 != widget.price.first) {
+      iSelect = null;
+      pSelect = null;
+      tSelect = null;
+      p0 = widget.price.first;
+    }
+
     if (graphWidth == null) {
-      graphWidth = MediaQuery.of(context).size.width - 2 * widget.horizontalPaddingParent!;
-    }
-    // check if all values in the price array are the same
-
-    if (dt_t == null) {
-      setDateFormat(widget.times[1] - widget.times[0]);
+      graphWidth = MediaQuery.of(context).size.width - 2 * horizontalPadding;
+      graphHeight = widget.height * 5 / 6 - 2 * verticalPadding;
     }
 
-    // we're switching tabs so reset some variables
-    if (widget.moving!) {
-      touchX = null;
-      touchY = null;
-      priceY = null;
-      pmin = null;
-      pmax = null;
-      dateX = null;
-      returns = null;
-      dt_t = null;
+    if (widget.moving) {
+      iSelect = null;
+      pSelect = null;
+      tSelect = null;
     }
-
-    if (pmin == null || widget.prices.last != lastp) {
-      pmin = widget.prices.min;
-      pmax = widget.prices.max;
-      lastp = widget.prices.last;
-    }
-
-    if (widget.pmin != null) {
-      pmin = widget.pmin;
-      pmax = widget.pmax;
-    }
-
-    if (dateX == null) {
-      dateX = unixToDateString((DateTime.now().millisecondsSinceEpoch / 1000).floor());
-    }
-
-    returns = (priceY ?? widget.prices.last) / widget.prices.first - 1;
 
     return Column(
       children: [
         Expanded(
-          child: widget.moving!
-              ? Container()
-              : Column(
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  children: [
-                    Container(
-                      // color: Colors.grey[500],
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: <Widget>[
-                              // SizedBox(width: 15),
-                              Text(
-                                '${formatCurrency(widget.prices.first, 'GBP')} – ${formatCurrency(priceY ?? widget.prices.last, 'GBP')}',
-                                style: TextStyle(fontWeight: FontWeight.w400, fontSize: 17, color: Colors.grey[700]),
-                              )
-                            ] +
-                            (widget.include_return
-                                ? <Widget>[
-                                    SizedBox(width: 15),
-                                    Text(
-                                      '${returns! >= 0 ? "+" : ""}${formatPercentage(returns, 'GBP')}',
-                                      style: TextStyle(
-                                          fontWeight: FontWeight.w300, fontSize: 15, color: returns! >= 0 ? Colors.green : Colors.red),
-                                    ),
-                                    // SizedBox(height: 25),
-                                  ]
-                                : <Widget>[]),
-                      ),
-                    ),
-                    Text(
-                      '${unixToDateString(widget.times.first)} – $dateX',
-                      textAlign: TextAlign.start,
-                      style: TextStyle(fontWeight: FontWeight.w400, fontSize: 15, color: Colors.grey[600]),
-                    ),
-                  ],
-                ),
-        ),
-        GestureDetector(
-          onTapDown: (TapDownDetails details) {
-            if (!widget.moving!) {
-              updateTouch(details.localPosition);
-            }
-          },
-          onPanUpdate: (DragUpdateDetails details) {
-            if (touchX != null && !widget.moving!) {
-              updateTouch(details.localPosition);
-            }
-          },
-          child: CustomPaint(
-            size: Size(graphWidth!, widget.height),
-            painter: PriceGraphPainter(
-              prices: widget.prices,
-              touchX: touchX,
-              touchY: touchY,
-              // isConstant: isConstant,
-              lineColor: widget.lineColor,
-              shadeColor: widget.shadeColor,
-              moving: widget.moving,
-              tPad: widget.tPad,
-              bPad: widget.bPad,
-              lPad: widget.lPad,
-              rPad: widget.rPad,
-              pmin: pmin,
-              pmax: pmax,
+          flex: 1,
+          child: Container(
+            width: double.infinity,
+            height: double.infinity,
+            child: FittedBox(
+              fit: BoxFit.scaleDown,
+              alignment: Alignment.center,
+              child: GraphHeader(tSelect, pSelect),
             ),
           ),
         ),
+        Expanded(
+          flex: 5,
+          child: Padding(
+            padding: EdgeInsets.symmetric(horizontal: horizontalPadding, vertical: verticalPadding),
+            child: Container(
+              // color: Colors.blue.withOpacity(0.2),
+              width: double.infinity,
+              child: GestureDetector(
+                  onTapDown: (TapDownDetails details) {
+                    interact(details.localPosition);
+                  },
+                  onHorizontalDragUpdate: (DragUpdateDetails details) {
+                    interact(details.localPosition);
+                  },
+                  child: CustomPaint(
+                    painter: GraphPainter(
+                        price: widget.price,
+                        time: widget.time,
+                        pSelect: pSelect,
+                        tSelect: tSelect,
+                        iSelect: iSelect,
+                        iMax: widget.iMax,
+                        iMin: widget.iMin,
+                        padHorizontal: graphPadHorizontal,
+                        padVertical: graphPadVertical),
+                  )),
+            ),
+          ),
+        )
       ],
     );
   }
 }
 
-class PriceGraphPainter extends CustomPainter {
-  final Array? prices;
-  // final bool isConstant;
-  final bool? moving;
-  final Color? lineColor;
-  final Color? shadeColor;
-  final double? touchX;
-  final double? touchY;
-  final double? tPad;
-  final double? bPad;
-  final double? lPad;
-  final double? rPad;
-
-  int? n;
-  late int xMax;
-  late int xMin;
-  double? pmin;
-  double? pmax;
-  int? cutOffIndex;
-
-  PriceGraphPainter({
-    this.prices,
-    // this.isConstant,
-    this.touchX,
-    this.touchY,
-    this.moving,
-    this.lineColor,
-    this.shadeColor,
-    this.tPad,
-    this.bPad,
-    this.lPad,
-    this.rPad,
-    this.pmin,
-    this.pmax,
-  });
-
-  double yToPy(double y, Size size) {
-    return size.height * ((1 - tPad! - bPad!) * (1 - (y - pmin!) / (pmax! - pmin!)) + tPad!);
+double sortedIndex(Array array, double a, [int? start, int? end]) {
+  if (start == null) {
+    start = 0;
+    end = array.length - 1;
+    if (a > array[end]) {
+      return double.infinity;
+    } else if (a < array[0]) {
+      return -1.0;
+    }
   }
 
-  double xToPx(double x, Size size) {
-    return x * ((1 - lPad! - rPad!) * size.width / (n! - 1)) + size.width * lPad!;
+  if (start <= end!) {
+    int mid = (start + end) ~/ 2;
+    if (a > array[mid] && a < array[mid + 1]) return mid + (a - array[mid]) / (array[mid + 1] - array[mid]);
+    if (a > array[mid]) {
+      return sortedIndex(array, a, mid + 1, end);
+    } else {
+      return sortedIndex(array, a, start, mid - 1);
+    }
   }
 
-  void paintPriceGrah(Size size, Canvas canvas, List<double?> pathX, List<double> pathY, double opacityMultiple) {
+  return -1.0;
+}
+
+class GraphHeader extends StatefulWidget {
+  final double? tSelect;
+  final double? pSelect;
+
+  const GraphHeader(double? this.tSelect, double? this.pSelect);
+
+  @override
+  _GraphHeaderState createState() => _GraphHeaderState();
+}
+
+class _GraphHeaderState extends State<GraphHeader> {
+  double? tLast;
+  double? pLast;
+
+  @override
+  Widget build(BuildContext context) {
+    if (pLast != widget.pSelect && widget.pSelect != null) {
+      pLast = widget.pSelect;
+      tLast = widget.tSelect;
+    }
+
+    if (tLast == null) {
+      tLast = 0.0;
+      pLast = 0.0;
+    }
+
+    return AnimatedOpacity(
+      opacity: widget.tSelect == null ? 0 : 1,
+      duration: Duration(milliseconds: 200),
+      child: Text('${unixToDateString(tLast!.floor())}:   ${formatCurrency(pLast, 'GBP')}'),
+    );
+  }
+}
+
+class GraphPainter extends CustomPainter {
+  Array price;
+  Array time;
+  double? tSelect;
+  double? pSelect;
+  double? iSelect;
+  int iMax;
+  int iMin;
+  double padHorizontal;
+  double padVertical;
+
+  late bool flat;
+  late double pMin;
+  late double pMax;
+  late double tMin;
+  late double tMax;
+
+  Color lineColor = Colors.green;
+  Color shadeColor = Colors.green;
+
+  GraphPainter({
+    required this.price,
+    required this.time,
+    required this.pSelect,
+    required this.tSelect,
+    required this.iSelect,
+    required this.iMax,
+    required this.iMin,
+    required this.padHorizontal,
+    required this.padVertical,
+  }) {
+    pMin = price[iMin];
+    pMax = price[iMax];
+    tMin = time[iMin];
+    tMax = time[iMax];
+    flat = (pMin - pMax).abs() < 1e-4;
+  }
+
+  double tToPx(num t, Size size) {
+    return padHorizontal + (size.width - 2 * padHorizontal) * (t - time.first) / (time.last - time.first);
+  }
+
+  double pToPy(num p, Size size) {
+    if (flat) {
+      return size.height / 2;
+    }
+    return padVertical + (size.height - 2 * padVertical) * (1 - (p - pMin) / (pMax - pMin));
+  }
+
+  void paintGraphSection(
+    Canvas canvas,
+    Size size,
+    Array pathX,
+    Array pathY,
+    double opacityMultiple,
+  ) {
     Paint linePaint = Paint()
-      ..color = lineColor!.withOpacity(opacityMultiple)
+      ..color = lineColor.withOpacity(opacityMultiple)
       ..style = PaintingStyle.stroke
       ..strokeJoin = StrokeJoin.round
       ..strokeWidth = 2.0;
@@ -466,8 +397,8 @@ class PriceGraphPainter extends CustomPainter {
         Offset(100, 0),
         Offset(100, 180),
         [
-          shadeColor!.withOpacity(0.45 * opacityMultiple),
-          shadeColor!.withOpacity(0.04 * opacityMultiple),
+          shadeColor.withOpacity(0.45 * opacityMultiple),
+          shadeColor.withOpacity(0.04 * opacityMultiple),
         ],
       );
 
@@ -476,30 +407,32 @@ class PriceGraphPainter extends CustomPainter {
 
     int pathLength = pathX.length;
 
-    graphLine.moveTo(pathX[0]!, pathY[0]);
-    shading.moveTo(pathX[0]!, pathY[0]);
+    graphLine.moveTo(pathX.first, pathY.first);
+    shading.moveTo(pathX.first, pathY.first);
 
     for (int i = 1; i < pathLength; i++) {
       if (i < pathLength - 3) {
-        graphLine.lineTo(pathX[i]!, pathY[i]);
+        graphLine.lineTo(pathX[i], pathY[i]);
       }
-      shading.lineTo(pathX[i]!, pathY[i]);
+      shading.lineTo(pathX[i], pathY[i]);
     }
 
     canvas.drawPath(graphLine, linePaint);
     canvas.drawPath(shading, shadePaint);
   }
 
-  void paintTouchLine(Size size, Canvas canvas) {
+  void paintTouchLine(Canvas canvas, Size size) {
     Path touchLine = Path();
 
-    touchLine.moveTo(touchX!, size.height * tPad!);
+    double tP = tToPx(tSelect!, size);
 
-    for (int i in range(20)) {
-      double h1 = size.height * tPad! + (2 * i / 40) * size.height * (1 - bPad!);
-      double h2 = size.height * tPad! + (((2 * i) + 1) / 40) * size.height * (1 - bPad!);
-      touchLine.lineTo(touchX!, h1);
-      touchLine.moveTo(touchX!, h2);
+    touchLine.moveTo(tP, padVertical);
+
+    for (int i in range(21)) {
+      double h1 = padVertical + (2 * i / 40) * (size.height - 2 * padVertical);
+      double h2 = padVertical + (((2 * i) + 1) / 40) * (size.height - 2 * padVertical);
+      touchLine.lineTo(tP, h1);
+      touchLine.moveTo(tP, h2);
     }
 
     Paint touchLinePaint = Paint()
@@ -510,115 +443,38 @@ class PriceGraphPainter extends CustomPainter {
     canvas.drawPath(touchLine, touchLinePaint);
   }
 
-  void paintPriceText(Size size, Canvas canvas, String minOrMax) {
-    TextSpan priceText = TextSpan(
-      text: formatCurrency(minOrMax == 'min' ? pmin : pmax, 'GBP'),
-      style: TextStyle(color: Colors.grey[850], fontSize: 12, fontWeight: FontWeight.w400),
-    );
-
-    TextPainter pricePainter = TextPainter(text: priceText, textDirection: TextDirection.ltr, textAlign: TextAlign.center);
-
-    pricePainter.layout(minWidth: 0, maxWidth: 60);
-
-    pricePainter.paint(
-        canvas,
-        minOrMax == 'min'
-            ? Offset(
-                xToPx(xMin + 0.0, size) - pricePainter.width / 2,
-                yToPy(pmin!, size) + 5,
-              )
-            : Offset(
-                xToPx(xMax + 0.0, size) - pricePainter.width / 2,
-                yToPy(pmax!, size) - pricePainter.height - 2,
-              ));
-  }
-
   @override
   void paint(Canvas canvas, Size size) {
-    //
-
-    n = prices!.length;
-    xMax = range(n).reduce((prev, cur) => prices![prev] > prices![cur] ? prev : cur);
-    xMin = range(n).reduce((prev, cur) => prices![prev] < prices![cur] ? prev : cur);
-    if (pmin == null) {
-      pmin = prices![xMin];
-      pmax = prices![xMax];
-    }
-
-    bool isConstant = ((pmin! - pmax!).abs() < 1e-5);
-
-    // calculate cut-off index
-    if (touchX != null) {
-      cutOffIndex = (((prices!.length - 1) * (touchX! / size.width - lPad!)) / (1 - lPad! - rPad!)).ceil();
-    }
-
-    double y0 = (1 - bPad!) * size.height;
-    double x0 = size.width * lPad!;
-    double x1 = (1 - lPad! - rPad!) * size.width + size.width * lPad!;
-
-    // constant graph
-    if (isConstant) {
-      double y1 = ((1 - tPad! - bPad!) * 0.5 + tPad!) * size.height;
-
-      // single line
-      if (touchX == null) {
-        paintPriceGrah(size, canvas, [x0, x1, x1, x0, x0], [y1, y1, y0, y0, y1], 1);
-      }
-      // two halves
-      else {
-        paintPriceGrah(size, canvas, <double>[x0, touchX!, touchX!, x0, x0], <double>[y1, y1, y0, y0, y1], 1);
-        paintPriceGrah(size, canvas, <double>[touchX!, x1, x1, touchX!, touchX!], <double>[y1, y1, y0, y0, y1], 0.3);
-      }
-    }
-    // normal graph
-    else {
-      // basic x-y coordinates
-      List pathpY = prices!.apply((double y) => yToPy(y, size)).toList();
-      List pathpX = List<double>.generate(n!, (x) => xToPx(x + 0.0, size));
-
-      // single graph
-      if (touchX == null) {
-        paintPriceGrah(
-          size,
-          canvas,
-          pathpX + <double>[x1, x0, x0] as List<double>,
-          pathpY + <double>[y0, y0, pathpY.first] as List<double>,
-          1,
-        );
-      }
-      // two halves
-      else {
-        // first half
-        paintPriceGrah(
-          size,
-          canvas,
-          pathpX.sublist(0, cutOffIndex) + <double>[touchX!, touchX!, x0, x0] as List<double>,
-          pathpY.sublist(0, cutOffIndex) + <double>[touchY!, y0, y0, pathpY.first] as List<double>,
-          1,
-        );
-        // second half
-        paintPriceGrah(
-          size,
-          canvas,
-          <double>[touchX!] + (pathpX.sublist(cutOffIndex!) as List<double>) + <double>[x1, touchX!, touchX!],
-          <double>[touchY!] + (pathpY.sublist(cutOffIndex!) as List<double>) + <double>[y0, y0, touchY!],
-          0.3,
-        );
-      }
-    }
-
-    // paint on touch line
-    if (touchX != null) {
-      paintTouchLine(size, canvas);
-    }
-
-    // paint on min and max prices
-    if (!isConstant && !moving!) {
-      paintPriceText(size, canvas, 'min');
-      paintPriceText(size, canvas, 'max');
+    if (iSelect == null) {
+      paintGraphSection(
+        canvas,
+        size,
+        time.extend([time.last, time.first, time.first]).apply((double t) => tToPx(t, size)),
+        price.extend([pMin, pMin, price.first]).apply((double p) => pToPy(p, size)),
+        1.0,
+      );
+    } else {
+      paintGraphSection(
+        canvas,
+        size,
+        time.sublist(0, iSelect!.ceil()).extend([tSelect!, tSelect!, time.first, time.first]).apply((double t) => tToPx(t, size)),
+        price.sublist(0, iSelect!.ceil()).extend([pSelect!, pMin, pMin, price.first]).apply((double p) => pToPy(p, size)),
+        1.0,
+      );
+      paintGraphSection(
+        canvas,
+        size,
+        time.sublist(iSelect!.ceil()).extendLeft([tSelect!]).extend([time.last, tSelect!, tSelect!]).apply((double t) => tToPx(t, size)),
+        price.sublist(iSelect!.ceil()).extendLeft([pSelect!]).extend([pMin, pMin, pSelect!]).apply((double p) => pToPy(p, size)),
+        0.3,
+      );
+      paintTouchLine(canvas, size);
     }
   }
 
   @override
-  bool shouldRepaint(CustomPainter oldDelegate) => this.moving!;
+  bool shouldRepaint(covariant CustomPainter oldDelegate) {
+    return true;
+  }
 }
+

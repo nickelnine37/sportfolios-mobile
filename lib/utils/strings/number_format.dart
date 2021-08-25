@@ -26,6 +26,15 @@ String getCurrencySymbol(String currency) {
 }
 
 String formatCurrency(double? amount, String? currency) {
+
+  if (currency == null) {
+    currency = 'GBP';
+  }
+
+  if (amount == null) {
+    return formatCurrency(0.0, currency);
+  }
+
   late NumberFormat currencyFormatter;
   late double priceConversionRatio;
 
@@ -52,7 +61,7 @@ String formatCurrency(double? amount, String? currency) {
       break;
   }
 
-  return currencyFormatter.format(priceConversionRatio * amount!);
+  return currencyFormatter.format(priceConversionRatio * amount);
 }
 
 String formatPercentage(double? percent, String? currency) {

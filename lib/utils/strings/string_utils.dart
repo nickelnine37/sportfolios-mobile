@@ -1,3 +1,5 @@
+import 'package:intl/intl.dart' as intl;
+
 String formatTitle(String input) {
   return input.split(' ').map((word) => word[0].toUpperCase() + word.substring(1)).join(' ');
 }
@@ -63,3 +65,7 @@ String splitLongName(String name, int maxLen, String type) {
 
   return name;
 }
+
+  String unixToDateString(int t) {
+    return intl.DateFormat('d MMM yy HH:mm').format(DateTime.fromMillisecondsSinceEpoch((1000 * t).floor()));
+  }
