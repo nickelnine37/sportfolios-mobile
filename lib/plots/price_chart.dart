@@ -168,10 +168,10 @@ class PriceGraph extends StatefulWidget {
 }
 
 class _PriceGraphState extends State<PriceGraph> {
-  double horizontalPadding = 5.0;
+  double horizontalPadding = 15.0;
   double verticalPadding = 5.0;
 
-  double graphPadHorizontal = 10.0;
+  double graphPadHorizontal = 15.0;
   double graphPadVertical = 10.0;
 
   double? graphWidth;
@@ -260,7 +260,8 @@ class _PriceGraphState extends State<PriceGraph> {
                         iMax: widget.iMax,
                         iMin: widget.iMin,
                         padHorizontal: graphPadHorizontal,
-                        padVertical: graphPadVertical),
+                        padVertical: graphPadVertical,
+                        moving: widget.moving),
                   )),
             ),
           ),
@@ -323,7 +324,10 @@ class _GraphHeaderState extends State<GraphHeader> {
     return AnimatedOpacity(
       opacity: widget.tSelect == null ? 0 : 1,
       duration: Duration(milliseconds: 200),
-      child: Text('${unixToDateString(tLast!.floor())}:   ${formatCurrency(pLast, 'GBP')}'),
+      child: Text(
+        '${unixToDateString(tLast!.floor())}:   ${formatCurrency(pLast, 'GBP')}',
+        style: TextStyle(color: Colors.grey[850], fontSize: 14, fontWeight: FontWeight.w400),
+      ),
     );
   }
 }
@@ -338,6 +342,7 @@ class GraphPainter extends CustomPainter {
   int iMin;
   double padHorizontal;
   double padVertical;
+  bool moving;
 
   late bool flat;
   late double pMin;
@@ -358,6 +363,7 @@ class GraphPainter extends CustomPainter {
     required this.iMin,
     required this.padHorizontal,
     required this.padVertical,
+    required this.moving,
   }) {
     pMin = price[iMin];
     pMax = price[iMax];
@@ -443,6 +449,29 @@ class GraphPainter extends CustomPainter {
     canvas.drawPath(touchLine, touchLinePaint);
   }
 
+  void paintPriceText(Size size, Canvas canvas, String minOrMax) {
+    TextSpan priceText = TextSpan(
+      text: formatCurrency(minOrMax == 'min' ? pMin : pMax, 'GBP'),
+      style: TextStyle(color: Colors.grey[850], fontSize: 12, fontWeight: FontWeight.w400),
+    );
+
+    TextPainter pricePainter = TextPainter(text: priceText, textDirection: TextDirection.ltr, textAlign: TextAlign.center);
+
+    pricePainter.layout(minWidth: 0, maxWidth: 60);
+
+    pricePainter.paint(
+        canvas,
+        minOrMax == 'min'
+            ? Offset(
+                tToPx(tMin + 0.0, size) - pricePainter.width / 2,
+                pToPy(pMin, size) + 5,
+              )
+            : Offset(
+                tToPx(tMax + 0.0, size) - pricePainter.width / 2,
+                pToPy(pMax, size) - pricePainter.height - 2,
+              ));
+  }
+
   @override
   void paint(Canvas canvas, Size size) {
     if (iSelect == null) {
@@ -470,6 +499,11 @@ class GraphPainter extends CustomPainter {
       );
       paintTouchLine(canvas, size);
     }
+
+    if (!flat && !moving) {
+      paintPriceText(size, canvas, 'min');
+      paintPriceText(size, canvas, 'max');
+    }
   }
 
   @override
@@ -477,4 +511,3 @@ class GraphPainter extends CustomPainter {
     return true;
   }
 }
-
