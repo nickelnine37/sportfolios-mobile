@@ -113,11 +113,12 @@ class MarketTile extends StatelessWidget {
                                     ),
                                     SizedBox(height: spacing),
                                     Text(
-                                        '${market.longPriceReturnsHist![returnsPeriod]! < 0 ? '-' : '+'}${formatPercentage((market.longPriceReturnsHist![returnsPeriod]!).abs(), 'GBP')}  (${market.longPriceReturnsHist![returnsPeriod]! < 0 ? '-' : '+'}${formatCurrency((market.longPriceHist![returnsPeriod]!.last - market.longPriceHist![returnsPeriod]!.first).abs(), 'GBP')})',
-                                        style: TextStyle(
-                                            fontSize: lowerTextSize,
-                                            color:
-                                                (market.longPriceReturnsHist![returnsPeriod]!) >= 0 ? Colors.green[300] : Colors.red[300])),
+                                      '${market.longPriceReturnsHist![returnsPeriod]! < 0 ? '-' : '+'}${formatPercentage((market.longPriceReturnsHist![returnsPeriod]!).abs(), 'GBP')}  (${market.longPriceReturnsHist![returnsPeriod]! < 0 ? '-' : '+'}${formatCurrency((market.longPriceHist![returnsPeriod]!.last - market.longPriceHist![returnsPeriod]!.first).abs(), 'GBP')})',
+                                      style: TextStyle(
+                                        fontSize: lowerTextSize,
+                                        color: (market.longPriceReturnsHist![returnsPeriod]!) >= 0 ? Colors.green[300] : Colors.red[300],
+                                      ),
+                                    ),
                                   ],
                                 ),
                               ),

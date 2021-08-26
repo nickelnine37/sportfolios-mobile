@@ -44,19 +44,21 @@ class PortfolioTile extends StatelessWidget {
           Expanded(
             child: Container(
               height: double.infinity,
-              alignment: Alignment.center,
               padding: EdgeInsets.only(left: 20, right: 5),
-              child: Column(
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 crossAxisAlignment: CrossAxisAlignment.center,
-                mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Column(
+                  Expanded(
+                    flex: 5,
+                    child: Container(
+                      height: double.infinity,
+                      // color: Colors.blue.withOpacity(0.2),
+                      child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
+                        mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          Text(portfolio.name, style: TextStyle(fontSize: upperTextSize)),
+                          Text(portfolio.name, style: TextStyle(fontSize: upperTextSize), overflow: TextOverflow.ellipsis, maxLines: 1,),
                           SizedBox(height: spacing),
                           Text(
                             portfolio.username,
@@ -64,30 +66,46 @@ class PortfolioTile extends StatelessWidget {
                           ),
                         ],
                       ),
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.end,
-                        children: [
-                          Text(
-                            formatCurrency(portfolio.currentValue, 'GBP'),
-                            style: TextStyle(fontSize: upperTextSize),
-                          ),
-                          SizedBox(height: spacing),
-                          Row(
-                            children: [
-                              Text({'d': 'Last 24h: ', 'w': 'This week: ', 'm': 'This month: ', 'M': 'All time: '}[returnsPeriod]!,
-                                  style: TextStyle(fontSize: lowerTextSize, color: Colors.grey[600])),
-                              SizedBox(width: 5),
-                              Text(
-                                  '${portfolio.periodReturns[returnsPeriod]! < 0 ? '-' : '+'}${formatPercentage(portfolio.periodReturns[returnsPeriod]!.abs(), 'GBP')}',
-                                  style: TextStyle(
-                                      fontSize: lowerTextSize,
-                                      color: portfolio.periodReturns[returnsPeriod]! >= 0 ? Colors.green[300] : Colors.red[300])),
-                            ],
-                          ),
-                        ],
-                      )
-                    ],
+                    ),
                   ),
+                  Expanded(
+                    flex: 4,
+                    child: Container(
+                      height: double.infinity, 
+                      // color: Colors.red.withOpacity(0.2),
+                      child: FittedBox(
+                        fit: BoxFit.scaleDown,
+                        alignment: Alignment.centerRight,
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.end,
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Text(
+                              formatCurrency(portfolio.currentValue, 'GBP'),
+                              style: TextStyle(fontSize: upperTextSize),
+                            ),
+                            SizedBox(height: spacing),
+                            Container(
+                              // color: Colors.green.withOpacity(0.2),
+                              child: Row(
+                                mainAxisAlignment: MainAxisAlignment.end,
+                                children: [
+                                  Text({'d': 'Last 24h: ', 'w': 'This week: ', 'm': 'This month: ', 'M': 'All time: '}[returnsPeriod]!,
+                                      style: TextStyle(fontSize: lowerTextSize, color: Colors.grey[600])),
+                                  SizedBox(width: 5),
+                                  Text(
+                                      '${portfolio.periodReturns[returnsPeriod]! < 0 ? '-' : '+'}${formatPercentage(portfolio.periodReturns[returnsPeriod]!.abs(), 'GBP')}',
+                                      style: TextStyle(
+                                          fontSize: lowerTextSize,
+                                          color: portfolio.periodReturns[returnsPeriod]! >= 0 ? Colors.green[300] : Colors.red[300])),
+                                ],
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  )
                 ],
               ),
             ),
