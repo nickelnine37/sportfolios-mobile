@@ -6,6 +6,7 @@ import '../../data/utils/casting.dart';
 import '../api/requests.dart';
 import '../lmsr/lmsr.dart';
 
+
 abstract class Market {
   // ----- core attributes -----
   late String id;
@@ -13,6 +14,7 @@ abstract class Market {
 
   // ----- basic attributes -----
   String? name;
+  String? nameShort;
   List<String>? searchTerms;
   DateTime? startDate;
   DateTime? endDate;
@@ -116,6 +118,7 @@ class PlayerMarket extends Market {
   void addSnapshotInfo(DocumentSnapshot snapshot) {
     super.addSnapshotInfo(snapshot);
     name = splitLongName(snapshot['name'], 20, 'player');
+    nameShort = splitLongName(snapshot['name'], 15, 'player');
 
     info1 = snapshot['country_flag'];
 
@@ -202,7 +205,8 @@ class TeamMarket extends Market {
   void addSnapshotInfo(DocumentSnapshot snapshot) {
     super.addSnapshotInfo(snapshot);
 
-    name = splitLongName(snapshot['name'], 20, 'team');
+    name = snapshot['name'].length! > 19 ? splitLongName(snapshot['name'], 20, 'team') : snapshot['name'];
+    nameShort = splitLongName(snapshot['name'], 20, 'team');
     info1 = "P ${snapshot['played']}";
     info2 = "GD ${snapshot['goal_difference'] > 0 ? '+' : '-'}${snapshot['goal_difference'].abs()}";
     info3 = "PTS ${snapshot['points']}";
