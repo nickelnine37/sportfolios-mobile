@@ -27,7 +27,7 @@ class MarketTile extends StatelessWidget {
     this.imageHeight = 50.0,
     this.padding = const EdgeInsets.symmetric(vertical: 10, horizontal: 10),
   });
-  
+
   @override
   Widget build(BuildContext context) {
     return InkWell(
@@ -44,67 +44,112 @@ class MarketTile extends StatelessWidget {
         height: height,
         padding: padding,
         child: Row(children: [
-          market.imageURL != null
-              ? Container(
-                  height: imageHeight,
-                  width: imageHeight,
-                  child: CachedNetworkImage(
-                    imageUrl: market.imageURL!,
-                    height: imageHeight,
-                  ),
-                )
-              : Container(height: imageHeight),
           Expanded(
+            flex: 1,
+            child: FittedBox(
+              fit: BoxFit.scaleDown,
+              alignment: Alignment.center,
+              child: Container(
+                height: imageHeight,
+                width: imageHeight,
+                child: market.imageURL == null
+                    ? null
+                    : CachedNetworkImage(
+                        imageUrl: market.imageURL!,
+                        height: imageHeight,
+                      ),
+              ),
+            ),
+          ),
+          Expanded(
+            flex: 6,
             child: Container(
               padding: EdgeInsets.only(left: 20),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
+                  Expanded(
+                    flex: 10,
+                    child: Container(
+                      width: double.infinity,
+                      // color: Colors.red.withOpacity(0.3),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          Text(market.name!, style: TextStyle(fontSize: upperTextSize)),
-                          SizedBox(height: spacing),
-                          Text(
-                            '${market.info1} • ${market.info2} • ${market.info3}',
-                            style: TextStyle(fontSize: lowerTextSize, color: Colors.grey[600]),
+                          FittedBox(
+                            fit: BoxFit.scaleDown,
+                            alignment: Alignment.topCenter,
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(market.name!, style: TextStyle(fontSize: upperTextSize)),
+                                SizedBox(height: spacing),
+                                Text(
+                                  '${market.info1} • ${market.info2} • ${market.info3}',
+                                  style: TextStyle(fontSize: lowerTextSize, color: Colors.grey[600]),
+                                ),
+                              ],
+                            ),
                           ),
+                          FittedBox(
+                            fit: BoxFit.scaleDown,
+                            alignment: Alignment.topCenter,
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.end,
+                              children: [
+                                Text(
+                                  formatCurrency(market.longPriceCurrent, 'GBP'),
+                                  style: TextStyle(fontSize: upperTextSize),
+                                ),
+                                SizedBox(height: spacing),
+                                Text(
+                                    '${market.longPriceReturnsHist![returnsPeriod]! < 0 ? '-' : '+'}${formatPercentage((market.longPriceReturnsHist![returnsPeriod]!).abs(), 'GBP')}  (${market.longPriceReturnsHist![returnsPeriod]! < 0 ? '-' : '+'}${formatCurrency((market.longPriceHist![returnsPeriod]!.last - market.longPriceHist![returnsPeriod]!.first).abs(), 'GBP')})',
+                                    style: TextStyle(
+                                        fontSize: lowerTextSize,
+                                        color: (market.longPriceReturnsHist![returnsPeriod]!) >= 0 ? Colors.green[300] : Colors.red[300])),
+                              ],
+                            ),
+                          )
                         ],
                       ),
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.end,
-                        children: [
-                          Text(
-                            formatCurrency(market.longPriceCurrent, 'GBP'),
-                            style: TextStyle(fontSize: upperTextSize),
-                          ),
-                          SizedBox(height: spacing),
-                          Text(
-                              '${market.longPriceReturnsHist![returnsPeriod]! < 0 ? '-' : '+'}${formatPercentage((market.longPriceReturnsHist![returnsPeriod]!).abs(), 'GBP')}  (${market.longPriceReturnsHist![returnsPeriod]! < 0 ? '-' : '+'}${formatCurrency((market.longPriceHist![returnsPeriod]!.last - market.longPriceHist![returnsPeriod]!.first).abs(), 'GBP')})',
-                              style: TextStyle(
-                                  fontSize: 12,
-                                  color: (market.longPriceReturnsHist![returnsPeriod]!) >= 0 ? Colors.green[300] : Colors.red[300])),
-                        ],
-                      )
-                    ],
+                    ),
                   ),
                   Expanded(
+                    flex: 10,
                     child: Container(
                       padding: EdgeInsets.only(top: 10, bottom: 0, left: 10, right: 10),
                       width: double.infinity,
                       child: CustomPaint(painter: MiniPriceChartPainter(pathY: market.longPriceHist![returnsPeriod]!)),
                     ),
                   ),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Text(<String, String>{'d': '-24h', 'w': '-1w', 'm': '-1mth', 'M': 'start'}[returnsPeriod]!,
-                          style: TextStyle(fontSize: 11, color: Colors.grey[500])),
-                      Text('now', style: TextStyle(fontSize: 11, color: Colors.grey[500]))
-                    ],
+                  Expanded(
+                    flex: 3,
+                    child: Container(
+                      width: double.infinity,
+                      // color: Colors.blue.withOpacity(0.2),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          FittedBox(
+                            fit: BoxFit.scaleDown,
+                            child: Text(
+                              <String, String>{'d': '-24h', 'w': '-1w', 'm': '-1mth', 'M': 'start'}[returnsPeriod]!,
+                              style: TextStyle(
+                                fontSize: 11,
+                                color: Colors.grey[500],
+                              ),
+                            ),
+                          ),
+                          FittedBox(
+                            fit: BoxFit.scaleDown,
+                            child: Text(
+                              'now',
+                              style: TextStyle(fontSize: 11, color: Colors.grey[500]),
+                            ),
+                          )
+                        ],
+                      ),
+                    ),
                   )
                 ],
               ),

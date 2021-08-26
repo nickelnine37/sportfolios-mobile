@@ -137,7 +137,7 @@ class _MainViewState extends State<MainView> {
           children: [
             MarketScroll(league: league, marketType: 'teams'),
             // MarketScroll(league, 'teams'),
-            MarketScroll(league: league, marketType:'players'),
+            MarketScroll(league: league, marketType: 'players'),
             // MarketScroll(league, 'players'),
           ],
         ),
@@ -172,10 +172,7 @@ class LeagueProgressBar extends StatelessWidget {
   final Color paintColor2;
 
   const LeagueProgressBar(
-      {this.leagueOrMarket,
-      this.textColor = Colors.white,
-      this.paintColor1 = Colors.blue,
-      this.paintColor2 = Colors.grey});
+      {this.leagueOrMarket, this.textColor = Colors.white, this.paintColor1 = Colors.blue, this.paintColor2 = Colors.grey});
 
   @override
   Widget build(BuildContext context) {
@@ -185,14 +182,23 @@ class LeagueProgressBar extends StatelessWidget {
         SizedBox(height: 18),
         Container(
             width: double.infinity,
-            child:
-                CustomPaint(painter: LeagueProgressBarPainter(leagueOrMarket, this.paintColor1, this.paintColor2))),
+            child: CustomPaint(painter: LeagueProgressBarPainter(leagueOrMarket, this.paintColor1, this.paintColor2))),
         SizedBox(height: 8),
         Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
-          Text(DateFormat('d MMM yy').format(leagueOrMarket.startDate),
-              style: TextStyle(fontSize: 14.0, color: textColor)),
-          Text(DateFormat('d MMM yy').format(leagueOrMarket.endDate),
-              style: TextStyle(fontSize: 14.0, color: textColor))
+          FittedBox(
+            fit: BoxFit.scaleDown, 
+            child: Text(
+              DateFormat('d MMM yy').format(leagueOrMarket.startDate),
+              style: TextStyle(fontSize: 14.0, color: textColor),
+            ),
+          ),
+          FittedBox(
+            fit: BoxFit.scaleDown, 
+            child: Text(
+              DateFormat('d MMM yy').format(leagueOrMarket.endDate),
+              style: TextStyle(fontSize: 14.0, color: textColor),
+            ),
+          )
         ]),
       ]),
     );
@@ -221,20 +227,17 @@ class LeagueProgressBarPainter extends CustomPainter {
       ..strokeWidth = 5.0;
 
     int now;
-    
+
     if (DateTime.now().millisecondsSinceEpoch > leagueOrMarket.endDate.millisecondsSinceEpoch) {
       now = leagueOrMarket.endDate.millisecondsSinceEpoch;
-    }
-    else if (DateTime.now().millisecondsSinceEpoch < leagueOrMarket.startDate.millisecondsSinceEpoch) {
+    } else if (DateTime.now().millisecondsSinceEpoch < leagueOrMarket.startDate.millisecondsSinceEpoch) {
       now = leagueOrMarket.startDate.millisecondsSinceEpoch;
-    }
-    else {
+    } else {
       now = DateTime.now().millisecondsSinceEpoch;
     }
 
-    double fractionComplete =
-        (now - leagueOrMarket.startDate.millisecondsSinceEpoch) /
-            (leagueOrMarket.endDate.millisecondsSinceEpoch - leagueOrMarket.startDate.millisecondsSinceEpoch);
+    double fractionComplete = (now - leagueOrMarket.startDate.millisecondsSinceEpoch) /
+        (leagueOrMarket.endDate.millisecondsSinceEpoch - leagueOrMarket.startDate.millisecondsSinceEpoch);
 
     Path pathProgress = Path();
     pathProgress.moveTo(0, size.height / 2);
