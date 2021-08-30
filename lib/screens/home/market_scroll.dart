@@ -87,8 +87,16 @@ class MarketScrollState extends State<MarketScroll> with AutomaticKeepAliveClien
   void _refreshState() {
     _defaultMarketFetcher = widget.league != null
         ? LeagueMarketFetcher(
-            leagueID: widget.league!.leagueID, marketType: widget.marketType, sortByField: sortByField, sortByDescending: sortByDescending)
-        : TeamPlayerMarketFetcher(teamId: widget.teamId!, sortByField: sortByField, sortByDescending: sortByDescending);
+            leagueID: widget.league!.leagueID,
+            marketType: widget.marketType,
+            sortByField: sortByField,
+            sortByDescending: sortByDescending,
+          )
+        : PLayersInTeamMarketFetcher(
+            teamId: widget.teamId!,
+            sortByField: sortByField,
+            sortByDescending: sortByDescending,
+          );
     _searchQueryMarketFetcher = null;
     _selectedMarketFetcher = _defaultMarketFetcher;
     _marketsFuture = _selectedMarketFetcher!.get10();
@@ -139,11 +147,13 @@ class MarketScrollState extends State<MarketScroll> with AutomaticKeepAliveClien
                                       search: value.trim().toLowerCase(),
                                       leagueID: widget.league!.leagueID,
                                       marketType: widget.marketType,
-                                      alreadyLoaded: _defaultMarketFetcher!.loadedResults)
+                                      alreadyLoaded: _defaultMarketFetcher!.loadedResults,
+                                    )
                                   : TeamPlayerSearchMarketFetcher(
                                       search: value.trim().toLowerCase(),
                                       teamId: widget.teamId,
-                                      alreadyLoaded: _defaultMarketFetcher!.loadedResults);
+                                      alreadyLoaded: _defaultMarketFetcher!.loadedResults,
+                                    );
                               await _searchQueryMarketFetcher!.get10();
                               _selectedMarketFetcher = _searchQueryMarketFetcher;
                               setState(() {});

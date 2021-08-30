@@ -128,6 +128,8 @@ class AuthService {
     // if there is no user signed in, return false
     if (_auth.currentUser == null) return false;
     // else reload user details, and check if they're email-verified
+    print(_auth.currentUser);
+    
     await _auth.currentUser!.reload();
     return _auth.currentUser!.emailVerified;
   }

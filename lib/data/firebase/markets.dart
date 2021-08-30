@@ -109,12 +109,12 @@ class LeagueSearchMarketFetcher extends MarketFetcher {
 }
 
 /// class for fetching markets when there is no particular serach term associated
-class TeamPlayerMarketFetcher extends MarketFetcher {
+class PLayersInTeamMarketFetcher extends MarketFetcher {
   int teamId;
   String sortByField;
   bool sortByDescending;
 
-  TeamPlayerMarketFetcher({
+  PLayersInTeamMarketFetcher({
     required this.teamId,
     required this.sortByField,
     required this.sortByDescending,
