@@ -37,7 +37,7 @@ class _MyAppState extends State<MyApp> {
   /// check whether the user is verified here
   @override
   void initState() {
-    verificationFuture = getVerificationStatus().timeout(Duration(seconds: 7), onTimeout: () {
+    verificationFuture = getVerificationStatus().timeout(Duration(seconds: 10), onTimeout: () {
       setState(() {
         timeoutError = true;
       });
