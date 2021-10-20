@@ -38,7 +38,7 @@ class _MyAppState extends State<MyApp> {
   @override
   void initState() {
     verificationFuture =
-        getVerificationStatus().timeout(Duration(seconds: 7), onTimeout: () {
+        getVerificationStatus().timeout(Duration(seconds: 10), onTimeout: () {
       setState(() {
         timeoutError = true;
       });
