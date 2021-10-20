@@ -37,7 +37,8 @@ class _MyAppState extends State<MyApp> {
   /// check whether the user is verified here
   @override
   void initState() {
-    verificationFuture = getVerificationStatus().timeout(Duration(seconds: 7), onTimeout: () {
+    verificationFuture =
+        getVerificationStatus().timeout(Duration(seconds: 7), onTimeout: () {
       setState(() {
         timeoutError = true;
       });
@@ -54,6 +55,7 @@ class _MyAppState extends State<MyApp> {
   Widget build(BuildContext context) {
     /// our main app widget returns a Material app
     return MaterialApp(
+      debugShowCheckedModeBanner: false,
       title: 'SportFolios Alpha',
       theme: theme,
 
@@ -62,7 +64,8 @@ class _MyAppState extends State<MyApp> {
         future: verificationFuture,
         builder: (context, snapshot) {
           /// run this block when we've completed the verification request
-          if (snapshot.connectionState == ConnectionState.done && !timeoutError) {
+          if (snapshot.connectionState == ConnectionState.done &&
+              !timeoutError) {
             /// user is verified
             if (userIsVerified) {
               print('User verified - continuing to app');
@@ -116,7 +119,9 @@ class BlankPage extends StatelessWidget {
             SizedBox(height: 50),
             Container(
               child: Text(
-                timeoutError ? 'Unable to connect to the internet :\'(\nPlease try again later' : '',
+                timeoutError
+                    ? 'Unable to connect to the internet :\'(\nPlease try again later'
+                    : '',
                 style: TextStyle(color: Colors.red),
                 textAlign: TextAlign.center,
               ),
