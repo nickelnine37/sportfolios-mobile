@@ -1,6 +1,7 @@
 // pop String new Pid if success, null otherwise
 import 'package:flutter/material.dart';
 import '../../../data/api/requests.dart';
+import 'package:english_words/english_words.dart';
 
 class NewPortfolioDialogue extends StatefulWidget {
   @override
@@ -51,7 +52,7 @@ class _NewPortfolioDialogueState extends State<NewPortfolioDialogue> {
                             width: 100,
                             height: 40,
                             child: TextFormField(
-                              decoration: InputDecoration(hintText: 'MyPortfolio'),
+                              decoration: InputDecoration(hintText: WordPair.random().asCamelCase),
                               onChanged: (String value) {
                                 name = value;
                               },
@@ -70,7 +71,7 @@ class _NewPortfolioDialogueState extends State<NewPortfolioDialogue> {
                       ),
                       SizedBox(height: 30),
                       Align(
-                        child: Text('Description', style: TextStyle(fontSize: 16)),
+                        child: Text('Description (optional)', style: TextStyle(fontSize: 16)),
                         alignment: Alignment.centerLeft,
                       ),
                       SizedBox(height: 10),

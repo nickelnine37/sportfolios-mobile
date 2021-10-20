@@ -105,7 +105,7 @@ class _HoldingsState extends State<Holdings> {
       if (widget.portfolio!.currentValues[market]! < 0.01) {
         sortedValues.remove(market);
       }
-    }  
+    }
 
     return FutureBuilder(
         future: portfolioUpdateFuture,
@@ -249,13 +249,17 @@ class _HoldingsState extends State<Holdings> {
                               headerBuilder: (BuildContext context, bool itemIsExpanded) {
                                 return ListTile(
                                   onTap: () {
-                                    Navigator.of(context).push(MaterialPageRoute<void>(builder: (BuildContext context) {
-                                      if (market.runtimeType == TeamMarket) {
-                                        return TeamDetails(market, null);
-                                      } else {
-                                        return PlayerDetails(market, null);
-                                      }
-                                    }));
+                                    Navigator.of(context).push(
+                                      MaterialPageRoute<void>(
+                                        builder: (BuildContext context) {
+                                          if (market.runtimeType == TeamMarket) {
+                                            return TeamDetails(market, null);
+                                          } else {
+                                            return PlayerDetails(market, null);
+                                          }
+                                        },
+                                      ),
+                                    );
                                   },
                                   title: Container(
                                     padding: const EdgeInsets.symmetric(vertical: 10),
@@ -376,11 +380,10 @@ class _HoldingsState extends State<Holdings> {
                                                           child: LongShortGraph(quantity: holding, height: 250)),
                                                     ),
                                               TabbedPriceGraph(
-                                                priceHistory: widget.portfolio!.aggregateTransactions(marketId),
-                                                times: widget.portfolio!.times,
-                                                include_return: false,
-                                                height: 220
-                                              )
+                                                  priceHistory: widget.portfolio!.aggregateTransactions(marketId),
+                                                  times: widget.portfolio!.times,
+                                                  include_return: false,
+                                                  height: 220)
                                             ],
                                           ),
                                         ),
@@ -423,7 +426,6 @@ class _HoldingsState extends State<Holdings> {
         });
   }
 }
-
 
 class PickAColor extends StatefulWidget {
   final String name;

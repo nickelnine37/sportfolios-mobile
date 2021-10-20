@@ -41,7 +41,7 @@ class _TeamDetailsState extends State<TeamDetails> with SingleTickerProviderStat
   double graphPadding = 35;
   double graphHeight = 150.0;
   double? graphWidth;
-  bool locked = true;
+  bool editMode = false;
 
   InfoBox longInfo = InfoBox(title: 'Long contract', pages: [
     MiniInfoPage(
@@ -88,7 +88,7 @@ class _TeamDetailsState extends State<TeamDetails> with SingleTickerProviderStat
         Transform.rotate(angle: 3.14159 / 2, child: Icon(Icons.vertical_align_center, size: 80)),
         Colors.blue[600]),
     MiniInfoPage(
-        'Design your own binary contract by dragging the cut-off in the payout graph. Once you\'re done, hit the lock switch to keep your selected payout structure in place. Once locked, touch each bar to view the exact payout.',
+        'Design your own binary contract by dragging the cut-off in the payout graph. Once you\'re done, exit edit mode to keep your selected payout structure in place. Now you can touch each bar to view the exact payout.',
         Transform.scale(
             scale: 1.8,
             child: Switch(
@@ -109,7 +109,7 @@ class _TeamDetailsState extends State<TeamDetails> with SingleTickerProviderStat
         Icon(Icons.bar_chart, size: 80),
         Colors.blue[600]),
     MiniInfoPage(
-        'Hit the lock switch to keep your selected payout structure in place. Once locked, touch each bar to view the exact payout.',
+        'Exit out of edit mode to keep your selected payout structure in place. Now you can touch each bar to view the exact payout.',
         Transform.scale(
             scale: 1.8,
             child: Switch(
@@ -131,9 +131,9 @@ class _TeamDetailsState extends State<TeamDetails> with SingleTickerProviderStat
       selected = _tabController!.index;
       setState(() {
         if (selected == 0 || selected == 1) {
-          locked = true;
+          editMode = false;
         } else {
-          locked = false;
+          editMode = true;
         }
       });
     });
@@ -148,7 +148,7 @@ class _TeamDetailsState extends State<TeamDetails> with SingleTickerProviderStat
   }
 
   void _updateBars(Offset position) {
-    if (locked) {
+    if (!editMode) {
       return;
     }
 
@@ -335,7 +335,7 @@ class _TeamDetailsState extends State<TeamDetails> with SingleTickerProviderStat
                               double pcComplete = (g1 == g2) ? 0 : (_tabController!.animation!.value - g1) / (g2 - g1);
                               Array q = qs![g1].scale(1 - pcComplete) + qs![g2].scale(pcComplete);
 
-                              return PayoutGraph(q: q, tappable: locked, padding: graphPadding, height: graphHeight);
+                              return PayoutGraph(q: q, tappable: !editMode, padding: graphPadding, height: graphHeight);
                             }),
                       ),
                       //                 Row(
@@ -347,17 +347,17 @@ class _TeamDetailsState extends State<TeamDetails> with SingleTickerProviderStat
                             Row(
                               children: [
                                 Switch(
-                                  value: locked,
+                                  value: editMode,
                                   onChanged: (selected == 0 || selected == 1)
                                       ? null
                                       : (bool val) {
                                           setState(() {
-                                            locked = val;
+                                            editMode = val;
                                           });
                                         },
                                 ),
                                 Text(
-                                  'Lock payout',
+                                  'Edit Mode',
                                   style: TextStyle(color: (selected == 0 || selected == 1) ? Colors.grey[600] : Colors.grey[850]),
                                 ),
                               ],
