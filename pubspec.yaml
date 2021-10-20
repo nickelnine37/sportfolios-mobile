@@ -52,7 +52,7 @@ dev_dependencies:
 flutter_icons:
   android: true
   ios: true
-  image_path_ios: "assets/icon/logo_no_alpha.png"
+  image_path_ios: "assets/icon/logo-no-alpha.png"
   image_path_android: "assets/icon/logo.png"
   adaptive_icon_background: "assets/icon/background.png"
   adaptive_icon_foreground: "assets/icon/foreground.png"
