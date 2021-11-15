@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:cached_network_image/cached_network_image.dart';
+import 'dart:io' show Platform;
 
 import '../../../data/objects/leagues.dart';
 import '../../../utils/design/colors.dart';
@@ -85,11 +86,9 @@ class _StatsShowState extends State<StatsShow> with SingleTickerProviderStateMix
             Color? textColor = background.computeLuminance() > 0.5 ? Colors.grey[700] : Colors.white;
 
             return DefaultTabController(
-              
               length: 2,
               child: Scaffold(
                 appBar: AppBar(
-                
                   flexibleSpace: Container(
                       decoration: BoxDecoration(
                     gradient: LinearGradient(
@@ -131,7 +130,14 @@ class _StatsShowState extends State<StatsShow> with SingleTickerProviderStateMix
                               Navigator.of(context).pop();
                             },
                           ),
-                          Container(child: CachedNetworkImage(imageUrl: widget.market!.imageURL!, height: 50)),
+                          Container(
+                            height: 50,
+                            child: widget.market!.id.contains('P') | Platform.isAndroid
+                                ? CachedNetworkImage(
+                                    imageUrl: widget.market!.imageURL!,
+                                  )
+                                : Image(image: AssetImage('assets/kits/${widget.market!.rawId}_cropped.png')),
+                          ),
                           SizedBox(width: 15),
                           Column(
                             crossAxisAlignment: CrossAxisAlignment.start,

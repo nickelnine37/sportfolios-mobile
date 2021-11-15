@@ -1,5 +1,6 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
+import 'dart:io' show Platform;
 
 import '../../../data/objects/markets.dart';
 import '../market_scroll.dart';
@@ -15,19 +16,14 @@ class TeamPlayers extends StatefulWidget {
 }
 
 class _TeamPlayersState extends State<TeamPlayers> {
-
   Future<void>? getPlayerInfoFuture;
 
   @override
-  void initState() { 
+  void initState() {
     super.initState();
-    
   }
 
-  Future<void> getPlayerInfo() async {
-
-  }
-
+  Future<void> getPlayerInfo() async {}
 
   @override
   Widget build(BuildContext context) {
@@ -62,7 +58,14 @@ class _TeamPlayersState extends State<TeamPlayers> {
                   Navigator.of(context).pop();
                 },
               ),
-              Container(child: CachedNetworkImage(imageUrl: widget.team!.imageURL!, height: 50)),
+              Container(
+                height: 50,
+                child: Platform.isAndroid
+                    ? CachedNetworkImage(
+                        imageUrl: widget.team!.imageURL!,
+                      )
+                    : Image(image: AssetImage('assets/kits/${widget.team!.rawId}_cropped.png')),
+              ),
               SizedBox(width: 15),
               Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -71,7 +74,7 @@ class _TeamPlayersState extends State<TeamPlayers> {
                   SizedBox(height: 2),
                   Text(
                     'Players',
-                    style: TextStyle(fontSize: 15.0, color: textColor),  // fontWeight: FontWeight.w400),
+                    style: TextStyle(fontSize: 15.0, color: textColor), // fontWeight: FontWeight.w400),
                   )
                 ],
               ),

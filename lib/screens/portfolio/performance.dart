@@ -1,4 +1,5 @@
 import 'dart:math';
+import 'dart:io' show Platform;
 
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
@@ -92,16 +93,14 @@ class _PerformanceState extends State<Performance> {
                                         Row(
                                           mainAxisAlignment: MainAxisAlignment.start,
                                           children: [
-                                            market.imageURL != null
-                                                ? Container(
-                                                    height: imageHeight,
-                                                    width: imageHeight,
-                                                    child: CachedNetworkImage(
+                                            Container(
+                                              height: imageHeight,
+                                              child: market.id.contains('P') | Platform.isAndroid
+                                                  ? CachedNetworkImage(
                                                       imageUrl: market.imageURL!,
-                                                      height: imageHeight,
-                                                    ),
-                                                  )
-                                                : Container(height: imageHeight),
+                                                    )
+                                                  : Image(image: AssetImage('assets/kits/${market.rawId}_cropped.png')),
+                                            ),
                                             SizedBox(width: 15),
                                             Column(
                                               crossAxisAlignment: CrossAxisAlignment.start,
@@ -147,9 +146,12 @@ class _PerformanceState extends State<Performance> {
                       children: [
                         Padding(
                             padding: EdgeInsets.symmetric(horizontal: 25),
-                            child: Text(transaction.price > 0 ? 'Bought for ${formatCurrency(transaction.price, 'GBP')}: ' : 'Sold for ${formatCurrency(-transaction.price, 'GBP')}: ',
+                            child: Text(
+                                transaction.price > 0
+                                    ? 'Bought for ${formatCurrency(transaction.price, 'GBP')}: '
+                                    : 'Sold for ${formatCurrency(-transaction.price, 'GBP')}: ',
                                 style: TextStyle(fontSize: 16, color: Colors.grey[800]))),
-                                SizedBox(height: 10), 
+                        SizedBox(height: 10),
                         marketId.contains('T')
                             ? Container(
                                 height: 250,

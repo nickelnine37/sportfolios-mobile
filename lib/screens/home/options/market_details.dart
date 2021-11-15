@@ -1,6 +1,8 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'dart:math' as math;
+import 'dart:io' show Platform;
+import 'package:palette_generator/palette_generator.dart';
 
 import '../../../data/objects/leagues.dart';
 import '../../../plots/payout_graph.dart';
@@ -42,6 +44,7 @@ class _TeamDetailsState extends State<TeamDetails> with SingleTickerProviderStat
   double graphHeight = 150.0;
   double? graphWidth;
   bool editMode = false;
+  PaletteGenerator? paletteGenerator;
 
   InfoBox longInfo = InfoBox(title: 'Long contract', pages: [
     MiniInfoPage(
@@ -119,12 +122,21 @@ class _TeamDetailsState extends State<TeamDetails> with SingleTickerProviderStat
         Colors.grey[600]),
   ]);
 
+  Future<PaletteGenerator?> _updatePaletteGenerator() async {
+    paletteGenerator = await PaletteGenerator.fromImageProvider(
+      Image.asset("assets/kits/${widget.market.rawId}_cropped.png").image,
+    );
+    setState(() {});
+    return paletteGenerator;
+  }
+
   @override
   void initState() {
     _tabController = TabController(length: 4, vsync: this);
     updateState = Future.wait(<Future>[
       widget.market.getCurrentHoldings(),
       widget.market.getHistoricalHoldings(),
+      _updatePaletteGenerator(),
     ]);
 
     _tabController!.addListener(() {
@@ -213,9 +225,14 @@ class _TeamDetailsState extends State<TeamDetails> with SingleTickerProviderStat
         Array.fromList(range(n!).map((i) => math.sin(2 * i / n! * math.pi) + 1).toList()).scale(5)
       ];
     }
+    Color background;
+    if (paletteGenerator == null) {
+      background = fromHex(widget.market.colours![0]);
+    } else {
+      background = paletteGenerator!.dominantColor!.color;
+    }
 
-    Color background = fromHex(widget.market.colours![0]);
-    Color? textColor = background.computeLuminance() > 0.5 ? Colors.grey[700] : Colors.white;
+    Color? textColor = Colors.grey[800];
 
     return DefaultTabController(
       length: 4,
@@ -224,7 +241,10 @@ class _TeamDetailsState extends State<TeamDetails> with SingleTickerProviderStat
           flexibleSpace: Container(
               decoration: BoxDecoration(
             gradient: LinearGradient(
-                colors: [background, Colors.white],
+                colors: [
+                  Colors.white,
+                  background,
+                ],
                 begin: const FractionalOffset(0.4, 0.5),
                 end: const FractionalOffset(1, 0),
                 stops: [0.0, 1.0],
@@ -269,7 +289,13 @@ class _TeamDetailsState extends State<TeamDetails> with SingleTickerProviderStat
                     Navigator.of(context).pop();
                   },
                 ),
-                Container(child: CachedNetworkImage(imageUrl: widget.market.imageURL!, height: 50)),
+                Container(
+                    child: Platform.isAndroid | widget.market.id.contains('P')
+                        ? CachedNetworkImage(imageUrl: widget.market.imageURL!)
+                        : Image(
+                            image: AssetImage('assets/kits/${widget.market.rawId}_cropped.png'),
+                          ),
+                    height: 50),
                 SizedBox(width: 15),
                 Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -629,7 +655,10 @@ class _PlayerDetailsState extends State<PlayerDetails> with SingleTickerProvider
                               .getHistoricalValue((Array.fromList(selected == 0 ? <double>[10.0, 0.0] : <double>[0.0, 10.0]))),
                           times: widget.market.historicalLMSR!.ts),
                       SizedBox(height: 10),
-                      PageFooter(widget.market, widget.league, )
+                      PageFooter(
+                        widget.market,
+                        widget.league,
+                      )
                     ],
                   ),
                 ),
@@ -807,7 +836,14 @@ class PortfoliosContaining extends StatelessWidget {
                     Navigator.of(context).pop();
                   },
                 ),
-                Container(child: CachedNetworkImage(imageUrl: market.imageURL!, height: 50)),
+                Container(
+                  height: 50,
+                  child: market.id.contains('P') | Platform.isAndroid
+                      ? CachedNetworkImage(
+                          imageUrl: market.imageURL!,
+                        )
+                      : Image(image: AssetImage('assets/kits/${market.rawId}_cropped.png')),
+                ),
                 SizedBox(width: 15),
                 Column(
                   crossAxisAlignment: CrossAxisAlignment.start,

@@ -1,3 +1,5 @@
+import 'dart:io' show Platform;
+
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 
@@ -52,12 +54,14 @@ class MarketTile extends StatelessWidget {
               child: Container(
                 height: imageHeight,
                 width: imageHeight,
-                child: market.imageURL == null
-                    ? null
-                    : CachedNetworkImage(
-                        imageUrl: market.imageURL!,
-                        height: imageHeight,
-                      ),
+                child: market.id.contains('P') | Platform.isAndroid
+                    ? (market.imageURL == null
+                        ? null
+                        : CachedNetworkImage(
+                            imageUrl: market.imageURL!,
+                            height: imageHeight,
+                          ))
+                    : Image(image: AssetImage('assets/kits/${market.rawId}_cropped.png')),
               ),
             ),
           ),

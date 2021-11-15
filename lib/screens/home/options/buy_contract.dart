@@ -6,8 +6,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:confetti/confetti.dart';
 import 'package:intl/intl.dart' as intl;
-import 'package:sportfolios_alpha/screens/portfolio/dialogues/new_portfolio.dart';
+import 'dart:io' show Platform;
 
+import 'package:sportfolios_alpha/screens/portfolio/dialogues/new_portfolio.dart';
 import '../../../data/api/requests.dart';
 import '../../../data/firebase/portfolios.dart';
 import '../../../data/objects/markets.dart';
@@ -113,9 +114,13 @@ class _BuyMarketState extends State<BuyMarket> {
                         SizedBox(height: 5),
                         Divider(thickness: 2, height: 25),
                         Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, crossAxisAlignment: CrossAxisAlignment.center, children: [
-                          CachedNetworkImage(
-                            imageUrl: widget.market.imageURL!,
+                          Container(
                             height: 50,
+                            child: widget.market.id.contains('P') | Platform.isAndroid
+                                ? CachedNetworkImage(
+                                    imageUrl: widget.market.imageURL!,
+                                  )
+                                : Image(image: AssetImage('assets/kits/${widget.market.rawId}_cropped.png')),
                           ),
                           Column(
                             children: [

@@ -2,6 +2,7 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:intl/intl.dart';
+import 'dart:io' show Platform;
 
 import '../../data/objects/leagues.dart';
 import 'market_scroll.dart';
@@ -83,7 +84,7 @@ class _MainViewState extends State<MainView> {
                     widget.drawerKey.currentState!.openDrawer();
                   },
                 ),
-                Container(child: CachedNetworkImage(imageUrl: league.imageURL!, height: 50)),
+                Container(child: Platform.isAndroid ? CachedNetworkImage(imageUrl: league.imageURL!) : Container(), height: 50),
                 SizedBox(width: 10),
                 Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -186,14 +187,14 @@ class LeagueProgressBar extends StatelessWidget {
         SizedBox(height: 8),
         Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
           FittedBox(
-            fit: BoxFit.scaleDown, 
+            fit: BoxFit.scaleDown,
             child: Text(
               DateFormat('d MMM yy').format(leagueOrMarket.startDate),
               style: TextStyle(fontSize: 14.0, color: textColor),
             ),
           ),
           FittedBox(
-            fit: BoxFit.scaleDown, 
+            fit: BoxFit.scaleDown,
             child: Text(
               DateFormat('d MMM yy').format(leagueOrMarket.endDate),
               style: TextStyle(fontSize: 14.0, color: textColor),

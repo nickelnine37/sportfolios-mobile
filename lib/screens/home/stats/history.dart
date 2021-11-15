@@ -57,10 +57,10 @@ class _TeamHistoryState extends State<TeamHistory> {
                   mainAxisAlignment: MainAxisAlignment.start,
                   children: [
                     SizedBox(width: 15),
-                    Container(
-                      child: CachedNetworkImage(imageUrl: widget.market.stats![widget.selectedSeason]!['league_image']),
-                      height: 50,
-                    ),
+                    // Container(
+                    //   child: CachedNetworkImage(imageUrl: widget.market.stats![widget.selectedSeason]!['league_image']),
+                    //   height: 50,
+                    // ),
                     SizedBox(width: 10),
                     Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -138,15 +138,15 @@ class _PlayerHistoryState extends State<PlayerHistory> {
           return SingleChildScrollView(
             child: Column(
               children: [
-                 SizedBox(height: 10),
+                SizedBox(height: 10),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.start,
                   children: [
                     SizedBox(width: 15),
-                    Container(
-                      child: CachedNetworkImage(imageUrl: widget.market.stats![widget.selectedSeason]!['league_image']),
-                      height: 50,
-                    ),
+                    // Container(
+                    //   child: CachedNetworkImage(imageUrl: widget.market.stats![widget.selectedSeason]!['league_image']),
+                    //   height: 50,
+                    // ),
                     SizedBox(width: 10),
                     Column(
                       crossAxisAlignment: CrossAxisAlignment.start,

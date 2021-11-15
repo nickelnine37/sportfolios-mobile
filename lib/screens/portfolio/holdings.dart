@@ -2,6 +2,7 @@ import 'dart:collection';
 import 'package:cloud_firestore/cloud_firestore.dart' as fire;
 import 'package:flutter_colorpicker/flutter_colorpicker.dart';
 import 'dart:math' as math;
+import 'dart:io' show Platform;
 
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
@@ -275,16 +276,13 @@ class _HoldingsState extends State<Holdings> {
                                                   Row(
                                                     mainAxisAlignment: MainAxisAlignment.start,
                                                     children: [
-                                                      market.imageURL != null
-                                                          ? Container(
-                                                              height: imageHeight,
-                                                              width: imageHeight,
-                                                              child: CachedNetworkImage(
-                                                                imageUrl: market.imageURL!,
-                                                                height: imageHeight,
-                                                              ),
-                                                            )
-                                                          : Container(height: imageHeight),
+                                                      Container(
+                                                        height: imageHeight,
+                                                        width: imageHeight,
+                                                        child: market.id.contains('P') | Platform.isAndroid
+                                                            ? CachedNetworkImage(imageUrl: market.imageURL!)
+                                                            : Image(image: AssetImage('assets/kits/${market.rawId}_cropped.png')),
+                                                      ),
                                                       SizedBox(width: 15),
                                                       Column(
                                                         crossAxisAlignment: CrossAxisAlignment.start,

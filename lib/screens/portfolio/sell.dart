@@ -6,6 +6,7 @@ import 'package:confetti/confetti.dart';
 import 'package:sportfolios_alpha/screens/portfolio/holdings.dart';
 import 'package:sportfolios_alpha/utils/numerical/arrays.dart';
 import 'package:sportfolios_alpha/utils/numerical/numbers.dart';
+import 'dart:io' show Platform;
 
 import '../../data/api/requests.dart';
 import '../../data/objects/markets.dart';
@@ -112,9 +113,13 @@ class _SellTeamState extends State<SellTeam> {
                         SizedBox(height: 5),
                         Divider(thickness: 2, height: 25),
                         Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, crossAxisAlignment: CrossAxisAlignment.center, children: [
-                          CachedNetworkImage(
-                            imageUrl: widget.market.imageURL!,
+                          Container(
                             height: 50,
+                            child: widget.market.id.contains('P') | Platform.isAndroid
+                                ? CachedNetworkImage(
+                                    imageUrl: widget.market.imageURL!,
+                                  )
+                                : Image(image: AssetImage('assets/kits/${widget.market.rawId}_cropped.png')),
                           ),
                           Column(
                             children: [
@@ -198,25 +203,25 @@ class _SellTeamState extends State<SellTeam> {
                           ],
                         ),
                         // SizedBox(height: 5),
-                         Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            crossAxisAlignment: CrossAxisAlignment.center,
-                            children: [
-                              Text('Sell entire holdings: '),
-                              Checkbox(
-                                  value: sellAll,
-                                  onChanged: (bool? value) {
-                                    setState(() {
-                                      sellAll = !sellAll;
-                                      if (sellAll) {
-                                        qHeldNew = Array.zeros(widget.quantityHeld.length);
-                                      } else {
-                                        qHeldNew = widget.quantityHeld;
-                                      }
-                                    });
-                                  })
-                            ],
-                          ),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          crossAxisAlignment: CrossAxisAlignment.center,
+                          children: [
+                            Text('Sell entire holdings: '),
+                            Checkbox(
+                                value: sellAll,
+                                onChanged: (bool? value) {
+                                  setState(() {
+                                    sellAll = !sellAll;
+                                    if (sellAll) {
+                                      qHeldNew = Array.zeros(widget.quantityHeld.length);
+                                    } else {
+                                      qHeldNew = widget.quantityHeld;
+                                    }
+                                  });
+                                })
+                          ],
+                        ),
                         FutureBuilder(
                           future: _marketFuture,
                           builder: (BuildContext context, AsyncSnapshot snapshot) {
@@ -340,13 +345,13 @@ class _SellPlayerState extends State<SellPlayer> {
                           Text('Contracts held after sale: '),
                           SizedBox(height: 15),
                           TweenAnimationBuilder(
-                            duration: Duration(milliseconds: 300),
-                            curve: Curves.easeOutSine,
-                            tween: Tween<double>(begin: 0.0, end: sellAll ? 0.0 : 1.0),
-                            builder: (context, double value, child) {
-                              return LongShortGraph(quantity: (widget.quantityHeld).scale(value), height: 120, qmax: widget.quantityHeld.max);
-                            }
-                          ),
+                              duration: Duration(milliseconds: 300),
+                              curve: Curves.easeOutSine,
+                              tween: Tween<double>(begin: 0.0, end: sellAll ? 0.0 : 1.0),
+                              builder: (context, double value, child) {
+                                return LongShortGraph(
+                                    quantity: (widget.quantityHeld).scale(value), height: 120, qmax: widget.quantityHeld.max);
+                              }),
                           Row(
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             crossAxisAlignment: CrossAxisAlignment.center,

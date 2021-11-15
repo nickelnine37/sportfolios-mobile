@@ -1,5 +1,6 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
+import 'dart:io' show Platform;
 
 import '../../data/objects/leagues.dart';
 
@@ -95,11 +96,13 @@ class LeagueSelectorDialogue extends StatelessWidget {
                 itemBuilder: (context, i) {
                   return ListTile(
                     title: Text(leagues[i].name!),
-                    leading: Container(
-                      width: 35,
-                      height: 35,
-                      child: CachedNetworkImage(imageUrl: leagues[i].imageURL!),
-                    ),
+                    leading: Platform.isAndroid
+                        ? Container(
+                            width: 35,
+                            height: 35,
+                            child: CachedNetworkImage(imageUrl: leagues[i].imageURL!),
+                          )
+                        : null,
                     trailing: Text(leagues[i].countryFlagEmoji!),
                     onTap: () {
                       Navigator.of(context).pop(leagues[i].leagueID);
